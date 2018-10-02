@@ -30,6 +30,12 @@ class _UwaveServerListState extends State<UwaveServerList> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    this._updateServers();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -43,12 +49,7 @@ class _UwaveServerListState extends State<UwaveServerList> {
                 _servers.map<Widget>((server) => _renderServer(server)).toList(),
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _updateServers,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ),
+      )
     );
   }
 

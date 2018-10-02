@@ -236,3 +236,29 @@ class Playlist {
     );
   }
 }
+
+class HistoryEntry {
+  final String id;
+  final String userID;
+  final String mediaID;
+  final String artist;
+  final String title;
+  final int start;
+  final int end;
+  final DateTime timestamp;
+
+  HistoryEntry(
+      {this.id, this.userID, this.mediaID, this.artist, this.title, this.start, this.end, this.timestamp});
+
+  factory HistoryEntry.fromJson(Map<String, dynamic> json) {
+    return HistoryEntry(
+      id: json['_id'],
+      userID: json['user'],
+      mediaID: json['media']['media'],
+      artist: json['media']['artist'],
+      title: json['media']['title'],
+      start: json['media']['start'],
+      end: json['media']['end'],
+    );
+  }
+}
