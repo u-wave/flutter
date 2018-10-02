@@ -25,23 +25,27 @@ class _UwaveListenState extends State<UwaveListen> {
 
   @override
   Widget build(BuildContext context) {
+    final loadingVideo = widget.server.currentMedia != null
+      ? Image.network(widget.server.currentMedia.thumbnailUrl)
+      : null;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.server.name),
       ),
       body: Column(
         children: <Widget>[
-          Expanded(
-              child: Column(
+          Expanded(child: Column(
             children: <Widget>[
               Flexible(
-                  flex: 1,
-                  child: AspectRatio(
-                    aspectRatio: 16 / 9,
-                    // TODO draw NewPipe onto a Texture instance here
-                    // https://docs.flutter.io/flutter/widgets/Texture-class.html
-                    child: Center(child: Container(color: Color(0xFF000000))),
-                  )),
+                flex: 1,
+                child: Container(color: Color(0xFF000000), child: AspectRatio(
+                  aspectRatio: 16 / 9,
+                  // TODO draw NewPipe onto a Texture instance here
+                  // https://docs.flutter.io/flutter/widgets/Texture-class.html
+                  child: Center(child: loadingVideo),
+                )),
+              ),
               Expanded(
                 flex: 1,
                 child: ChatMessages(messages: _client.chatMessages),
@@ -79,10 +83,13 @@ class _ChatMessagesState extends State<ChatMessages> {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      shrinkWrap: true,
-      itemCount: _messages.length,
-      itemBuilder: (context, index) => ChatMessageView(_messages[index]),
+    return Container(
+      color: Color(0xFF151515),
+      child: ListView.builder(
+        shrinkWrap: true,
+        itemCount: _messages.length,
+        itemBuilder: (context, index) => ChatMessageView(_messages[index]),
+      ),
     );
   }
 }

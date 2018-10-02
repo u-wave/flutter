@@ -33,17 +33,15 @@ class _UwaveServerListState extends State<UwaveServerList> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // Here we take the value from the UwaveServerList object that was created by
-        // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children:
-              _servers.map<Widget>((server) => _renderServer(server)).toList(),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: Center(
+          child: Column(
+            children:
+                _servers.map<Widget>((server) => _renderServer(server)).toList(),
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -66,6 +64,14 @@ class _UwaveServerListState extends State<UwaveServerList> {
             onTap: () {
               _listen(server);
             },
+          ),
+          Center(
+            child: AspectRatio(
+              aspectRatio: 16 / 9,
+              child: server.currentMedia != null
+                ? Image.network(server.currentMedia.thumbnailUrl)
+                : Container(color: Color(0xFF000000)),
+            ),
           ),
         ],
       ),

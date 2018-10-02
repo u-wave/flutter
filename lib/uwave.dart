@@ -91,6 +91,26 @@ class UwaveClient {
   }
 }
 
+class CurrentMedia {
+  final String artist;
+  final String title;
+  final String thumbnailUrl;
+
+  CurrentMedia({
+    this.artist,
+    this.title,
+    this.thumbnailUrl,
+  });
+
+  factory CurrentMedia.fromJson(Map<String, dynamic> json) {
+    return CurrentMedia(
+      artist: json['media']['artist'],
+      title: json['media']['title'],
+      thumbnailUrl: json['media']['thumbnail'],
+    );
+  }
+}
+
 class UwaveServer {
   final String publicKey;
   final String name;
@@ -99,6 +119,7 @@ class UwaveServer {
   final String url;
   final String apiUrl;
   final String socketUrl;
+  final CurrentMedia currentMedia;
 
   UwaveServer({
     this.publicKey,
@@ -108,6 +129,7 @@ class UwaveServer {
     this.url,
     this.apiUrl,
     this.socketUrl,
+    this.currentMedia,
   });
 
   factory UwaveServer.fromJson(Map<String, dynamic> json) {
@@ -119,6 +141,7 @@ class UwaveServer {
       url: json['url'],
       apiUrl: json['apiUrl'],
       socketUrl: json['socketUrl'],
+      currentMedia: json['booth'] != null ? CurrentMedia.fromJson(json['booth']) : null,
     );
   }
 }
