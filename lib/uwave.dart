@@ -65,16 +65,18 @@ class UwaveClient {
 
   UwaveClient({this.apiUrl, socketUrl})
       : _channel = IOWebSocketChannel.connect(socketUrl),
-        socketUrl = socketUrl {
-    this.init();
-  }
+        socketUrl = socketUrl;
 
-  void init() {
+  Future<UwaveNowState> init() async {
     _channel.stream.listen((message) {
       if (message == "-") return;
       final decoded = json.decode(message);
       this._onMessage(SocketMessage.fromJson(decoded));
     });
+
+    final response = await _client.get("$apiUrl/now");
+    final nowJson = json.decode(response.body);
+    return UwaveNowState.fromJson(nowJson);
   }
 
   void _onMessage(message) {
@@ -88,6 +90,32 @@ class UwaveClient {
     if (_channel != null) {
       _channel.sink.close(ws_status.goingAway);
     }
+  }
+}
+
+class UwaveNowState {
+  final String motd;
+  final List<User> users;
+  final HistoryEntry currentEntry;
+  final List<String> waitlist;
+
+  UwaveNowState({
+    this.motd,
+    this.users,
+    this.currentEntry,
+    this.waitlist,
+  });
+
+  factory UwaveNowState.fromJson(Map<String, dynamic> json) {
+
+    return UwaveNowState(
+      motd: json['motd'],
+      users: json['users'].map<User>((u) => User.fromJson(u)).toList(),
+      currentEntry: json['booth'] != null
+        ? HistoryEntry.fromJson(json['booth'])
+        : null,
+      waitlist: json['waitlist'].cast<String>().toList(),
+    );
   }
 }
 
@@ -159,7 +187,7 @@ class User {
       id: json['_id'],
       username: json['username'],
       avatarUrl: json['avatar'],
-      roles: json['roles'],
+      roles: json['roles'].cast<String>(),
     );
   }
 }
@@ -209,10 +237,12 @@ class PlaylistItem {
   PlaylistItem(
       {this.id, this.media, this.artist, this.title, this.start, this.end});
 
-  factory PlaylistItem.fromJson(Map<String, dynamic> json) {
+  factory PlaylistItem.fromJson(Map<String, dynamic> json, [Map<String, Media> medias = Map()]) {
     return PlaylistItem(
       id: json['_id'],
-      media: Media.fromJson(json['media']),
+      media: json['media'] is String
+        ? medias[json['media']]
+        : Media.fromJson(json['media']),
       artist: json['artist'],
       title: json['title'],
       start: json['start'],
@@ -240,7 +270,7 @@ class Playlist {
 class HistoryEntry {
   final String id;
   final String userID;
-  final String mediaID;
+  final Media media;
   final String artist;
   final String title;
   final int start;
@@ -248,13 +278,15 @@ class HistoryEntry {
   final DateTime timestamp;
 
   HistoryEntry(
-      {this.id, this.userID, this.mediaID, this.artist, this.title, this.start, this.end, this.timestamp});
+      {this.id, this.userID, this.media, this.artist, this.title, this.start, this.end, this.timestamp});
 
-  factory HistoryEntry.fromJson(Map<String, dynamic> json) {
+  factory HistoryEntry.fromJson(Map<String, dynamic> json, [Map<String, Media> medias = Map()]) {
     return HistoryEntry(
       id: json['_id'],
       userID: json['user'],
-      mediaID: json['media']['media'],
+      media: json['media']['media'] is String
+        ? medias[json['media']['media']]
+        : Media.fromJson(json['media']['media']),
       artist: json['media']['artist'],
       title: json['media']['title'],
       start: json['media']['start'],
