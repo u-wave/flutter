@@ -1,4 +1,4 @@
-package com.example.uwflutter;
+package net.u_wave.android;
 
 import java.util.Map;
 import java.util.HashMap;
