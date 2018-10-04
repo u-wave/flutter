@@ -169,12 +169,19 @@ class ChatMessageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final avatar = message.user?.avatarUrl != null
+      ? CircleAvatar(
+          backgroundImage: NetworkImage(message.user.avatarUrl),
+        )
+      : CircleAvatar(
+          backgroundColor: Colors.pink.shade800,
+          child: Text('UK'),
+        );
+
     return ListTile(
       dense: true,
-      leading: CircleAvatar(
-        backgroundImage: NetworkImage("https://sigil.u-wave.net/ejemplo"),
-      ),
-      title: Text(message.userID),
+      leading: avatar,
+      title: Text(message.user?.username ?? '<unknown>'),
       subtitle: Text(message.message),
     );
   }

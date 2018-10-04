@@ -38,16 +38,16 @@ class SocketMessage {
 
 class ChatMessage {
   final String id;
-  final String userID;
+  final User user;
   final String message;
   final DateTime timestamp;
 
-  ChatMessage({this.id, this.userID, this.message, this.timestamp});
+  ChatMessage({this.id, this.user, this.message, this.timestamp});
 
-  factory ChatMessage.fromJson(Map<String, dynamic> json) {
+  factory ChatMessage.fromJson(Map<String, dynamic> json, Map<String, User> users) {
     return ChatMessage(
       id: json['id'],
-      userID: json['userID'],
+      user: users != null ? users[json['userID']] : null,
       message: json['message'],
       timestamp: DateTime.fromMillisecondsSinceEpoch(json['timestamp']),
     );
@@ -89,6 +89,8 @@ class UwaveClient {
   Stream<ChatMessage> get chatMessages => _chatMessagesController.stream;
   Stream<HistoryEntry> get advanceMessages => _advanceController.stream;
 
+  final Map<String, User> _knownUsers = Map();
+
   UwaveClient({this.apiUrl, socketUrl})
       : _channel = IOWebSocketChannel.connect(socketUrl),
         socketUrl = socketUrl;
@@ -108,12 +110,16 @@ class UwaveClient {
       _advanceController.add(state.currentEntry);
     }
 
+    state.users.forEach((user) {
+      _knownUsers[user.id] = user;
+    });
+
     return state;
   }
 
   void _onMessage(message) {
     if (message.command == 'chatMessage') {
-      this._chatMessagesController.add(ChatMessage.fromJson(message.data));
+      this._chatMessagesController.add(ChatMessage.fromJson(message.data, _knownUsers));
     }
     if (message.command == 'advance') {
       final advance = AdvanceMessage.fromJson(message.data);
