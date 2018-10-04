@@ -1,11 +1,23 @@
-# uw_flutter
+# üWave for Android
 
-A new Flutter project.
+A [Flutter](https://flutter.io) and [NewPipe](https://newpipe.schabi.org) based client for [üWave](https://u-wave.net)!
 
 ## Getting Started
 
-For help getting started with Flutter, view our online
-[documentation](https://flutter.io/).
+First [install Flutter](https://flutter.io/get-started/install/).
+
+Then, clone the repo:
+
+```bash
+git clone https://github.com/u-wave/android.git u-wave-android
+cd u-wave-android
+```
+
+And run the app:
+
+```bash
+flutter run
+```
 
 ## License
 
