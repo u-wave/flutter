@@ -40,26 +40,35 @@ class _UwaveListenState extends State<UwaveListen> {
       throw MissingPluginException('Unknown method ${methodCall.method}');
     });
 
-    final init = _playerTexture == null
-      ?  playerChannel.invokeMethod('init').then((result) {
-        _playerTexture = result as int;
-        return _client.init();
-      })
-      : _client.init();
-
-    init.then((now) {
+    _client.advanceMessages.listen((entry) {
       setState(() {
-        if (now.currentEntry != null) {
-          _play(now.currentEntry);
+        if (entry != null) {
+          _play(entry);
+        } else {
+          // _stop();
         }
       });
     });
+
+    if (_playerTexture == null) {
+      playerChannel.invokeMethod('init').then((result) {
+        setState(() {
+          _playerTexture = result as int;
+          debugPrint('Using _playerTexture ${_playerTexture}');
+        });
+        return _client.init();
+      });
+    } else {
+      _client.init();
+    }
   }
 
   _play(HistoryEntry entry) {
+    debugPrint('Playing entry ${entry.media.artist} - ${entry.media.title} on surface $_playerTexture');
     playerChannel.invokeMethod('play', <String, String>{
       'sourceType': entry.media.sourceType,
       'sourceID': entry.media.sourceID,
+      'audioOnly': 'true',
     });
     _playing = entry;
   }
@@ -72,7 +81,9 @@ class _UwaveListenState extends State<UwaveListen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.server.name),
+        title: _playing == null
+          ? Text(widget.server.name)
+          : CurrentMediaTitle(artist: _playing.artist, title: _playing.title),
       ),
       body: Column(
         children: <Widget>[
@@ -165,6 +176,32 @@ class ChatMessageView extends StatelessWidget {
       ),
       title: Text(message.userID),
       subtitle: Text(message.message),
+    );
+  }
+}
+
+class CurrentMediaTitle extends StatelessWidget {
+  final String artist;
+  final String title;
+
+  CurrentMediaTitle({ this.artist, this.title });
+
+  @override
+  Widget build(BuildContext context) {
+    return RichText(
+      softWrap: false,
+      overflow: TextOverflow.fade,
+      text: TextSpan(
+        style: Theme.of(context).primaryTextTheme.title,
+        children: <TextSpan>[
+          TextSpan(text: artist),
+          const TextSpan(text: ' – '),
+          TextSpan(
+            text: title,
+            style: TextStyle(color: Colors.white.withOpacity(0.7),
+          )),
+        ],
+      ),
     );
   }
 }

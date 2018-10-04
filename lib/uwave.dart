@@ -54,6 +54,29 @@ class ChatMessage {
   }
 }
 
+class AdvanceMessage {
+  final HistoryEntry entry;
+
+  AdvanceMessage({this.entry});
+
+  factory AdvanceMessage.fromJson(Map<String, dynamic> json) {
+    if (json == null) {
+      return AdvanceMessage(entry: null);
+    }
+
+    final entry = HistoryEntry(
+      id: json['historyID'],
+      userID: json['userID'],
+      media: Media.fromJson(json['media']['media']),
+      artist: json['media']['artist'],
+      title: json['media']['title'],
+      start: json['media']['start'],
+      end: json['media']['end'],
+      timestamp: DateTime.fromMillisecondsSinceEpoch(json['playedAt']),
+    );
+    return AdvanceMessage(entry: entry);
+  }
+}
 class UwaveClient {
   final String apiUrl;
   final String socketUrl;
@@ -61,7 +84,10 @@ class UwaveClient {
   final WebSocketChannel _channel;
   final StreamController<ChatMessage> _chatMessagesController =
       StreamController.broadcast();
+  final StreamController<HistoryEntry> _advanceController =
+      StreamController.broadcast();
   Stream<ChatMessage> get chatMessages => _chatMessagesController.stream;
+  Stream<HistoryEntry> get advanceMessages => _advanceController.stream;
 
   UwaveClient({this.apiUrl, socketUrl})
       : _channel = IOWebSocketChannel.connect(socketUrl),
@@ -76,12 +102,22 @@ class UwaveClient {
 
     final response = await _client.get("$apiUrl/now");
     final nowJson = json.decode(response.body);
-    return UwaveNowState.fromJson(nowJson);
+    final state = UwaveNowState.fromJson(nowJson);
+
+    if (state.currentEntry != null) {
+      _advanceController.add(state.currentEntry);
+    }
+
+    return state;
   }
 
   void _onMessage(message) {
-    if (message.command == "chatMessage") {
+    if (message.command == 'chatMessage') {
       this._chatMessagesController.add(ChatMessage.fromJson(message.data));
+    }
+    if (message.command == 'advance') {
+      final advance = AdvanceMessage.fromJson(message.data);
+      this._advanceController.add(advance.entry);
     }
   }
 

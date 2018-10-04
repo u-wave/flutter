@@ -36,8 +36,10 @@ import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 
 import org.schabi.newpipe.extractor.NewPipe;
+import org.schabi.newpipe.extractor.stream.Stream;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipe.extractor.stream.AudioStream;
+import org.schabi.newpipe.extractor.stream.VideoStream;
 import org.schabi.newpipe.extractor.exceptions.ExtractionException;
 
 public class MainActivity extends FlutterActivity {
@@ -83,9 +85,8 @@ public class MainActivity extends FlutterActivity {
   void onInit(final Result result) {
     Registrar registrar = registrarFor("u-wave.net/player");
     TextureRegistry textures = registrar.textures();
-    SurfaceTextureEntry textureEntry = textures.createSurfaceTexture();;
+    SurfaceTextureEntry textureEntry = textures.createSurfaceTexture();
     surface = new Surface(textureEntry.surfaceTexture());
-    player.setVideoSurface(surface);
     player.setPlayWhenReady(true);
     result.success(textureEntry.id());
   }
@@ -93,6 +94,8 @@ public class MainActivity extends FlutterActivity {
   void onPlay(Map<String, String> data, final Result result) {
     final String sourceType = data.get("sourceType");
     final String sourceID = data.get("sourceID");
+    final boolean audioOnly = data.get("audioOnly").equals("true");
+
     if (sourceType == null) {
       result.error("MissingParameter", "Missing parameter \"sourceType\"", null);
       return;
@@ -102,6 +105,7 @@ public class MainActivity extends FlutterActivity {
       return;
     }
 
+    player.setVideoSurface(surface);
     new Thread(new Runnable() {
       public void run() {
         try {
@@ -109,7 +113,11 @@ public class MainActivity extends FlutterActivity {
           String sourceURL = getSourceURLFor(sourceType, sourceID);
 
           StreamInfo info = StreamInfo.getInfo(NewPipe.getService(sourceName), sourceURL);
-          AudioStream bestStream = getBestAudioStream(info);
+
+          System.out.println("is audioOnly? " + (audioOnly ? "true" : "false"));
+          Stream bestStream = audioOnly
+            ? getBestAudioStream(info)
+            : getVideoStream(info);
 
           final Uri uri = Uri.parse(bestStream.getUrl());
           MediaSource mediaSource = getMediaSource(uri);
@@ -137,6 +145,10 @@ public class MainActivity extends FlutterActivity {
       }
     }
     return bestStream;
+  }
+
+  private VideoStream getVideoStream(StreamInfo info) {
+    return info.getVideoStreams().get(0);
   }
 
   private MediaSource getMediaSource(Uri uri) {
