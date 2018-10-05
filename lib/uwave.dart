@@ -223,14 +223,18 @@ class UwaveNowState {
         users[user.id] = user;
       });
 
+    final serverTime = DateTime.fromMillisecondsSinceEpoch(json['time']);
+    final tempSyncher = TimeSynchronizer();
+    tempSyncher.serverTime = serverTime;
+
     return UwaveNowState(
       motd: json['motd'],
       users: users,
       currentEntry: json['booth'] != null
-        ? HistoryEntry.fromJson(json['booth'], users: users)
+        ? HistoryEntry.fromJson(json['booth'], users: users, serverTime: tempSyncher)
         : null,
       waitlist: json['waitlist'].cast<String>().toList(),
-      serverTime: DateTime.fromMillisecondsSinceEpoch(json['time']),
+      serverTime: serverTime,
     );
   }
 }
@@ -409,8 +413,9 @@ class HistoryEntry {
       title: json['media']['title'],
       start: json['media']['start'],
       end: json['media']['end'],
-      timestamp: serverTime.toLocal(
-          DateTime.parse(json['playedAt'])),
+      timestamp: serverTime.toLocal(json['playedAt'] is int
+          ? DateTime.fromMillisecondsSinceEpoch(json['playedAt'])
+          : DateTime.parse(json['playedAt'])),
     );
   }
 }
