@@ -108,7 +108,7 @@ class _UwaveListenState extends State<UwaveListen> {
   Widget build(BuildContext context) {
     Widget player;
     if (_playing != null) {
-      player = PlayerView(textureId: _playerTexture, progress: 0.5);
+      player = PlayerView(textureId: _playerTexture, entry: _playing);
     } else if (_clientConnected) {
       // nobody playing right now
       player = Container();
@@ -151,9 +151,9 @@ class _UwaveListenState extends State<UwaveListen> {
 
 class PlayerView extends StatelessWidget {
   final int textureId;
-  final double progress;
+  final HistoryEntry entry;
 
-  PlayerView({this.textureId, this.progress});
+  PlayerView({this.textureId, this.entry});
 
   @override
   Widget build(BuildContext context) {
@@ -169,10 +169,62 @@ class PlayerView extends StatelessWidget {
                 : Texture(textureId: textureId)
             ),
           ),
-          LinearProgressIndicator(value: 0.5),
+          MediaProgressBar(
+            startTime: entry.timestamp,
+            startOffset: entry.start,
+            endOffset: entry.end,
+          ),
         ],
       ),
     );
+  }
+}
+
+class MediaProgressBar extends StatefulWidget {
+  final DateTime startTime;
+  final int startOffset;
+  final int endOffset;
+
+  MediaProgressBar({this.startTime, this.startOffset, this.endOffset});
+
+  @override
+  _MediaProgressBarState createState() => new _MediaProgressBarState();
+}
+
+class _MediaProgressBarState extends State<MediaProgressBar> {
+  Timer _timer;
+  double _progress = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      _update();
+    });
+    _update();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _timer.cancel();
+  }
+
+  void _update() {
+    final start = widget.startTime.add(Duration(seconds: widget.startOffset));
+    final current = DateTime.now().difference(widget.startTime);
+    final offset = current.inSeconds;
+    final duration = widget.endOffset - widget.startOffset;
+
+    setState(() {
+      _progress = offset / duration;
+    });
+  }
+
+  @override
+  Widget build(_) {
+    return LinearProgressIndicator(value: _progress);
   }
 }
 
