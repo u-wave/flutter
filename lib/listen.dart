@@ -20,6 +20,7 @@ class _UwaveListenState extends State<UwaveListen> {
   UwaveClient _client;
   bool _inited = false;
   HistoryEntry _playing = null;
+  StreamSubscription<HistoryEntry> _advanceSubscription;
 
   @override
   initState() {
@@ -36,7 +37,7 @@ class _UwaveListenState extends State<UwaveListen> {
       throw MissingPluginException('Unknown method ${methodCall.method}');
     });
 
-    _client.advanceMessages.listen((entry) {
+    _advanceSubscription = _client.advanceMessages.listen((entry) {
       setState(() {
         if (entry != null) {
           _play(entry);
@@ -69,6 +70,7 @@ class _UwaveListenState extends State<UwaveListen> {
   @override
   dispose() {
     super.dispose();
+    _advanceSubscription.cancel();
     _stop();
   }
 
@@ -188,6 +190,8 @@ class ChatMessages extends StatefulWidget {
 
 class _ChatMessagesState extends State<ChatMessages> {
   final List<dynamic> _messages = [];
+  StreamSubscription<ChatMessage> _chatSubscription;
+  StreamSubscription<dynamic> _notificationsSubscription;
 
   static _isSupportedNotification(message) {
     return message is UserJoinMessage ||
@@ -195,21 +199,30 @@ class _ChatMessagesState extends State<ChatMessages> {
   }
 
   @override
-  initState() {
+  void initState() {
     super.initState();
 
-    widget.messages.listen((message) {
+    _chatSubscription = widget.messages.listen((message) {
       setState(() {
         _messages.add(message);
       });
     });
-    widget.notifications.listen((message) {
+    _notificationsSubscription = widget.notifications.listen((message) {
       setState(() {
         if (_isSupportedNotification(message)) {
           _messages.add(message);
         }
       });
     });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _chatSubscription.cancel();
+    _notificationsSubscription.cancel();
+    _chatSubscription = null;
+    _notificationsSubscription = null;
   }
 
   @override
