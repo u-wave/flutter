@@ -18,6 +18,12 @@ import io.flutter.view.TextureRegistry.SurfaceTextureEntry;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 
 import com.google.android.exoplayer2.C;
+import com.google.android.exoplayer2.Timeline;
+import com.google.android.exoplayer2.PlaybackParameters;
+import com.google.android.exoplayer2.Player;
+import com.google.android.exoplayer2.ExoPlaybackException;
+import com.google.android.exoplayer2.source.TrackGroupArray;
+import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.util.Util;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.ExoPlayerFactory;
@@ -45,6 +51,7 @@ import org.schabi.newpipe.extractor.exceptions.ExtractionException;
 public class MainActivity extends FlutterActivity {
   private static final String PLAYER_CHANNEL = "u-wave.net/player";
   private DefaultHttpDataSourceFactory dataSourceFactory;
+  private Registrar playerPluginRegistrar;
   private SimpleExoPlayer player;
   private Surface surface;
   private SurfaceTextureEntry textureEntry;
@@ -53,6 +60,8 @@ public class MainActivity extends FlutterActivity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     GeneratedPluginRegistrant.registerWith(this);
+
+    playerPluginRegistrar = registrarFor("u-wave.net/player");
 
     dataSourceFactory = new DefaultHttpDataSourceFactory(Util.getUserAgent(this, "u-wave"));
 
@@ -65,15 +74,65 @@ public class MainActivity extends FlutterActivity {
         new AdaptiveTrackSelection.Factory(bandwidthMeter)),
       new DefaultLoadControl()
     );
+    player.addListener(new Player.EventListener() {
+      @Override
+      public void onLoadingChanged(boolean isLoading) {
+        if (isLoading) {
+          System.out.println("onLoadingChanged: loading");
+        } else {
+          System.out.println("onLoadingChanged: not loading");
+        }
+      }
+
+      @Override
+      public void onPlayerStateChanged(boolean playWhenReady, int readyState) {
+        System.out.println("onPlayerStateChanged playWhenReady=" + (playWhenReady ? "true" : "false") + " readyState=" + readyState);
+      }
+
+      @Override
+      public void onPositionDiscontinuity(int reason) {
+        System.out.println("onPositionDiscontinuity reason=" + reason);
+      }
+
+      @Override
+      public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
+        System.out.println("onPlaybackParametersChanged");
+      }
+
+      @Override
+      public void onTimelineChanged(Timeline timeline, Object manifest, int reason) {
+        System.out.println("onTimelineChanged reason=" + reason);
+      }
+
+      @Override
+      public void onPlayerError(ExoPlaybackException err) {
+        err.printStackTrace();
+      }
+
+      @Override
+      public void onTracksChanged(TrackGroupArray ignored, TrackSelectionArray trackSelections) {
+      }
+
+      @Override
+      public void onSeekProcessed() {}
+
+      @Override
+      public void onRepeatModeChanged(int mode) {
+        System.out.println("onRepeatModeChanged enabled=" + mode);
+      }
+
+      @Override
+      public void onShuffleModeEnabledChanged(boolean enabled) {
+        System.out.println("onShuffleModeEnabledChanged enabled=" + (enabled ? "true" : "false"));
+      }
+    });
 
     NewPipe.init(new DartDownloader(playerChannel));
 
     playerChannel.setMethodCallHandler(new MethodCallHandler() {
       @Override
       public void onMethodCall(MethodCall call, Result result) {
-        if (call.method.equals("init")) {
-          onInit(result);
-        } else if (call.method.equals("play")) {
+        if (call.method.equals("play")) {
           onPlay((Map<String, String>) call.arguments, result);
         } else {
           result.notImplemented();
@@ -82,16 +141,10 @@ public class MainActivity extends FlutterActivity {
     });
   }
 
-  void onInit(final Result result) {
-    Registrar registrar = registrarFor("u-wave.net/player");
-    TextureRegistry textures = registrar.textures();
-    SurfaceTextureEntry textureEntry = textures.createSurfaceTexture();
-    surface = new Surface(textureEntry.surfaceTexture());
-    player.setPlayWhenReady(true);
-    result.success(textureEntry.id());
-  }
-
   void onPlay(Map<String, String> data, final Result result) {
+    if (textureEntry != null) {
+      textureEntry.release();
+    }
     if (data == null) {
       player.stop();
       player.setVideoSurface(null);
@@ -101,7 +154,7 @@ public class MainActivity extends FlutterActivity {
 
     final String sourceType = data.get("sourceType");
     final String sourceID = data.get("sourceID");
-    final boolean audioOnly = data.get("audioOnly").equals("true");
+    final boolean audioOnly = data.get("audioOnly") != null && data.get("audioOnly").equals("true");
 
     if (sourceType == null) {
       result.error("MissingParameter", "Missing parameter \"sourceType\"", null);
@@ -112,7 +165,11 @@ public class MainActivity extends FlutterActivity {
       return;
     }
 
+    final TextureRegistry textures = playerPluginRegistrar.textures();
+    textureEntry = textures.createSurfaceTexture();
+    surface = new Surface(textureEntry.surfaceTexture());
     player.setVideoSurface(surface);
+
     new Thread(new Runnable() {
       public void run() {
         try {
@@ -128,8 +185,8 @@ public class MainActivity extends FlutterActivity {
           final Uri uri = Uri.parse(bestStream.getUrl());
           MediaSource mediaSource = getMediaSource(uri);
           player.prepare(mediaSource);
-
-          result.success(uri.toString());
+          result.success(textureEntry.id());
+          player.setPlayWhenReady(true);
         } catch (IOException err) {
           result.error("IOException", err.getMessage(), null);
           err.printStackTrace();
@@ -154,7 +211,18 @@ public class MainActivity extends FlutterActivity {
   }
 
   private VideoStream getVideoStream(StreamInfo info) {
-    return info.getVideoStreams().get(0);
+    VideoStream bestStream = null;
+    for (VideoStream stream : info.getVideoStreams()) {
+      if (stream.isVideoOnly()) continue;
+
+      if (bestStream == null) {
+        bestStream = stream;
+      }
+    }
+
+    System.out.println("bestStream: " + bestStream.getResolution() + " at " + bestStream.getUrl());
+
+    return bestStream;
   }
 
   private MediaSource getMediaSource(Uri uri) {

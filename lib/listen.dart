@@ -16,9 +16,10 @@ class UwaveListen extends StatefulWidget {
 
 class _UwaveListenState extends State<UwaveListen> {
   static const playerChannel = MethodChannel('u-wave.net/player');
-  static int _playerTexture;
+  static bool _playerPluginInitialized = false;
+  int _playerTexture;
   UwaveClient _client;
-  bool _inited = false;
+  bool _clientConnected = false;
   HistoryEntry _playing = null;
   StreamSubscription<HistoryEntry> _advanceSubscription;
 
@@ -47,22 +48,9 @@ class _UwaveListenState extends State<UwaveListen> {
       });
     });
 
-    var onready;
-    if (_playerTexture == null) {
-      onready = playerChannel.invokeMethod('init').then((result) {
-        setState(() {
-          _playerTexture = result as int;
-          debugPrint('Using _playerTexture $_playerTexture');
-        });
-        return _client.init();
-      });
-    } else {
-      onready = _client.init();
-    }
-
-    onready.then((_) {
+    _client.init().then((_) {
       setState(() {
-        _inited = true;
+        _clientConnected = true;
       });
     });
   }
@@ -90,12 +78,17 @@ class _UwaveListenState extends State<UwaveListen> {
 
   /// Start playing a history entry.
   _play(HistoryEntry entry) {
-    debugPrint('Playing entry ${entry.media.artist} - ${entry.media.title} on surface $_playerTexture');
+    debugPrint('Playing entry ${entry.media.artist} - ${entry.media.title}');
     _playing = entry;
     playerChannel.invokeMethod('play', <String, String>{
       'sourceType': entry.media.sourceType,
       'sourceID': entry.media.sourceID,
       'audioOnly': 'true',
+    }).then((result) {
+      setState(() {
+        _playerTexture = result as int;
+        debugPrint('Using _playerTexture $_playerTexture');
+      });
     });
   }
 
@@ -103,6 +96,7 @@ class _UwaveListenState extends State<UwaveListen> {
   _stop() {
     debugPrint('Stopping playback');
     playerChannel.invokeMethod('play', null);
+    _playerTexture = null;
     _playing = null;
   }
 
@@ -111,7 +105,7 @@ class _UwaveListenState extends State<UwaveListen> {
     Widget player;
     if (_playing != null) {
       player = PlayerView(textureId: _playerTexture, progress: 0.5);
-    } else if (_inited) {
+    } else if (_clientConnected) {
       // nobody playing right now
       player = Container();
     } else {
