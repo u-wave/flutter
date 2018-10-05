@@ -88,6 +88,19 @@ class UserJoinMessage {
   }
 }
 
+class UserLeaveMessage {
+  final String id;
+  final User user;
+
+  UserLeaveMessage({this.id, this.user});
+
+  factory UserLeaveMessage.fromJson(dynamic json, [Map<String, User> users]) {
+    final String id = json;
+    final user = users != null ? User.fromJson(users[id]) : null;
+    return UserLeaveMessage(id: id, user: user);
+  }
+}
+
 class UwaveClient {
   final String apiUrl;
   final String socketUrl;
@@ -99,6 +112,7 @@ class UwaveClient {
       StreamController.broadcast();
   Stream<ChatMessage> get chatMessages => _chatMessagesController.stream;
   Stream<HistoryEntry> get advanceMessages => _advanceController.stream;
+  Stream<dynamic> get events => _eventsController.stream;
 
   final Map<String, User> _knownUsers = Map();
 
@@ -139,12 +153,19 @@ class UwaveClient {
     if (message.command == 'join') {
       final join = UserJoinMessage.fromJson(message.data);
       this._knownUsers[join.user.id] = join.user;
+      this._eventsController.add(join);
+    }
+    if (message.command == 'leave') {
+      final leave = UserLeaveMessage.fromJson(message.data, this._knownUsers);
+      this._knownUsers.remove(leave.id);
+      this._eventsController.add(leave);
     }
   }
 
   void dispose() {
     _advanceController.close();
     _chatMessagesController.close();
+    _eventsController.close();
     _client.close();
     if (_channel != null) {
       _channel.sink.close(ws_status.goingAway);
