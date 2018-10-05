@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -128,6 +127,8 @@ class UwaveClient {
   }
 
   void dispose() {
+    _advanceController.close();
+    _chatMessagesController.close();
     _client.close();
     if (_channel != null) {
       _channel.sink.close(ws_status.goingAway);
@@ -279,11 +280,11 @@ class PlaylistItem {
   PlaylistItem(
       {this.id, this.media, this.artist, this.title, this.start, this.end});
 
-  factory PlaylistItem.fromJson(Map<String, dynamic> json, [Map<String, Media> medias = Map()]) {
+  factory PlaylistItem.fromJson(Map<String, dynamic> json, [Map<String, Media> medias]) {
     return PlaylistItem(
       id: json['_id'],
       media: json['media'] is String
-        ? medias[json['media']]
+        ? (medias != null ? medias[json['media']] : null)
         : Media.fromJson(json['media']),
       artist: json['artist'],
       title: json['title'],
@@ -322,12 +323,12 @@ class HistoryEntry {
   HistoryEntry(
       {this.id, this.userID, this.media, this.artist, this.title, this.start, this.end, this.timestamp});
 
-  factory HistoryEntry.fromJson(Map<String, dynamic> json, [Map<String, Media> medias = Map()]) {
+  factory HistoryEntry.fromJson(Map<String, dynamic> json, [Map<String, Media> medias]) {
     return HistoryEntry(
       id: json['_id'],
       userID: json['user'],
       media: json['media']['media'] is String
-        ? medias[json['media']['media']]
+        ? (medias != null ? medias[json['media']['media']] : null)
         : Media.fromJson(json['media']['media']),
       artist: json['media']['artist'],
       title: json['media']['title'],

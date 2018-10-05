@@ -33,7 +33,7 @@ class _UwaveListenState extends State<UwaveListen> {
         final url = headers.remove('_url');
         final response = await http.get(url, headers: headers);
         if (response.statusCode != 200) {
-          throw 'Unexpected response ${response.statusCode} from ${url}';
+          throw 'Unexpected response ${response.statusCode} from $url';
         }
         return response.body;
       }
@@ -54,7 +54,7 @@ class _UwaveListenState extends State<UwaveListen> {
       playerChannel.invokeMethod('init').then((result) {
         setState(() {
           _playerTexture = result as int;
-          debugPrint('Using _playerTexture ${_playerTexture}');
+          debugPrint('Using _playerTexture $_playerTexture');
         });
         return _client.init();
       });
