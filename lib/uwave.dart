@@ -43,7 +43,7 @@ class ChatMessage {
 
   ChatMessage({this.id, this.user, this.message, this.timestamp});
 
-  factory ChatMessage.fromJson(Map<String, dynamic> json, Map<String, User> users) {
+  factory ChatMessage.fromJson(Map<String, dynamic> json, {Map<String, User> users}) {
     return ChatMessage(
       id: json['id'],
       user: users != null ? users[json['userID']] : null,
@@ -58,7 +58,7 @@ class AdvanceMessage {
 
   AdvanceMessage({this.entry});
 
-  factory AdvanceMessage.fromJson(Map<String, dynamic> json) {
+  factory AdvanceMessage.fromJson(Map<String, dynamic> json, {Map<String, User> users}) {
     if (json == null) {
       return AdvanceMessage(entry: null);
     }
@@ -66,6 +66,7 @@ class AdvanceMessage {
     final entry = HistoryEntry(
       id: json['historyID'],
       userID: json['userID'],
+      user: users != null ? users[json['userID']] : null,
       media: Media.fromJson(json['media']['media']),
       artist: json['media']['artist'],
       title: json['media']['title'],
@@ -94,9 +95,9 @@ class UserLeaveMessage {
 
   UserLeaveMessage({this.id, this.user});
 
-  factory UserLeaveMessage.fromJson(dynamic json, [Map<String, User> users]) {
+  factory UserLeaveMessage.fromJson(dynamic json, {Map<String, User> users}) {
     final String id = json;
-    final user = users != null ? User.fromJson(users[id]) : null;
+    final user = users != null ? users[id] : null;
     return UserLeaveMessage(id: id, user: user);
   }
 }
@@ -110,6 +111,9 @@ class UwaveClient {
       StreamController.broadcast();
   final StreamController<HistoryEntry> _advanceController =
       StreamController.broadcast();
+  final StreamController<dynamic> _eventsController =
+      StreamController.broadcast();
+
   Stream<ChatMessage> get chatMessages => _chatMessagesController.stream;
   Stream<HistoryEntry> get advanceMessages => _advanceController.stream;
   Stream<dynamic> get events => _eventsController.stream;
@@ -135,7 +139,7 @@ class UwaveClient {
       _advanceController.add(state.currentEntry);
     }
 
-    state.users.forEach((user) {
+    state.users.forEach((id, user) {
       _knownUsers[user.id] = user;
     });
 
@@ -144,10 +148,11 @@ class UwaveClient {
 
   void _onMessage(message) {
     if (message.command == 'chatMessage') {
-      this._chatMessagesController.add(ChatMessage.fromJson(message.data, _knownUsers));
+      final chat = ChatMessage.fromJson(message.data, users: _knownUsers);
+      this._chatMessagesController.add(chat);
     }
     if (message.command == 'advance') {
-      final advance = AdvanceMessage.fromJson(message.data);
+      final advance = AdvanceMessage.fromJson(message.data, users: _knownUsers);
       this._advanceController.add(advance.entry);
     }
     if (message.command == 'join') {
@@ -156,7 +161,7 @@ class UwaveClient {
       this._eventsController.add(join);
     }
     if (message.command == 'leave') {
-      final leave = UserLeaveMessage.fromJson(message.data, this._knownUsers);
+      final leave = UserLeaveMessage.fromJson(message.data, users: _knownUsers);
       this._knownUsers.remove(leave.id);
       this._eventsController.add(leave);
     }
@@ -175,7 +180,7 @@ class UwaveClient {
 
 class UwaveNowState {
   final String motd;
-  final List<User> users;
+  final Map<String, User> users;
   final HistoryEntry currentEntry;
   final List<String> waitlist;
 
@@ -187,12 +192,19 @@ class UwaveNowState {
   });
 
   factory UwaveNowState.fromJson(Map<String, dynamic> json) {
+    final Map<String, User> users = {};
+
+    json['users']
+      .map<User>((u) => User.fromJson(u))
+      .forEach((user) {
+        users[user.id] = user;
+      });
 
     return UwaveNowState(
       motd: json['motd'],
-      users: json['users'].map<User>((u) => User.fromJson(u)).toList(),
+      users: users,
       currentEntry: json['booth'] != null
-        ? HistoryEntry.fromJson(json['booth'])
+        ? HistoryEntry.fromJson(json['booth'], users: users)
         : null,
       waitlist: json['waitlist'].cast<String>().toList(),
     );
@@ -317,7 +329,7 @@ class PlaylistItem {
   PlaylistItem(
       {this.id, this.media, this.artist, this.title, this.start, this.end});
 
-  factory PlaylistItem.fromJson(Map<String, dynamic> json, [Map<String, Media> medias]) {
+  factory PlaylistItem.fromJson(Map<String, dynamic> json, {Map<String, Media> medias}) {
     return PlaylistItem(
       id: json['_id'],
       media: json['media'] is String
@@ -350,6 +362,7 @@ class Playlist {
 class HistoryEntry {
   final String id;
   final String userID;
+  final User user;
   final Media media;
   final String artist;
   final String title;
@@ -358,12 +371,13 @@ class HistoryEntry {
   final DateTime timestamp;
 
   HistoryEntry(
-      {this.id, this.userID, this.media, this.artist, this.title, this.start, this.end, this.timestamp});
+      {this.id, this.userID, this.user, this.media, this.artist, this.title, this.start, this.end, this.timestamp});
 
-  factory HistoryEntry.fromJson(Map<String, dynamic> json, [Map<String, Media> medias]) {
+  factory HistoryEntry.fromJson(Map<String, dynamic> json, {Map<String, Media> medias, Map<String, User> users}) {
     return HistoryEntry(
       id: json['_id'],
       userID: json['user'],
+      user: users != null ? users[json['user']] : null,
       media: json['media']['media'] is String
         ? (medias != null ? medias[json['media']['media']] : null)
         : Media.fromJson(json['media']['media']),
