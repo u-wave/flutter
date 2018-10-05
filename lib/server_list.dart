@@ -71,15 +71,29 @@ class _UwaveServerListState extends State<UwaveServerList> {
               _listen(server);
             },
           ),
-          Center(
-            child: AspectRatio(
-              aspectRatio: 16 / 9,
-              child: server.currentMedia != null
-                ? Image.network(server.currentMedia.thumbnailUrl)
-                : Container(color: Color(0xFF000000)),
-            ),
-          ),
+          ServerThumbnail(server: server),
         ],
+      ),
+    );
+  }
+}
+
+class ServerThumbnail extends StatelessWidget {
+  final UwaveServer server;
+
+  ServerThumbnail({this.server});
+
+  @override
+  Widget build(_) {
+    return Hero(
+      tag: 'thumb:${server.publicKey}',
+      child: AspectRatio(
+        aspectRatio: 16 / 9,
+        child: Center(
+          child: server.currentMedia != null
+            ? Image.network(server.currentMedia.thumbnailUrl)
+            : Container(color: Color(0xFF000000)),
+        ),
       ),
     );
   }

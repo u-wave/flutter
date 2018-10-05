@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import './uwave.dart';
+import './server_list.dart' show ServerThumbnail;
 
 class UwaveListen extends StatefulWidget {
   final UwaveServer server;
@@ -17,7 +18,8 @@ class _UwaveListenState extends State<UwaveListen> {
   static const playerChannel = MethodChannel('u-wave.net/player');
   static int _playerTexture;
   UwaveClient _client;
-  HistoryEntry _playing;
+  bool _inited = false;
+  HistoryEntry _playing = null;
 
   @override
   initState() {
@@ -29,13 +31,7 @@ class _UwaveListenState extends State<UwaveListen> {
 
     playerChannel.setMethodCallHandler((methodCall) async {
       if (methodCall.method == 'download') {
-        final headers = Map<String, String>.from(methodCall.arguments);
-        final url = headers.remove('_url');
-        final response = await http.get(url, headers: headers);
-        if (response.statusCode != 200) {
-          throw 'Unexpected response ${response.statusCode} from $url';
-        }
-        return response.body;
+        return await _download(Map<String, String>.from(methodCall.arguments));
       }
       throw MissingPluginException('Unknown method ${methodCall.method}');
     });
@@ -45,13 +41,14 @@ class _UwaveListenState extends State<UwaveListen> {
         if (entry != null) {
           _play(entry);
         } else {
-          // _stop();
+          _stop();
         }
       });
     });
 
+    var onready;
     if (_playerTexture == null) {
-      playerChannel.invokeMethod('init').then((result) {
+      onready = playerChannel.invokeMethod('init').then((result) {
         setState(() {
           _playerTexture = result as int;
           debugPrint('Using _playerTexture $_playerTexture');
@@ -59,28 +56,67 @@ class _UwaveListenState extends State<UwaveListen> {
         return _client.init();
       });
     } else {
-      _client.init();
+      onready = _client.init();
     }
+
+    onready.then((_) {
+      setState(() {
+        _inited = true;
+      });
+    });
   }
 
   @override
   dispose() {
     super.dispose();
-    playerChannel.invokeMethod('play', null);
+    _stop();
   }
 
+  /// Download a URL's contents to a string.
+  ///
+  /// This is called by the NewPipe extractor, so I don't have to learn and
+  /// ship a Java HTTP client but can instead use the Dart one :P
+  Future<String> _download(Map<String, String> headers) async {
+    final url = headers.remove('_url');
+    final response = await http.get(url, headers: headers);
+    if (response.statusCode != 200) {
+      throw 'Unexpected response ${response.statusCode} from $url';
+    }
+    headers['_url'] = url; // restore
+    return response.body;
+  }
+
+  /// Start playing a history entry.
   _play(HistoryEntry entry) {
     debugPrint('Playing entry ${entry.media.artist} - ${entry.media.title} on surface $_playerTexture');
+    _playing = entry;
     playerChannel.invokeMethod('play', <String, String>{
       'sourceType': entry.media.sourceType,
       'sourceID': entry.media.sourceID,
       'audioOnly': 'true',
     });
-    _playing = entry;
+  }
+
+  /// Stop playing.
+  _stop() {
+    debugPrint('Stopping playback');
+    playerChannel.invokeMethod('play', null);
+    _playing = null;
   }
 
   @override
   Widget build(BuildContext context) {
+    Widget player;
+    if (_playing != null) {
+      player = PlayerView(textureId: _playerTexture, progress: 0.5);
+    } else if (_inited) {
+      // nobody playing right now
+      player = Container();
+    } else {
+      // still loading
+      player = ServerThumbnail(server: widget.server);
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: _playing == null
@@ -94,7 +130,7 @@ class _UwaveListenState extends State<UwaveListen> {
               children: <Widget>[
                 Flexible(
                   flex: 1,
-                  child: PlayerView(textureId: _playerTexture, progress: 0.5),
+                  child: player,
                 ),
                 Expanded(
                   flex: 1,
