@@ -150,19 +150,16 @@ class UwaveClient {
     if (message.command == 'chatMessage') {
       final chat = ChatMessage.fromJson(message.data, users: _knownUsers);
       this._chatMessagesController.add(chat);
-    }
-    if (message.command == 'advance') {
+    } else if (message.command == 'advance') {
       final advance = AdvanceMessage.fromJson(message.data, users: _knownUsers);
       this._advanceController.add(advance.entry);
-    }
-    if (message.command == 'join') {
+    } else if (message.command == 'join') {
       final join = UserJoinMessage.fromJson(message.data);
       this._knownUsers[join.user.id] = join.user;
       this._eventsController.add(join);
-    }
-    if (message.command == 'leave') {
+    } else if (message.command == 'leave') {
       final leave = UserLeaveMessage.fromJson(message.data, users: _knownUsers);
-      this._knownUsers.remove(leave.id);
+      // this._knownUsers.remove(leave.id);
       this._eventsController.add(leave);
     }
   }

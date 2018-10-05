@@ -134,7 +134,10 @@ class _UwaveListenState extends State<UwaveListen> {
                 ),
                 Expanded(
                   flex: 1,
-                  child: ChatMessages(messages: _client.chatMessages),
+                  child: ChatMessages(
+                    notifications: _client.events,
+                    messages: _client.chatMessages,
+                  ),
                 ),
               ],
             )
@@ -174,23 +177,37 @@ class PlayerView extends StatelessWidget {
 }
 
 class ChatMessages extends StatefulWidget {
+  final Stream<dynamic> notifications;
   final Stream<ChatMessage> messages;
 
-  ChatMessages({Key key, this.messages}) : super(key: key);
+  ChatMessages({Key key, this.notifications, this.messages}) : super(key: key);
 
   @override
   _ChatMessagesState createState() => new _ChatMessagesState();
 }
 
 class _ChatMessagesState extends State<ChatMessages> {
-  final List<ChatMessage> _messages = [];
+  final List<dynamic> _messages = [];
+
+  static _isSupportedNotification(message) {
+    return message is UserJoinMessage ||
+        message is UserLeaveMessage;
+  }
 
   @override
   initState() {
     super.initState();
+
     widget.messages.listen((message) {
       setState(() {
         _messages.add(message);
+      });
+    });
+    widget.notifications.listen((message) {
+      setState(() {
+        if (_isSupportedNotification(message)) {
+          _messages.add(message);
+        }
       });
     });
   }
@@ -202,7 +219,19 @@ class _ChatMessagesState extends State<ChatMessages> {
       child: ListView.builder(
         shrinkWrap: true,
         itemCount: _messages.length,
-        itemBuilder: (context, index) => ChatMessageView(_messages[index]),
+        itemBuilder: (context, index) {
+          final message = _messages[index];
+          if (message is ChatMessage) {
+            return ChatMessageView(message);
+          }
+          if (message is UserJoinMessage) {
+            return UserJoinMessageView(message);
+          }
+          if (message is UserLeaveMessage) {
+            return UserLeaveMessageView(message);
+          }
+          return Text('Unexpected message type!');
+        },
       ),
     );
   }
@@ -216,6 +245,56 @@ class ChatInput extends StatelessWidget {
         padding: const EdgeInsets.all(6.0),
         child: TextField(),
       ),
+    );
+  }
+}
+
+class UserJoinMessageView extends StatelessWidget {
+  final UserJoinMessage message;
+
+  UserJoinMessageView(this.message);
+
+  @override
+  Widget build(BuildContext context) {
+    final avatar = message.user?.avatarUrl != null
+      ? CircleAvatar(
+          backgroundImage: NetworkImage(message.user.avatarUrl),
+        )
+      : CircleAvatar(
+          backgroundColor: Colors.pink.shade800,
+          child: Text('UK'),
+        );
+    final username = message.user?.username ?? '<unknown>';
+
+    return ListTile(
+      dense: true,
+      leading: avatar,
+      title: Text('$username joined'),
+    );
+  }
+}
+
+class UserLeaveMessageView extends StatelessWidget {
+  final UserLeaveMessage message;
+
+  UserLeaveMessageView(this.message);
+
+  @override
+  Widget build(BuildContext context) {
+    final avatar = message.user?.avatarUrl != null
+      ? CircleAvatar(
+          backgroundImage: NetworkImage(message.user.avatarUrl),
+        )
+      : CircleAvatar(
+          backgroundColor: Colors.pink.shade800,
+          child: Text('UK'),
+        );
+    final username = message.user?.username ?? '<unknown>';
+
+    return ListTile(
+      dense: true,
+      leading: avatar,
+      title: Text('$username left'),
     );
   }
 }
