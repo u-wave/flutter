@@ -240,10 +240,13 @@ class _ChatMessagesState extends State<ChatMessages> {
 class ChatInput extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(6.0),
-        child: TextField(),
+    return Container(
+      color: Color(0xFF1B1B1B),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(6.0),
+          child: TextField(),
+        ),
       ),
     );
   }
