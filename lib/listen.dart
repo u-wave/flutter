@@ -78,11 +78,15 @@ class _UwaveListenState extends State<UwaveListen> {
 
   /// Start playing a history entry.
   _play(HistoryEntry entry) {
-    debugPrint('Playing entry ${entry.media.artist} - ${entry.media.title}');
+    final seek = entry.timestamp.difference(DateTime.now())
+        + Duration(seconds: entry.start);
+
+    debugPrint('Playing entry ${entry.media.artist} - ${entry.media.title} from $seek');
     _playing = entry;
     playerChannel.invokeMethod('play', <String, String>{
       'sourceType': entry.media.sourceType,
       'sourceID': entry.media.sourceID,
+      'seek': '${seek.isNegative ? 0 : seek.inMilliseconds}',
       'audioOnly': 'true',
     }).then((result) {
       setState(() {

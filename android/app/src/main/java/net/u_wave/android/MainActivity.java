@@ -154,6 +154,7 @@ public class MainActivity extends FlutterActivity {
 
     final String sourceType = data.get("sourceType");
     final String sourceID = data.get("sourceID");
+    final int seek = Integer.parseInt(data.get("seek"));
     final boolean audioOnly = data.get("audioOnly") != null && data.get("audioOnly").equals("true");
 
     if (sourceType == null) {
@@ -185,6 +186,7 @@ public class MainActivity extends FlutterActivity {
           final Uri uri = Uri.parse(bestStream.getUrl());
           MediaSource mediaSource = getMediaSource(uri);
           player.prepare(mediaSource);
+          player.seekTo(seek);
           result.success(textureEntry.id());
           player.setPlayWhenReady(true);
         } catch (IOException err) {
