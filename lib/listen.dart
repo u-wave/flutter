@@ -75,10 +75,6 @@ class _UwaveListenState extends State<UwaveListen> {
 
   @override
   Widget build(BuildContext context) {
-    final loadingVideo = widget.server.currentMedia != null
-      ? Image.network(widget.server.currentMedia.thumbnailUrl)
-      : null;
-
     return Scaffold(
       appBar: AppBar(
         title: _playing == null
@@ -92,24 +88,7 @@ class _UwaveListenState extends State<UwaveListen> {
               children: <Widget>[
                 Flexible(
                   flex: 1,
-                  child: Container(
-                    color: Color(0xFF000000),
-                    child: Column(
-                      children: <Widget>[
-                        AspectRatio(
-                          aspectRatio: 16 / 9,
-                          // TODO draw NewPipe onto a Texture instance here
-                          // https://docs.flutter.io/flutter/widgets/Texture-class.html
-                          child: Center(
-                            child: _playerTexture == null
-                              ? loadingVideo
-                              : Texture(textureId: _playerTexture)
-                          ),
-                        ),
-                        LinearProgressIndicator(value: 0.5),
-                      ],
-                    ),
-                  ),
+                  child: PlayerView(textureId: _playerTexture, progress: 0.5),
                 ),
                 Expanded(
                   flex: 1,
@@ -119,6 +98,33 @@ class _UwaveListenState extends State<UwaveListen> {
             )
           ),
           ChatInput(),
+        ],
+      ),
+    );
+  }
+}
+
+class PlayerView extends StatelessWidget {
+  final int textureId;
+  final double progress;
+
+  PlayerView({this.textureId, this.progress});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Color(0xFF000000),
+      child: Column(
+        children: <Widget>[
+          AspectRatio(
+            aspectRatio: 16 / 9,
+            child: Center(
+              child: textureId == null
+                ? Container() // nothing
+                : Texture(textureId: textureId)
+            ),
+          ),
+          LinearProgressIndicator(value: 0.5),
         ],
       ),
     );
