@@ -76,6 +76,18 @@ class AdvanceMessage {
     return AdvanceMessage(entry: entry);
   }
 }
+
+class UserJoinMessage {
+  final User user;
+
+  UserJoinMessage({this.user});
+
+  factory UserJoinMessage.fromJson(Map<String, dynamic> json) {
+    final user = User.fromJson(json);
+    return UserJoinMessage(user: user);
+  }
+}
+
 class UwaveClient {
   final String apiUrl;
   final String socketUrl;
@@ -123,6 +135,10 @@ class UwaveClient {
     if (message.command == 'advance') {
       final advance = AdvanceMessage.fromJson(message.data);
       this._advanceController.add(advance.entry);
+    }
+    if (message.command == 'join') {
+      final join = UserJoinMessage.fromJson(message.data);
+      this._knownUsers[join.user.id] = join.user;
     }
   }
 
