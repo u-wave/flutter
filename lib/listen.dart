@@ -63,6 +63,12 @@ class _UwaveListenState extends State<UwaveListen> {
     }
   }
 
+  @override
+  dispose() {
+    super.dispose();
+    playerChannel.invokeMethod('play', null);
+  }
+
   _play(HistoryEntry entry) {
     debugPrint('Playing entry ${entry.media.artist} - ${entry.media.title} on surface $_playerTexture');
     playerChannel.invokeMethod('play', <String, String>{

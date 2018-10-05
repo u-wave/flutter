@@ -92,6 +92,13 @@ public class MainActivity extends FlutterActivity {
   }
 
   void onPlay(Map<String, String> data, final Result result) {
+    if (data == null) {
+      player.stop();
+      player.setVideoSurface(null);
+      result.success(null);
+      return;
+    }
+
     final String sourceType = data.get("sourceType");
     final String sourceID = data.get("sourceID");
     final boolean audioOnly = data.get("audioOnly").equals("true");
@@ -114,7 +121,6 @@ public class MainActivity extends FlutterActivity {
 
           StreamInfo info = StreamInfo.getInfo(NewPipe.getService(sourceName), sourceURL);
 
-          System.out.println("is audioOnly? " + (audioOnly ? "true" : "false"));
           Stream bestStream = audioOnly
             ? getBestAudioStream(info)
             : getVideoStream(info);

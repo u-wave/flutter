@@ -35,6 +35,11 @@ class _UwaveServerListState extends State<UwaveServerList> {
     this._updateServers();
   }
 
+  void reassemble() {
+    super.reassemble();
+    this._updateServers();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
