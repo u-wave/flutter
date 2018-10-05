@@ -129,7 +129,7 @@ class _UwaveListenState extends State<UwaveListen> {
             child: Column(
               children: <Widget>[
                 Flexible(
-                  flex: 1,
+                  flex: 0,
                   child: player,
                 ),
                 Expanded(
