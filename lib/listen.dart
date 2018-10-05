@@ -87,27 +87,37 @@ class _UwaveListenState extends State<UwaveListen> {
       ),
       body: Column(
         children: <Widget>[
-          Expanded(child: Column(
-            children: <Widget>[
-              Flexible(
-                flex: 1,
-                child: Container(color: Color(0xFF000000), child: AspectRatio(
-                  aspectRatio: 16 / 9,
-                  // TODO draw NewPipe onto a Texture instance here
-                  // https://docs.flutter.io/flutter/widgets/Texture-class.html
-                  child: Center(
-                    child: _playerTexture == null
-                      ? loadingVideo
-                      : Texture(textureId: _playerTexture)
+          Expanded(
+            child: Column(
+              children: <Widget>[
+                Flexible(
+                  flex: 1,
+                  child: Container(
+                    color: Color(0xFF000000),
+                    child: Column(
+                      children: <Widget>[
+                        AspectRatio(
+                          aspectRatio: 16 / 9,
+                          // TODO draw NewPipe onto a Texture instance here
+                          // https://docs.flutter.io/flutter/widgets/Texture-class.html
+                          child: Center(
+                            child: _playerTexture == null
+                              ? loadingVideo
+                              : Texture(textureId: _playerTexture)
+                          ),
+                        ),
+                        LinearProgressIndicator(value: 0.5),
+                      ],
+                    ),
                   ),
-                )),
-              ),
-              Expanded(
-                flex: 1,
-                child: ChatMessages(messages: _client.chatMessages),
-              ),
-            ],
-          )),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: ChatMessages(messages: _client.chatMessages),
+                ),
+              ],
+            )
+          ),
           ChatInput(),
         ],
       ),
