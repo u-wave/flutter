@@ -5,6 +5,25 @@ import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/status.dart' as ws_status;
 
+class TimeSynchronizer {
+  DateTime _referenceServerTime;
+  DateTime _referenceLocalTime;
+  Duration _offset;
+
+  DateTime get serverTime => toServer(DateTime.now());
+  set serverTime(DateTime time) => _setServerTime(time);
+
+  void _setServerTime(DateTime time) {
+    _referenceLocalTime = DateTime.now();
+    _referenceServerTime = time;
+    _offset = _referenceLocalTime.difference(_referenceServerTime);
+    print('Update server time, offset is $_offset');
+  }
+
+  DateTime toLocal(DateTime serverTime) => serverTime.add(_offset);
+  DateTime toServer(DateTime localTime) => localTime.subtract(_offset);
+}
+
 class UwaveAnnounceClient {
   final String _url;
 
@@ -43,12 +62,13 @@ class ChatMessage {
 
   ChatMessage({this.id, this.user, this.message, this.timestamp});
 
-  factory ChatMessage.fromJson(Map<String, dynamic> json, {Map<String, User> users}) {
+  factory ChatMessage.fromJson(Map<String, dynamic> json, {Map<String, User> users, TimeSynchronizer serverTime}) {
     return ChatMessage(
       id: json['id'],
       user: users != null ? users[json['userID']] : null,
       message: json['message'],
-      timestamp: DateTime.fromMillisecondsSinceEpoch(json['timestamp']),
+      timestamp: serverTime.toLocal(
+          DateTime.fromMillisecondsSinceEpoch(json['timestamp'])),
     );
   }
 }
@@ -58,7 +78,7 @@ class AdvanceMessage {
 
   AdvanceMessage({this.entry});
 
-  factory AdvanceMessage.fromJson(Map<String, dynamic> json, {Map<String, User> users}) {
+  factory AdvanceMessage.fromJson(Map<String, dynamic> json, {Map<String, User> users, TimeSynchronizer serverTime}) {
     if (json == null) {
       return AdvanceMessage(entry: null);
     }
@@ -72,7 +92,8 @@ class AdvanceMessage {
       title: json['media']['title'],
       start: json['media']['start'],
       end: json['media']['end'],
-      timestamp: DateTime.fromMillisecondsSinceEpoch(json['playedAt']),
+      timestamp: serverTime.toLocal(
+          DateTime.fromMillisecondsSinceEpoch(json['playedAt'])),
     );
     return AdvanceMessage(entry: entry);
   }
@@ -105,6 +126,7 @@ class UserLeaveMessage {
 class UwaveClient {
   final String apiUrl;
   final String socketUrl;
+  final TimeSynchronizer _serverTime = TimeSynchronizer();
   final http.Client _client = http.Client();
   final WebSocketChannel _channel;
   final StreamController<ChatMessage> _chatMessagesController =
@@ -143,15 +165,17 @@ class UwaveClient {
       _knownUsers[user.id] = user;
     });
 
+    _serverTime.serverTime = state.serverTime;
+
     return state;
   }
 
   void _onMessage(message) {
     if (message.command == 'chatMessage') {
-      final chat = ChatMessage.fromJson(message.data, users: _knownUsers);
+      final chat = ChatMessage.fromJson(message.data, users: _knownUsers, serverTime: _serverTime);
       this._chatMessagesController.add(chat);
     } else if (message.command == 'advance') {
-      final advance = AdvanceMessage.fromJson(message.data, users: _knownUsers);
+      final advance = AdvanceMessage.fromJson(message.data, users: _knownUsers, serverTime: _serverTime);
       this._advanceController.add(advance.entry);
     } else if (message.command == 'join') {
       final join = UserJoinMessage.fromJson(message.data);
@@ -180,12 +204,14 @@ class UwaveNowState {
   final Map<String, User> users;
   final HistoryEntry currentEntry;
   final List<String> waitlist;
+  final DateTime serverTime;
 
   UwaveNowState({
     this.motd,
     this.users,
     this.currentEntry,
     this.waitlist,
+    this.serverTime,
   });
 
   factory UwaveNowState.fromJson(Map<String, dynamic> json) {
@@ -204,6 +230,7 @@ class UwaveNowState {
         ? HistoryEntry.fromJson(json['booth'], users: users)
         : null,
       waitlist: json['waitlist'].cast<String>().toList(),
+      serverTime: DateTime.fromMillisecondsSinceEpoch(json['time']),
     );
   }
 }
@@ -370,7 +397,7 @@ class HistoryEntry {
   HistoryEntry(
       {this.id, this.userID, this.user, this.media, this.artist, this.title, this.start, this.end, this.timestamp});
 
-  factory HistoryEntry.fromJson(Map<String, dynamic> json, {Map<String, Media> medias, Map<String, User> users}) {
+  factory HistoryEntry.fromJson(Map<String, dynamic> json, {Map<String, Media> medias, Map<String, User> users, TimeSynchronizer serverTime}) {
     return HistoryEntry(
       id: json['_id'],
       userID: json['user'],
@@ -382,6 +409,8 @@ class HistoryEntry {
       title: json['media']['title'],
       start: json['media']['start'],
       end: json['media']['end'],
+      timestamp: serverTime.toLocal(
+          DateTime.parse(json['playedAt'])),
     );
   }
 }
