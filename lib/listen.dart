@@ -16,11 +16,10 @@ class UwaveListen extends StatefulWidget {
 
 class _UwaveListenState extends State<UwaveListen> {
   static const playerChannel = MethodChannel('u-wave.net/player');
-  static bool _playerPluginInitialized = false;
   int _playerTexture;
   UwaveClient _client;
   bool _clientConnected = false;
-  HistoryEntry _playing = null;
+  HistoryEntry _playing;
   StreamSubscription<HistoryEntry> _advanceSubscription;
 
   @override
@@ -220,7 +219,6 @@ class _MediaProgressBarState extends State<MediaProgressBar> {
   }
 
   void _update() {
-    final start = widget.startTime.add(Duration(seconds: widget.startOffset));
     final current = DateTime.now().difference(widget.startTime);
     final offset = current.inSeconds;
     final duration = widget.endOffset - widget.startOffset;

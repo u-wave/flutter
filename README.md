@@ -13,7 +13,7 @@ git clone https://github.com/u-wave/android.git u-wave-android
 cd u-wave-android
 ```
 
-And run the app:
+Connect your phone using USB debugging. Then you can run the app:
 
 ```bash
 flutter run
