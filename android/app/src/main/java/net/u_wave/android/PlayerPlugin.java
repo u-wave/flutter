@@ -52,9 +52,11 @@ public class PlayerPlugin implements MethodCallHandler, Player.EventListener, Si
     public static final byte BOTH = 2;
   }
 
+  public static final String NAME = "u-wave.net/player";
+
   /** Plugin registration. */
   public static void registerWith(Registrar registrar) {
-    final MethodChannel channel = new MethodChannel(registrar.messenger(), "u-wave.net/player");
+    final MethodChannel channel = new MethodChannel(registrar.messenger(), NAME);
     NewPipe.init(new DartDownloader(channel));
     channel.setMethodCallHandler(new PlayerPlugin(registrar, channel));
   }

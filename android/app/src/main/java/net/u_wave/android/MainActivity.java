@@ -11,5 +11,6 @@ public class MainActivity extends FlutterActivity {
     GeneratedPluginRegistrant.registerWith(this);
 
     PlayerPlugin.registerWith(registrarFor(PlayerPlugin.class.getName()));
+    NotificationPlugin.registerWith(registrarFor(NotificationPlugin.class.getName()));
   }
 }

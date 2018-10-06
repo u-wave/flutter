@@ -22,6 +22,7 @@ class UwaveListen extends StatefulWidget {
 
 class _UwaveListenState extends State<UwaveListen> {
   static const playerChannel = MethodChannel('u-wave.net/player');
+  static const notificationChannel = MethodChannel('u-wave.net/notification');
   final _playerViewKey = GlobalKey<_UwaveListenState>();
   final _storage = FlutterSecureStorage();
   int _playerTexture;
@@ -106,6 +107,10 @@ class _UwaveListenState extends State<UwaveListen> {
 
     debugPrint('Playing entry ${entry.media.artist} - ${entry.media.title} from $seek');
     _playing = entry;
+    notificationChannel.invokeMethod('nowPlaying', <String, String>{
+      'artist': entry.artist,
+      'title': entry.title,
+    });
     playerChannel.invokeMethod('play', <String, String>{
       'sourceType': entry.media.sourceType,
       'sourceID': entry.media.sourceID,
