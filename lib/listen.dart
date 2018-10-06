@@ -90,8 +90,13 @@ class _UwaveListenState extends State<UwaveListen> {
       'audioOnly': 'true',
     }).then((result) {
       setState(() {
-        _playerTexture = result as int;
-        debugPrint('Using _playerTexture $_playerTexture');
+        if (result == null) {
+          _playerTexture = null;
+          debugPrint('Audio-only: no player texture');
+        } else {
+          _playerTexture = result as int;
+          debugPrint('Using player texture #$_playerTexture');
+        }
       });
     });
   }
@@ -108,7 +113,10 @@ class _UwaveListenState extends State<UwaveListen> {
   Widget build(BuildContext context) {
     Widget player;
     if (_playing != null) {
-      player = PlayerView(textureId: _playerTexture, entry: _playing);
+      player = PlayerView(
+        textureId: _playerTexture,
+        entry: _playing,
+      );
     } else if (_clientConnected) {
       // nobody playing right now
       player = Container();
@@ -165,7 +173,7 @@ class PlayerView extends StatelessWidget {
             aspectRatio: 16 / 9,
             child: Center(
               child: textureId == null
-                ? Container() // nothing
+                ? Image.network(entry.media.thumbnailUrl)
                 : Texture(textureId: textureId)
             ),
           ),

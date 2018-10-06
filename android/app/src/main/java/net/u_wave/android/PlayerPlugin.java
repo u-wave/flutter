@@ -103,9 +103,12 @@ public class PlayerPlugin implements MethodCallHandler, Player.EventListener {
     }
 
     final TextureRegistry textures = registrar.textures();
-    textureEntry = textures.createSurfaceTexture();
-    surface = new Surface(textureEntry.surfaceTexture());
-    player.setVideoSurface(surface);
+
+    if (!audioOnly) {
+      textureEntry = textures.createSurfaceTexture();
+      surface = new Surface(textureEntry.surfaceTexture());
+      player.setVideoSurface(surface);
+    }
 
     currentResult = result;
 
@@ -124,7 +127,7 @@ public class PlayerPlugin implements MethodCallHandler, Player.EventListener {
               MediaSource mediaSource = getMediaSource(uri);
               player.prepare(mediaSource);
               player.seekTo(seek);
-              currentResult.success(textureEntry.id());
+              currentResult.success(audioOnly ? null : textureEntry.id());
               currentResult = null;
               player.setPlayWhenReady(true);
             } catch (IOException err) {
