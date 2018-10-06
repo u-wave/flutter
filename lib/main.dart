@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import './uwave_announce.dart' show UwaveServer;
+import './u_wave/announce.dart' show UwaveServer;
 import './server_list.dart' show UwaveServerList;
 import './listen.dart' show UwaveListen;
 

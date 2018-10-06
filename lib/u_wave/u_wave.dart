@@ -5,14 +5,20 @@ import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/status.dart' as ws_status;
 
-class TimeSynchronizer {
+/// Keeps track of the difference between the server time and the local time.
+class _TimeSynchronizer {
+  /// The reference server time.
   DateTime _referenceServerTime;
+  /// The local time, at the previous moment when the reference server time was updated.
   DateTime _referenceLocalTime;
   Duration _offset;
 
+  /// Get the current (estimated) server time.
   DateTime get serverTime => toServer(DateTime.now());
+  /// Set the server time.
   set serverTime(DateTime time) => _setServerTime(time);
 
+  /// Calculate the difference between server and local time.
   void _setServerTime(DateTime time) {
     _referenceLocalTime = DateTime.now();
     _referenceServerTime = time;
@@ -20,33 +26,41 @@ class TimeSynchronizer {
     print('Update server time, offset is $_offset');
   }
 
+  /// Turn a server timestamp into a local one.
   DateTime toLocal(DateTime serverTime) => serverTime.add(_offset);
+  /// Turn a local timestamp into a server one.
   DateTime toServer(DateTime localTime) => localTime.subtract(_offset);
 }
 
-class SocketMessage {
+/// A message from the WebSocket connection.
+class _SocketMessage {
   final String command;
   final dynamic data;
 
-  SocketMessage({this.command, this.data});
+  _SocketMessage({this.command, this.data});
 
-  factory SocketMessage.fromJson(Map<String, dynamic> json) {
-    return SocketMessage(
+  factory _SocketMessage.fromJson(Map<String, dynamic> json) {
+    return _SocketMessage(
       command: json['command'],
       data: json['data'],
     );
   }
 }
 
+/// Represents an incoming chat message.
 class ChatMessage {
+  /// Unique ID for this chat message.
   final String id;
+  /// The User that sent this message.
   final User user;
+  /// The contents of this message.
   final String message;
+  /// The (local) time at which this message was sent.
   final DateTime timestamp;
 
   ChatMessage({this.id, this.user, this.message, this.timestamp});
 
-  factory ChatMessage.fromJson(Map<String, dynamic> json, {Map<String, User> users, TimeSynchronizer serverTime}) {
+  factory ChatMessage.fromJson(Map<String, dynamic> json, {Map<String, User> users, _TimeSynchronizer serverTime}) {
     return ChatMessage(
       id: json['id'],
       user: users != null ? users[json['userID']] : null,
@@ -57,12 +71,14 @@ class ChatMessage {
   }
 }
 
+/// Represents an advance event.
 class AdvanceMessage {
+  /// The new history entry, may be null.
   final HistoryEntry entry;
 
   AdvanceMessage({this.entry});
 
-  factory AdvanceMessage.fromJson(Map<String, dynamic> json, {Map<String, User> users, TimeSynchronizer serverTime}) {
+  factory AdvanceMessage.fromJson(Map<String, dynamic> json, {Map<String, User> users, _TimeSynchronizer serverTime}) {
     if (json == null) {
       return AdvanceMessage(entry: null);
     }
@@ -110,7 +126,7 @@ class UserLeaveMessage {
 class UwaveClient {
   final String apiUrl;
   final String socketUrl;
-  final TimeSynchronizer _serverTime = TimeSynchronizer();
+  final _TimeSynchronizer _serverTime = _TimeSynchronizer();
   final http.Client _client = http.Client();
   final WebSocketChannel _channel;
   final StreamController<ChatMessage> _chatMessagesController =
@@ -134,7 +150,7 @@ class UwaveClient {
     _channel.stream.listen((message) {
       if (message == "-") return;
       final decoded = json.decode(message);
-      this._onMessage(SocketMessage.fromJson(decoded));
+      this._onMessage(_SocketMessage.fromJson(decoded));
     });
 
     final response = await _client.get("$apiUrl/now");
@@ -208,7 +224,7 @@ class UwaveNowState {
       });
 
     final serverTime = DateTime.fromMillisecondsSinceEpoch(json['time']);
-    final tempSyncher = TimeSynchronizer();
+    final tempSyncher = _TimeSynchronizer();
     tempSyncher.serverTime = serverTime;
 
     return UwaveNowState(
@@ -330,7 +346,7 @@ class HistoryEntry {
   HistoryEntry(
       {this.id, this.userID, this.user, this.media, this.artist, this.title, this.start, this.end, this.timestamp});
 
-  factory HistoryEntry.fromJson(Map<String, dynamic> json, {Map<String, Media> medias, Map<String, User> users, TimeSynchronizer serverTime}) {
+  factory HistoryEntry.fromJson(Map<String, dynamic> json, {Map<String, Media> medias, Map<String, User> users, _TimeSynchronizer serverTime}) {
     return HistoryEntry(
       id: json['_id'],
       userID: json['user'],

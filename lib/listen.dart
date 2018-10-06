@@ -2,8 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import './uwave_announce.dart' show UwaveServer;
-import './uwave.dart';
+import './u_wave/announce.dart' show UwaveServer;
+import './u_wave/u_wave.dart';
 import './server_list.dart' show ServerThumbnail;
 
 class UwaveListen extends StatefulWidget {

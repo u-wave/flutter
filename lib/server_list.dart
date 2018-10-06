@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import './uwave_announce.dart';
+import './u_wave/announce.dart';
 
 typedef OnJoinCallback = void Function(BuildContext, UwaveServer);
 
