@@ -87,7 +87,7 @@ class _UwaveListenState extends State<UwaveListen> {
       'sourceType': entry.media.sourceType,
       'sourceID': entry.media.sourceID,
       'seek': '${seek.isNegative ? 0 : seek.inMilliseconds}',
-      'audioOnly': 'true',
+      // 'audioOnly': 'true',
     }).then((result) {
       setState(() {
         if (result == null) {

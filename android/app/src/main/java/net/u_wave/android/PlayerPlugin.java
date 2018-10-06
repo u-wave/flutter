@@ -162,12 +162,14 @@ public class PlayerPlugin implements MethodCallHandler, Player.EventListener {
     for (VideoStream stream : info.getVideoStreams()) {
       if (stream.isVideoOnly()) continue;
 
+      System.out.println("  stream: " + stream.getFormat().getName() + " " + stream.getFormat().getMimeType() + " - " + stream.getResolution());
+
       if (bestStream == null) {
         bestStream = stream;
       }
     }
 
-    System.out.println("bestStream: " + bestStream.getResolution() + " at " + bestStream.getUrl());
+    System.out.println("best: " + bestStream.getResolution() + " at " + bestStream.getUrl());
 
     return bestStream;
   }
