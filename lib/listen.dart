@@ -120,12 +120,14 @@ class _UwaveListenState extends State<UwaveListen> {
         },
       ),
     ));
-    setState(() {
-      _signedIn = _client.currentUser != null;
-    });
   }
+
   void _signIn() {
-    _showSignInPage();
+    _showSignInPage().then((_) {
+      setState(() {
+        _signedIn = _client.currentUser != null;
+      });
+    });
   }
 
   @override
@@ -171,7 +173,7 @@ class _UwaveListenState extends State<UwaveListen> {
           ),
           _signedIn
             ? ChatInput()
-            : SignIn(onSignIn: _signIn),
+            : SignIn(serverName: widget.server.name, onSignIn: _signIn),
         ],
       ),
     );
@@ -189,31 +191,66 @@ class SignInRoute extends StatefulWidget {
 }
 
 class _SignInRouteState extends State<SignInRoute> {
+  final _formKey = GlobalKey<_SignInRouteState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  Widget _buildSignInButton() {
+    return Row(
+      children: [
+        Expanded(
+          child: RaisedButton(
+            child: Text('Sign In'),
+            onPressed: _submit,
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _submit() {
+    widget.uwave.signIn(
+      email: _emailController.text,
+      password: _passwordController.text,
+    ).then((_) {
+      widget.onComplete();
+    }).catchError((err) {
+      // TODO render this
+      print(err);
+    });
+  }
+
   @override
   Widget build(_) {
+    final email = TextFormField(
+      controller: _emailController,
+      decoration: const InputDecoration(
+        labelText: 'Email',
+      ),
+      keyboardType: TextInputType.emailAddress,
+    );
+
+    final password = TextFormField(
+      controller: _passwordController,
+      decoration: const InputDecoration(
+        labelText: 'Password',
+      ),
+      obscureText: true,
+    );
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('Sign In'),
+        title: const Text('Sign In'),
       ),
       body: Form(
+        key: _formKey,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Column(
             children: <Widget>[
-              TextFormField(keyboardType: TextInputType.emailAddress),
-              TextFormField(obscureText: true),
-              Row(
-                children: [
-                  Expanded(
-                    child: RaisedButton(
-                      child: Text('Sign In'),
-                      onPressed: () {
-                        widget.onComplete();
-                      },
-                    ),
-                  ),
-                ],
-              ),
+              email,
+              password,
+              _buildSignInButton(),
             ],
           ),
         ),
@@ -463,9 +500,10 @@ class ChatMessageView extends StatelessWidget {
 }
 
 class SignIn extends StatelessWidget {
+  final String serverName;
   final VoidCallback onSignIn;
 
-  SignIn({this.onSignIn});
+  SignIn({this.serverName, this.onSignIn});
 
   @override
   Widget build(BuildContext context) {
@@ -477,7 +515,7 @@ class SignIn extends StatelessWidget {
             child: FlatButton(
               color: Theme.of(context).primaryColor,
               textTheme: ButtonTextTheme.primary,
-              child: Text('Sign In'),
+              child: Text('Sign In to $serverName'),
               onPressed: onSignIn,
             ),
           ),

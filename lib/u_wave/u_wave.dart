@@ -39,6 +39,13 @@ class _SocketMessage {
 
   _SocketMessage({this.command, this.data});
 
+  Map<String, dynamic> toJson() {
+    return {
+      'command': command,
+      'data': data,
+    };
+  }
+
   factory _SocketMessage.fromJson(Map<String, dynamic> json) {
     return _SocketMessage(
       command: json['command'],
@@ -187,7 +194,36 @@ class UwaveClient {
       _advanceController.add(state.currentEntry);
     }
 
+    if (nowJson['socketToken'] is String) {
+      _sendSocketToken(nowJson['socketToken']);
+    }
+
     return state;
+  }
+
+  void _sendSocketToken(String socketToken) {
+    _channel.sink.add(socketToken);
+  }
+
+  Future<Null> _authenticateSocket() async {
+    if (_activeCredentials == null || !_activeCredentials.hasToken) {
+      throw 'Cannot authenticate to socket: no active session';
+    }
+
+    final response = await _client.get('$apiUrl/auth/socket',
+      headers: {
+        'accept': 'application/json',
+        'authorization': 'JWT ${_activeCredentials.token}',
+      },
+    );
+    final socketJson = json.decode(response.body);
+    final socketToken = socketJson['data']['socketToken'];
+
+    if (socketToken is String) {
+      _sendSocketToken(socketToken);
+    } else {
+      throw 'Cannot authenticate to socket: no token found';
+    }
   }
 
   Future<UwaveCredentials> signIn({String email, String password}) async {
@@ -208,6 +244,9 @@ class UwaveClient {
       token: authJson['meta']['jwt'],
     );
     _loggedInUser = User.fromJson(authJson['data']);
+
+    _authenticateSocket();
+
     return _activeCredentials;
   }
 
