@@ -1,15 +1,15 @@
 package net.u_wave.android;
 
-import java.util.Map;
-import java.util.HashMap;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.Result;
+import java.util.HashMap;
+import java.util.Map;
 import org.schabi.newpipe.extractor.Downloader;
 
 /**
  * Call into Dart to do the download, because it already has an HTTP library.
  *
- * This way I don't have to pick one in Java!
+ * <p>This way I don't have to pick one in Java!
  */
 class DartDownloader implements Downloader {
   private MethodChannel channel;
@@ -43,7 +43,7 @@ class DartDownloader implements Downloader {
     channel.invokeMethod("download", headers, result);
     headers.remove("_url");
 
-    synchronized(lock) {
+    synchronized (lock) {
       while (!result.isDone()) {
         try {
           lock.wait();
@@ -75,15 +75,16 @@ class DartDownloader implements Downloader {
 
     @Override
     public void success(Object result) {
-      synchronized(lock) {
+      synchronized (lock) {
         done = true;
         response = (String) result;
         lock.notify();
       }
     }
+
     @Override
     public void notImplemented() {
-      synchronized(lock) {
+      synchronized (lock) {
         done = true;
         try {
           throw new RuntimeException("not implemented");
@@ -92,9 +93,10 @@ class DartDownloader implements Downloader {
         }
       }
     }
+
     @Override
     public void error(String errorCode, String errorMessage, Object details) {
-      synchronized(lock) {
+      synchronized (lock) {
         done = true;
         try {
           throw new RuntimeException(errorMessage);
