@@ -104,7 +104,11 @@ public class PlayerPlugin implements MethodCallHandler, Player.EventListener {
 
     final TextureRegistry textures = registrar.textures();
 
-    if (!audioOnly) {
+    if (audioOnly) {
+      textureEntry = null;
+      surface = null;
+      player.setVideoSurface(null);
+    } else {
       textureEntry = textures.createSurfaceTexture();
       surface = new Surface(textureEntry.surfaceTexture());
       player.setVideoSurface(surface);
@@ -127,8 +131,6 @@ public class PlayerPlugin implements MethodCallHandler, Player.EventListener {
               MediaSource mediaSource = getMediaSource(uri);
               player.prepare(mediaSource);
               player.seekTo(seek);
-              currentResult.success(audioOnly ? null : textureEntry.id());
-              currentResult = null;
               player.setPlayWhenReady(true);
             } catch (IOException err) {
               currentResult.error("IOException", err.getMessage(), null);
@@ -229,6 +231,11 @@ public class PlayerPlugin implements MethodCallHandler, Player.EventListener {
             + (playWhenReady ? "true" : "false")
             + " readyState="
             + readyState);
+
+    if (readyState == Player.STATE_READY) {
+      currentResult.success(textureEntry != null ? textureEntry.id() : null);
+      currentResult = null;
+    }
   }
 
   @Override
@@ -248,6 +255,8 @@ public class PlayerPlugin implements MethodCallHandler, Player.EventListener {
 
   @Override
   public void onPlayerError(ExoPlaybackException err) {
+    currentResult.error("ExoPlaybackException", err.getMessage(), err);
+    currentResult = null;
     err.printStackTrace();
   }
 
