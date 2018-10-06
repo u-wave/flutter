@@ -18,11 +18,7 @@ class _UwaveServerListState extends State<UwaveServerList> {
   List<UwaveServer> _servers = List();
 
   void _updateServers() {
-    _client.listServers().then((servers) {
-      setState(() {
-        _servers = servers;
-      });
-    });
+    _client.fetchServers();
   }
 
   void _listen(UwaveServer server) {
@@ -32,7 +28,11 @@ class _UwaveServerListState extends State<UwaveServerList> {
   @override
   void initState() {
     super.initState();
-    this._updateServers();
+    _client.onUpdate = (_) {
+      setState(() {
+        _servers = _client.servers.toList();
+      });
+    };
   }
 
   void reassemble() {

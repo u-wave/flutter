@@ -1,24 +1,62 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../event_source/event_source.dart' show EventSource;
 
+typedef OnUpdateCallback = void Function(Map<String, UwaveServer> servers);
 class UwaveAnnounceClient {
   final String _url;
+  final Map<String, UwaveServer> _servers = {};
+  EventSource _events;
+
+  OnUpdateCallback onUpdate;
+  Iterable<UwaveServer> get servers => _servers.values;
 
   UwaveAnnounceClient({String url})
-      : _url = url ?? 'https://announce.u-wave.net';
+      : _url = url ?? 'https://announce.u-wave.net'
+  {
+    final eventsUri = Uri.parse(_url).replace(path: '/events');
+    _events = EventSource(eventsUri);
+    _events.events.listen((event) {
+      print('update: ${event.name} ${event.data}');
+      if (event.name == 'message') {
+        _onEvent(event.data);
+      }
+    });
 
-  Future<List<UwaveServer>> listServers() async {
+    fetchServers();
+  }
+
+  void _updated() {
+    print('emit update');
+    if (onUpdate != null) onUpdate(_servers);
+  }
+
+  void _onEvent(String data) {
+    final server = UwaveServer.fromJson(json.decode(data));
+    _servers[server.publicKey] = server;
+    _updated();
+  }
+
+  Future<List<UwaveServer>> fetchServers() async {
     final response = await http.get(_url);
     final parsed = json.decode(response.body);
-    return parsed['servers']
+    final list = parsed['servers']
         .cast<Map<String, Object>>()
         .map<UwaveServer>((json) => UwaveServer.fromJson(json))
         .toList();
+
+    list.forEach((server) {
+      _servers[server.publicKey] = server;
+    });
+
+    _updated();
+
+    return list;
   }
 
   void close() {
-    // Nothing right now
+    _events.close();
   }
 }
 
