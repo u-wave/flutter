@@ -12,7 +12,7 @@ class UwaveListen extends StatefulWidget {
   UwaveListen({Key key, this.server}) : super(key: key);
 
   @override
-  _UwaveListenState createState() => new _UwaveListenState();
+  _UwaveListenState createState() => _UwaveListenState();
 }
 
 class _UwaveListenState extends State<UwaveListen> {
@@ -147,6 +147,7 @@ class _UwaveListenState extends State<UwaveListen> {
       player = Container();
     } else {
       // still loading
+      // TODO add loading spinner overlay using a Stack widget
       player = ServerThumbnail(server: widget.server);
     }
 
@@ -191,7 +192,7 @@ class SignInRoute extends StatefulWidget {
   SignInRoute({this.uwave, this.onComplete});
 
   @override
-  _SignInRouteState createState() => new _SignInRouteState();
+  _SignInRouteState createState() => _SignInRouteState();
 }
 
 class _SignInRouteState extends State<SignInRoute> {
@@ -302,7 +303,7 @@ class MediaProgressBar extends StatefulWidget {
   MediaProgressBar({this.startTime, this.startOffset, this.endOffset});
 
   @override
-  _MediaProgressBarState createState() => new _MediaProgressBarState();
+  _MediaProgressBarState createState() => _MediaProgressBarState();
 }
 
 class _MediaProgressBarState extends State<MediaProgressBar> {
@@ -348,7 +349,7 @@ class ChatMessages extends StatefulWidget {
   ChatMessages({Key key, this.notifications, this.messages}) : super(key: key);
 
   @override
-  _ChatMessagesState createState() => new _ChatMessagesState();
+  _ChatMessagesState createState() => _ChatMessagesState();
 }
 
 class _ChatMessagesState extends State<ChatMessages> {

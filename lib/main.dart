@@ -3,20 +3,20 @@ import './u_wave/announce.dart' show UwaveServer;
 import './server_list.dart' show UwaveServerList;
 import './listen.dart' show UwaveListen;
 
-void main() => runApp(new UwaveApp());
+void main() => runApp(UwaveApp());
 
 class UwaveApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return new MaterialApp(
+    return MaterialApp(
       title: 'üWave',
-      theme: new ThemeData(
+      theme: ThemeData(
         brightness: Brightness.dark,
         primaryColor: Color(0xFF9D2053),
         accentColor: Color(0xFFB20062),
       ),
-      home: new UwaveServerList(
+      home: UwaveServerList(
         title: 'Public üWave Servers',
         onJoin: (context, server) =>  _listen(context, server),
       ),

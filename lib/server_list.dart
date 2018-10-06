@@ -10,7 +10,7 @@ class UwaveServerList extends StatefulWidget {
   UwaveServerList({Key key, this.title, this.onJoin}) : super(key: key);
 
   @override
-  _UwaveServerListState createState() => new _UwaveServerListState();
+  _UwaveServerListState createState() => _UwaveServerListState();
 }
 
 class _UwaveServerListState extends State<UwaveServerList> {
