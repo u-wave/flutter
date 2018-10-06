@@ -206,6 +206,7 @@ public class PlayerPlugin implements MethodCallHandler, Player.EventListener {
 
   /* MethodCallHandler */
   @Override
+  @SuppressWarnings("unchecked")
   public void onMethodCall(MethodCall call, Result result) {
     if (call.method.equals("play")) {
       onPlay((Map<String, String>) call.arguments, result);
