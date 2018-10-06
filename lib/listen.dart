@@ -78,7 +78,7 @@ class _UwaveListenState extends State<UwaveListen> {
 
   /// Start playing a history entry.
   _play(HistoryEntry entry) {
-    final seek = entry.timestamp.difference(DateTime.now())
+    final seek = DateTime.now().difference(entry.timestamp)
         + Duration(seconds: entry.start);
 
     debugPrint('Playing entry ${entry.media.artist} - ${entry.media.title} from $seek');
