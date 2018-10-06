@@ -123,6 +123,22 @@ class UserLeaveMessage {
   }
 }
 
+// TODO make this able to be stored in the device's keychain
+class UwaveCredentials {
+  final String email;
+  final String password;
+  final String token;
+
+  bool get hasToken => token != null;
+  bool get hasLocalCredentials => email != null && password != null;
+
+  UwaveCredentials({
+    this.email,
+    this.password,
+    this.token,
+  });
+}
+
 class UwaveClient {
   final String apiUrl;
   final String socketUrl;
@@ -136,9 +152,13 @@ class UwaveClient {
   final StreamController<dynamic> _eventsController =
       StreamController.broadcast();
 
+  UwaveCredentials _activeCredentials;
+  User _loggedInUser;
+
   Stream<ChatMessage> get chatMessages => _chatMessagesController.stream;
   Stream<HistoryEntry> get advanceMessages => _advanceController.stream;
   Stream<dynamic> get events => _eventsController.stream;
+  User get currentUser => _loggedInUser;
 
   final Map<String, User> _knownUsers = Map();
 
@@ -153,21 +173,42 @@ class UwaveClient {
       this._onMessage(_SocketMessage.fromJson(decoded));
     });
 
-    final response = await _client.get("$apiUrl/now");
+    final response = await _client.get('$apiUrl/now');
     final nowJson = json.decode(response.body);
     final state = UwaveNowState.fromJson(nowJson);
 
-    if (state.currentEntry != null) {
-      _advanceController.add(state.currentEntry);
-    }
+    _serverTime.serverTime = state.serverTime;
 
     state.users.forEach((id, user) {
       _knownUsers[user.id] = user;
     });
 
-    _serverTime.serverTime = state.serverTime;
+    if (state.currentEntry != null) {
+      _advanceController.add(state.currentEntry);
+    }
 
     return state;
+  }
+
+  Future<UwaveCredentials> signIn({String email, String password}) async {
+    final response = await _client.post('$apiUrl/auth/login',
+      body: json.encode({'email': email, 'password': password}),
+      headers: {
+        'accept': 'application/json',
+        'content-type': 'application/json',
+      },
+    );
+
+    if (response.statusCode != 200) {
+      throw 'Sign in failed';
+    }
+
+    final authJson = json.decode(response.body);
+    _activeCredentials = UwaveCredentials(
+      token: authJson['meta']['jwt'],
+    );
+    _loggedInUser = User.fromJson(authJson['data']);
+    return _activeCredentials;
   }
 
   void _onMessage(message) {

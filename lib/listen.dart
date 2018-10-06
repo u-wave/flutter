@@ -20,6 +20,7 @@ class _UwaveListenState extends State<UwaveListen> {
   int _playerTexture;
   UwaveClient _client;
   bool _clientConnected = false;
+  bool _signedIn = false;
   HistoryEntry _playing;
   StreamSubscription<HistoryEntry> _advanceSubscription;
 
@@ -51,6 +52,7 @@ class _UwaveListenState extends State<UwaveListen> {
     _client.init().then((_) {
       setState(() {
         _clientConnected = true;
+        _signedIn = _client.currentUser != null;
       });
     });
   }
@@ -109,6 +111,23 @@ class _UwaveListenState extends State<UwaveListen> {
     _playing = null;
   }
 
+  Future<Null> _showSignInPage() async {
+    await Navigator.push(context, MaterialPageRoute(
+      builder: (context) => SignInRoute(
+        uwave: _client,
+        onComplete: () {
+          Navigator.pop(context);
+        },
+      ),
+    ));
+    setState(() {
+      _signedIn = _client.currentUser != null;
+    });
+  }
+  void _signIn() {
+    _showSignInPage();
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget player;
@@ -150,8 +169,54 @@ class _UwaveListenState extends State<UwaveListen> {
               ],
             )
           ),
-          ChatInput(),
+          _signedIn
+            ? ChatInput()
+            : SignIn(onSignIn: _signIn),
         ],
+      ),
+    );
+  }
+}
+
+class SignInRoute extends StatefulWidget {
+  final UwaveClient uwave;
+  final VoidCallback onComplete;
+
+  SignInRoute({this.uwave, this.onComplete});
+
+  @override
+  _SignInRouteState createState() => new _SignInRouteState();
+}
+
+class _SignInRouteState extends State<SignInRoute> {
+  @override
+  Widget build(_) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Sign In'),
+      ),
+      body: Form(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Column(
+            children: <Widget>[
+              TextFormField(keyboardType: TextInputType.emailAddress),
+              TextFormField(obscureText: true),
+              Row(
+                children: [
+                  Expanded(
+                    child: RaisedButton(
+                      child: Text('Sign In'),
+                      onPressed: () {
+                        widget.onComplete();
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -393,6 +458,31 @@ class ChatMessageView extends StatelessWidget {
       leading: avatar,
       title: Text(message.user?.username ?? '<unknown>'),
       subtitle: Text(message.message),
+    );
+  }
+}
+
+class SignIn extends StatelessWidget {
+  final VoidCallback onSignIn;
+
+  SignIn({this.onSignIn});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: FlatButton(
+              color: Theme.of(context).primaryColor,
+              textTheme: ButtonTextTheme.primary,
+              child: Text('Sign In'),
+              onPressed: onSignIn,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
