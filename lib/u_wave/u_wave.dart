@@ -226,6 +226,14 @@ class UwaveClient {
     }
   }
 
+  void sendChatMessage(String text) {
+    final message = json.encode(_SocketMessage(
+      command: 'sendChat',
+      data: text,
+    ).toJson());
+    _channel.sink.add(message);
+  }
+
   Future<UwaveCredentials> signIn({String email, String password}) async {
     final response = await _client.post('$apiUrl/auth/login',
       body: json.encode({'email': email, 'password': password}),

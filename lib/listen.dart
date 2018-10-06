@@ -130,6 +130,10 @@ class _UwaveListenState extends State<UwaveListen> {
     });
   }
 
+  void _sendChat(String message) {
+    _client.sendChatMessage(message);
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget player;
@@ -172,7 +176,7 @@ class _UwaveListenState extends State<UwaveListen> {
             )
           ),
           _signedIn
-            ? ChatInput()
+            ? ChatInput(user: _client.currentUser, onSend: _sendChat)
             : SignIn(serverName: widget.server.name, onSignIn: _signIn),
         ],
       ),
@@ -409,15 +413,51 @@ class _ChatMessagesState extends State<ChatMessages> {
   }
 }
 
-class ChatInput extends StatelessWidget {
+typedef OnSendCallback = void Function(String);
+class ChatInput extends StatefulWidget {
+  final User user;
+  final OnSendCallback onSend;
+
+  ChatInput({this.user, this.onSend});
+
+  @override
+  _ChatInputState createState() => _ChatInputState();
+}
+
+class _ChatInputState extends State<ChatInput> {
+  static const _PADDING = 6.0;
+
+  final _editController = TextEditingController();
+
+  void _submit() {
+    widget.onSend(_editController.text);
+    _editController.clear();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
       color: Color(0xFF1B1B1B),
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(6.0),
-          child: TextField(),
+      child: Padding(
+        padding: const EdgeInsets.all(_PADDING),
+        child: Row(
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.only(right: _PADDING),
+              child: CircleAvatar(
+                backgroundImage: NetworkImage(widget.user.avatarUrl),
+              ),
+            ),
+            Expanded(
+              child: TextField(
+                controller: _editController,
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.send),
+              onPressed: _submit,
+            ),
+          ],
         ),
       ),
     );
