@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import './uwave.dart';
+import './uwave_announce.dart';
 
 typedef OnJoinCallback = void Function(BuildContext, UwaveServer);
 
@@ -38,6 +38,13 @@ class _UwaveServerListState extends State<UwaveServerList> {
   void reassemble() {
     super.reassemble();
     this._updateServers();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _client.close();
+    _client = null;
   }
 
   @override

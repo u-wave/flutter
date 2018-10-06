@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import './uwave_announce.dart' show UwaveServer;
 import './uwave.dart';
 import './server_list.dart' show ServerThumbnail;
 
