@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/status.dart' as ws_status;
+import './markup.dart' show MarkupParser, MarkupNode;
 
 /// Keeps track of the difference between the server time and the local time.
 class _TimeSynchronizer {
@@ -65,7 +66,17 @@ class ChatMessage {
   /// The (local) time at which this message was sent.
   final DateTime timestamp;
 
+  List<MarkupNode> _parsed;
+  List<MarkupNode> get parsedMessage => _getParsed();
+
   ChatMessage({this.id, this.user, this.message, this.timestamp});
+
+  List<MarkupNode> _getParsed() {
+    if (_parsed == null) {
+      _parsed = MarkupParser(source: message).parse();
+    }
+    return _parsed;
+  }
 
   factory ChatMessage.fromJson(Map<String, dynamic> json, {Map<String, User> users, _TimeSynchronizer serverTime}) {
     return ChatMessage(

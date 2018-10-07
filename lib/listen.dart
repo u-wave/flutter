@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart' show FlutterSecureStorage;
 import './u_wave/announce.dart' show UwaveServer;
 import './u_wave/u_wave.dart';
+import './u_wave/markup.dart';
 import './server_list.dart' show ServerThumbnail;
 
 class UwaveListen extends StatefulWidget {
@@ -588,7 +589,7 @@ class ChatMessageView extends StatelessWidget {
   ChatMessageView(this.message);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(_) {
     final avatar = message.user?.avatarUrl != null
       ? CircleAvatar(
           backgroundImage: NetworkImage(message.user.avatarUrl),
@@ -602,7 +603,59 @@ class ChatMessageView extends StatelessWidget {
       dense: true,
       leading: avatar,
       title: Text(message.user?.username ?? '<unknown>'),
-      subtitle: Text(message.message),
+      subtitle: MarkupSpan(tree: message.parsedMessage),
+    );
+  }
+}
+
+class MarkupSpan extends StatelessWidget {
+  final List<MarkupNode> tree;
+
+  MarkupSpan({Key key, this.tree}) : super(key: key);
+
+  TextSpan _toTextSpan(MarkupNode node) {
+    if (node is BoldNode) {
+      return TextSpan(
+        children: node.content.map(_toTextSpan).toList(),
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      );
+    }
+    if (node is ItalicNode) {
+      return TextSpan(
+        children: node.content.map(_toTextSpan).toList(),
+        style: const TextStyle(fontStyle: FontStyle.italic),
+      );
+    }
+    if (node is StrikeNode) {
+      return TextSpan(
+        children: node.content.map(_toTextSpan).toList(),
+        style: const TextStyle(decoration: TextDecoration.lineThrough),
+      );
+    }
+    if (node is CodeNode) {
+      return TextSpan(
+        text: node.text,
+        style: const TextStyle(fontFamily: 'monospace'),
+      );
+    }
+    if (node is EmojiNode) {
+      return TextSpan(
+        text: node.name,
+        style: const TextStyle(color: Color(0xFFFF0000)),
+      );
+    }
+    if (node is TextNode) {
+      return TextSpan(text: node.text);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return RichText(
+      text: TextSpan(
+        style: DefaultTextStyle.of(context).style,
+        children: tree.map(_toTextSpan).toList(),
+      ),
     );
   }
 }
