@@ -81,6 +81,7 @@ class _UwaveListenState extends State<UwaveListen> {
   @override
   dispose() {
     super.dispose();
+    notificationChannel.invokeMethod('nowPlaying', null);
     _advanceSubscription.cancel();
     _stop();
   }
@@ -110,6 +111,8 @@ class _UwaveListenState extends State<UwaveListen> {
     notificationChannel.invokeMethod('nowPlaying', <String, String>{
       'artist': entry.artist,
       'title': entry.title,
+      'duration': '${entry.end - entry.start}',
+      'seek': '${seek.isNegative ? 0 : seek.inSeconds}',
     });
     playerChannel.invokeMethod('play', <String, String>{
       'sourceType': entry.media.sourceType,

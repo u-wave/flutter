@@ -62,7 +62,8 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
-    implementation 'com.android.support:support-compat:27.1.0'
+    implementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation 'com.android.support:support-v4:27.1.1'
 
     implementation 'com.github.TeamNewPipe:NewPipeExtractor:217d13b1028'
     implementation "com.google.android.exoplayer:exoplayer:$exoPlayerLibVersion"
