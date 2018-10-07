@@ -18,11 +18,13 @@ class UwaveListen extends StatefulWidget {
 
 class _UwaveListenState extends State<UwaveListen> {
   static const playerChannel = MethodChannel('u-wave.net/player');
+  final _playerViewKey = GlobalKey<_UwaveListenState>();
   final _storage = FlutterSecureStorage();
   int _playerTexture;
   UwaveClient _client;
   bool _clientConnected = false;
   bool _signedIn = false;
+  bool _showOverlay = false;
   HistoryEntry _playing;
   StreamSubscription<HistoryEntry> _advanceSubscription;
 
@@ -149,11 +151,58 @@ class _UwaveListenState extends State<UwaveListen> {
     _client.sendChatMessage(message);
   }
 
+  void _onTapDown(BuildContext context, TapDownDetails details) {
+    final RenderBox playerBox = _playerViewKey.currentContext.findRenderObject();
+    final tapPosition = playerBox.globalToLocal(details.globalPosition);
+    final shouldShow = playerBox.paintBounds.contains(tapPosition);
+
+    if (_showOverlay != shouldShow) {
+      setState(() {
+        _showOverlay = shouldShow;
+      });
+    }
+  }
+
   Widget _buildPlayer() {
     if (_playing != null) {
-      return PlayerView(
-        textureId: _playerTexture,
-        entry: _playing,
+      final children = <Widget>[
+        PlayerView(
+          textureId: _playerTexture,
+          entry: _playing,
+        ),
+      ];
+
+      if (_showOverlay) {
+        children.add(AspectRatio(
+          aspectRatio: 16 / 9,
+          child: Container(
+            color: Color(0x77000000),
+            child: Center( // Vertically centered
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.thumb_up),
+                    onPressed: () {},
+                  ),
+                  // TODO implement
+                  // IconButton(
+                  //   icon: const Icon(Icons.favorite_border, color: Color(0xFF9D2053)),
+                  // ),
+                  IconButton(
+                    icon: const Icon(Icons.thumb_down),
+                    onPressed: () {},
+                  ),
+                ],
+              ),
+            )
+          ),
+        ));
+      }
+
+      return Stack(
+        key: _playerViewKey,
+        children: children,
       );
     }
     if (_clientConnected) {
@@ -182,18 +231,21 @@ class _UwaveListenState extends State<UwaveListen> {
           ? Text(widget.server.name)
           : CurrentMediaTitle(artist: _playing.artist, title: _playing.title),
       ),
-      body: Column(
-        children: <Widget>[
-          Expanded(
-            child: Column(
-              children: <Widget>[
-                Flexible(flex: 0, child: _buildPlayer()),
-                Expanded(flex: 1, child: chatMessages),
-              ],
-            )
-          ),
-          footer,
-        ],
+      body: GestureDetector(
+        onTapDown: (details) => _onTapDown(context, details),
+        child: Column(
+          children: <Widget>[
+            Expanded(
+              child: Column(
+                children: <Widget>[
+                  Flexible(flex: 0, child: _buildPlayer()),
+                  Expanded(flex: 1, child: chatMessages),
+                ],
+              )
+            ),
+            footer,
+          ],
+        ),
       ),
     );
   }
