@@ -144,6 +144,23 @@ class UwaveCredentials {
     this.password,
     this.token,
   });
+
+  String serialize() {
+    return json.encode({
+      'email': email,
+      'password': password,
+      'token': token,
+    });
+  }
+
+  factory UwaveCredentials.deserialize(String serialized) {
+    final creds = Map<String, String>.from(json.decode(serialized));
+    return UwaveCredentials(
+      email: creds['email'],
+      password: creds['password'],
+      token: creds['token'],
+    );
+  }
 }
 
 class UwaveClient {
@@ -173,14 +190,24 @@ class UwaveClient {
       : _channel = IOWebSocketChannel.connect(socketUrl),
         socketUrl = socketUrl;
 
-  Future<UwaveNowState> init() async {
+  Future<UwaveNowState> init({UwaveCredentials credentials}) async {
+    if (credentials == null) credentials = _activeCredentials;
+
     _channel.stream.listen((message) {
       if (message == "-") return;
       final decoded = json.decode(message);
       this._onMessage(_SocketMessage.fromJson(decoded));
     });
 
-    final response = await _client.get('$apiUrl/now');
+    final headers = <String, String>{
+      'accept': 'application/json',
+    };
+    if (credentials != null && credentials.hasToken) {
+      headers['authorization'] = 'JWT ${credentials.token}';
+      _activeCredentials = credentials;
+    }
+
+    final response = await _client.get('$apiUrl/now', headers: headers);
     final nowJson = json.decode(response.body);
     final state = UwaveNowState.fromJson(nowJson);
 
@@ -194,8 +221,18 @@ class UwaveClient {
       _advanceController.add(state.currentEntry);
     }
 
+    if (state.currentUser != null) {
+      _loggedInUser = state.currentUser;
+    }
     if (nowJson['socketToken'] is String) {
       _sendSocketToken(nowJson['socketToken']);
+    }
+
+    if (credentials != null && !credentials.hasToken) {
+      await signIn(
+        email: credentials.email,
+        password: credentials.password,
+      );
     }
 
     return state;
@@ -290,6 +327,7 @@ class UwaveClient {
 class UwaveNowState {
   final String motd;
   final Map<String, User> users;
+  final User currentUser;
   final HistoryEntry currentEntry;
   final List<String> waitlist;
   final DateTime serverTime;
@@ -297,6 +335,7 @@ class UwaveNowState {
   UwaveNowState({
     this.motd,
     this.users,
+    this.currentUser,
     this.currentEntry,
     this.waitlist,
     this.serverTime,
@@ -318,6 +357,9 @@ class UwaveNowState {
     return UwaveNowState(
       motd: json['motd'],
       users: users,
+      currentUser: json['user'] != null
+        ? User.fromJson(json['user'])
+        : null,
       currentEntry: json['booth'] != null
         ? HistoryEntry.fromJson(json['booth'], users: users, serverTime: tempSyncher)
         : null,

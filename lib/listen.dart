@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart' show FlutterSecureStorage;
 import './u_wave/announce.dart' show UwaveServer;
 import './u_wave/u_wave.dart';
 import './server_list.dart' show ServerThumbnail;
@@ -17,6 +18,7 @@ class UwaveListen extends StatefulWidget {
 
 class _UwaveListenState extends State<UwaveListen> {
   static const playerChannel = MethodChannel('u-wave.net/player');
+  final _storage = FlutterSecureStorage();
   int _playerTexture;
   UwaveClient _client;
   bool _clientConnected = false;
@@ -25,7 +27,7 @@ class _UwaveListenState extends State<UwaveListen> {
   StreamSubscription<HistoryEntry> _advanceSubscription;
 
   @override
-  initState() {
+  void initState() {
     super.initState();
     _client = UwaveClient(
       apiUrl: widget.server.apiUrl,
@@ -49,7 +51,13 @@ class _UwaveListenState extends State<UwaveListen> {
       });
     });
 
-    _client.init().then((_) {
+    final key = widget.server.publicKey;
+    _storage.read(key: 'credentials:$key').then((json) {
+      final credentials = json is String
+        ? UwaveCredentials.deserialize(json)
+        : null;
+      return _client.init(credentials: credentials);
+    }).then((_) {
       setState(() {
         _clientConnected = true;
         _signedIn = _client.currentUser != null;
@@ -115,7 +123,14 @@ class _UwaveListenState extends State<UwaveListen> {
     await Navigator.push(context, MaterialPageRoute(
       builder: (context) => SignInRoute(
         uwave: _client,
-        onComplete: () {
+        onComplete: (creds) {
+          if (creds != null) {
+            final key = widget.server.publicKey;
+            _storage.write(
+              key: 'credentials:$key',
+              value: creds.serialize(),
+            );
+          }
           Navigator.pop(context);
         },
       ),
@@ -134,22 +149,32 @@ class _UwaveListenState extends State<UwaveListen> {
     _client.sendChatMessage(message);
   }
 
-  @override
-  Widget build(BuildContext context) {
-    Widget player;
+  Widget _buildPlayer() {
     if (_playing != null) {
-      player = PlayerView(
+      return PlayerView(
         textureId: _playerTexture,
         entry: _playing,
       );
-    } else if (_clientConnected) {
-      // nobody playing right now
-      player = Container();
-    } else {
-      // still loading
-      // TODO add loading spinner overlay using a Stack widget
-      player = ServerThumbnail(server: widget.server);
     }
+    if (_clientConnected) {
+      // nobody playing right now
+      return Container();
+    }
+    // still loading
+    // TODO add loading spinner overlay using a Stack widget
+    return ServerThumbnail(server: widget.server);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final chatMessages = ChatMessages(
+      notifications: _client.events,
+      messages: _client.chatMessages,
+    );
+
+    final Widget footer = _signedIn
+      ? ChatInput(user: _client.currentUser, onSend: _sendChat)
+      : SignIn(serverName: widget.server.name, onSignIn: _signIn);
 
     return Scaffold(
       appBar: AppBar(
@@ -162,32 +187,22 @@ class _UwaveListenState extends State<UwaveListen> {
           Expanded(
             child: Column(
               children: <Widget>[
-                Flexible(
-                  flex: 0,
-                  child: player,
-                ),
-                Expanded(
-                  flex: 1,
-                  child: ChatMessages(
-                    notifications: _client.events,
-                    messages: _client.chatMessages,
-                  ),
-                ),
+                Flexible(flex: 0, child: _buildPlayer()),
+                Expanded(flex: 1, child: chatMessages),
               ],
             )
           ),
-          _signedIn
-            ? ChatInput(user: _client.currentUser, onSend: _sendChat)
-            : SignIn(serverName: widget.server.name, onSignIn: _signIn),
+          footer,
         ],
       ),
     );
   }
 }
 
+typedef SignInCallback = void Function(UwaveCredentials);
 class SignInRoute extends StatefulWidget {
   final UwaveClient uwave;
-  final VoidCallback onComplete;
+  final SignInCallback onComplete;
 
   SignInRoute({this.uwave, this.onComplete});
 
@@ -217,8 +232,8 @@ class _SignInRouteState extends State<SignInRoute> {
     widget.uwave.signIn(
       email: _emailController.text,
       password: _passwordController.text,
-    ).then((_) {
-      widget.onComplete();
+    ).then((creds) {
+      widget.onComplete(creds);
     }).catchError((err) {
       // TODO render this
       print(err);
