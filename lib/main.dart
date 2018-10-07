@@ -24,9 +24,9 @@ class UwaveApp extends StatelessWidget {
   }
 
   void _listen(BuildContext context, UwaveServer server) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => UwaveListen(server: server)),
-    );
+    Navigator.push(context, MaterialPageRoute(
+      maintainState: false,
+      builder: (context) => UwaveListen(server: server),
+    ));
   }
 }
