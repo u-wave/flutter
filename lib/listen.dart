@@ -8,6 +8,7 @@ import './u_wave/u_wave.dart';
 import './u_wave/markup.dart';
 import './server_list.dart' show ServerThumbnail;
 import './playback_settings.dart' show PlaybackSettingsRoute;
+import './signin_views.dart' show SignInRoute;
 
 class UwaveListen extends StatefulWidget {
   final UwaveServer server;
@@ -266,86 +267,6 @@ class _UwaveListenState extends State<UwaveListen> {
             ),
             footer,
           ],
-        ),
-      ),
-    );
-  }
-}
-
-typedef SignInCallback = void Function(UwaveCredentials);
-class SignInRoute extends StatefulWidget {
-  final UwaveClient uwave;
-  final SignInCallback onComplete;
-
-  SignInRoute({this.uwave, this.onComplete});
-
-  @override
-  _SignInRouteState createState() => _SignInRouteState();
-}
-
-class _SignInRouteState extends State<SignInRoute> {
-  final _formKey = GlobalKey<_SignInRouteState>();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-
-  Widget _buildSignInButton() {
-    return Row(
-      children: [
-        Expanded(
-          child: RaisedButton(
-            child: Text('Sign In'),
-            onPressed: _submit,
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _submit() {
-    widget.uwave.signIn(
-      email: _emailController.text,
-      password: _passwordController.text,
-    ).then((creds) {
-      widget.onComplete(creds);
-    }).catchError((err) {
-      // TODO render this
-      print(err);
-    });
-  }
-
-  @override
-  Widget build(_) {
-    final email = TextFormField(
-      controller: _emailController,
-      decoration: const InputDecoration(
-        labelText: 'Email',
-      ),
-      keyboardType: TextInputType.emailAddress,
-    );
-
-    final password = TextFormField(
-      controller: _passwordController,
-      decoration: const InputDecoration(
-        labelText: 'Password',
-      ),
-      obscureText: true,
-    );
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Sign In'),
-      ),
-      body: Form(
-        key: _formKey,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Column(
-            children: <Widget>[
-              email,
-              password,
-              _buildSignInButton(),
-            ],
-          ),
         ),
       ),
     );
