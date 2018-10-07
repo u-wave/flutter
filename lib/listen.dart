@@ -7,6 +7,7 @@ import './u_wave/announce.dart' show UwaveServer;
 import './u_wave/u_wave.dart';
 import './u_wave/markup.dart';
 import './server_list.dart' show ServerThumbnail;
+import './playback_settings.dart' show PlaybackSettingsRoute;
 
 class UwaveListen extends StatefulWidget {
   final UwaveServer server;
@@ -164,6 +165,12 @@ class _UwaveListenState extends State<UwaveListen> {
     }
   }
 
+  void _onOpenPlaybackSettings() {
+    Navigator.push(context, MaterialPageRoute(
+      builder: (_) => PlaybackSettingsRoute(),
+    ));
+  }
+
   Widget _buildPlayer() {
     if (_playing != null) {
       final children = <Widget>[
@@ -174,29 +181,42 @@ class _UwaveListenState extends State<UwaveListen> {
       ];
 
       if (_showOverlay) {
+        final voteButtons = Center( // Vertically centered
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.thumb_up),
+                onPressed: () {},
+              ),
+              // TODO implement
+              // IconButton(
+              //   icon: const Icon(Icons.favorite_border, color: Color(0xFF9D2053)),
+              // ),
+              IconButton(
+                icon: const Icon(Icons.thumb_down),
+                onPressed: () {},
+              ),
+            ],
+          ),
+        );
+
+        final settingsButton = Positioned(
+          top: 8.0,
+          right: 8.0,
+          child: IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: _onOpenPlaybackSettings,
+          ),
+        );
+
         children.add(AspectRatio(
           aspectRatio: 16 / 9,
           child: Container(
             color: Color(0x77000000),
-            child: Center( // Vertically centered
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.thumb_up),
-                    onPressed: () {},
-                  ),
-                  // TODO implement
-                  // IconButton(
-                  //   icon: const Icon(Icons.favorite_border, color: Color(0xFF9D2053)),
-                  // ),
-                  IconButton(
-                    icon: const Icon(Icons.thumb_down),
-                    onPressed: () {},
-                  ),
-                ],
-              ),
-            )
+            child: Stack(
+              children: <Widget>[voteButtons, settingsButton],
+            ),
           ),
         ));
       }
