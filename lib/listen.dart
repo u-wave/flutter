@@ -588,6 +588,7 @@ class MarkupSpan extends StatelessWidget {
     if (node is TextNode) {
       return TextSpan(text: node.text);
     }
+    throw 'Unsupported node type';
   }
 
   @override
