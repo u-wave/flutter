@@ -494,7 +494,7 @@ class UserJoinMessageView extends StatelessWidget {
     return ListTile(
       dense: true,
       leading: avatar,
-      title: Text('$username joined'),
+      title: Text('$username joined', style: TextStyle(color: Color(0xFFAAAAAA))),
     );
   }
 }
@@ -519,7 +519,7 @@ class UserLeaveMessageView extends StatelessWidget {
     return ListTile(
       dense: true,
       leading: avatar,
-      title: Text('$username left'),
+      title: Text('$username left', style: TextStyle(color: Color(0xFFAAAAAA))),
     );
   }
 }
