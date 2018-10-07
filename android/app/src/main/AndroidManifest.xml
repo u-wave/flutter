@@ -15,7 +15,7 @@
     <application
         android:name="io.flutter.app.FlutterApplication"
         android:label="üWave"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_black">
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"
