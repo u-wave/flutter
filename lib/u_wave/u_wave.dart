@@ -303,6 +303,22 @@ class UwaveClient {
     }
   }
 
+  void upvote() {
+    final message = json.encode(_SocketMessage(
+      command: 'vote',
+      data: 1,
+    ).toJson());
+    _channel.sink.add(message);
+  }
+
+  void downvote() {
+    final message = json.encode(_SocketMessage(
+      command: 'vote',
+      data: -1,
+    ).toJson());
+    _channel.sink.add(message);
+  }
+
   void sendChatMessage(String text) {
     final message = json.encode(_SocketMessage(
       command: 'sendChat',

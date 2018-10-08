@@ -176,6 +176,59 @@ class _UwaveListenState extends State<UwaveListen> {
     ));
   }
 
+  Widget _buildVoteButtons() {
+    return Center(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.thumb_up),
+            onPressed: () {
+              _client.upvote();
+            },
+          ),
+          // TODO implement
+          // IconButton(
+          //   icon: const Icon(Icons.favorite_border, color: Color(0xFF9D2053)),
+          // ),
+          IconButton(
+            icon: const Icon(Icons.thumb_down),
+            onPressed: () {
+              _client.downvote();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSettingsIcon() {
+    return Positioned(
+      top: 8.0,
+      right: 8.0,
+      child: IconButton(
+        icon: const Icon(Icons.settings),
+        onPressed: _onOpenPlaybackSettings,
+      ),
+    );
+  }
+
+  Widget _buildPlayerOverlay() {
+    final List<Widget> children = [];
+    if (_signedIn) {
+      children.add(_buildVoteButtons());
+    }
+    children.add(_buildSettingsIcon());
+
+    return AspectRatio(
+      aspectRatio: 16 / 9,
+      child: Container(
+        color: Color(0x77000000),
+        child: Stack(children: children),
+      ),
+    );
+  }
+
   Widget _buildPlayer() {
     if (_playing != null) {
       final children = <Widget>[
@@ -186,44 +239,7 @@ class _UwaveListenState extends State<UwaveListen> {
       ];
 
       if (_showOverlay) {
-        final voteButtons = Center( // Vertically centered
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.thumb_up),
-                onPressed: () {},
-              ),
-              // TODO implement
-              // IconButton(
-              //   icon: const Icon(Icons.favorite_border, color: Color(0xFF9D2053)),
-              // ),
-              IconButton(
-                icon: const Icon(Icons.thumb_down),
-                onPressed: () {},
-              ),
-            ],
-          ),
-        );
-
-        final settingsButton = Positioned(
-          top: 8.0,
-          right: 8.0,
-          child: IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: _onOpenPlaybackSettings,
-          ),
-        );
-
-        children.add(AspectRatio(
-          aspectRatio: 16 / 9,
-          child: Container(
-            color: Color(0x77000000),
-            child: Stack(
-              children: <Widget>[voteButtons, settingsButton],
-            ),
-          ),
-        ));
+        children.add(_buildPlayerOverlay());
       }
 
       return Stack(
