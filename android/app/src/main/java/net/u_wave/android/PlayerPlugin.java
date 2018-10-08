@@ -47,9 +47,9 @@ import org.schabi.newpipe.extractor.stream.VideoStream;
 
 public class PlayerPlugin implements MethodCallHandler, Player.EventListener {
   private static class PlaybackType {
-    public static final byte BOTH = 0;
+    public static final byte DISABLED = 0;
     public static final byte AUDIO_ONLY = 1;
-    public static final byte DISABLED = 2;
+    public static final byte BOTH = 2;
   }
 
   /** Plugin registration. */
