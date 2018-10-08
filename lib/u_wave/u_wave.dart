@@ -141,6 +141,35 @@ class UserLeaveMessage {
   }
 }
 
+class VoteMessage {
+  final int direction;
+  final User user;
+
+  bool get isUpvote => direction == 1;
+  bool get isDownvote => direction == -1;
+
+  VoteMessage({this.direction, this.user});
+
+  factory VoteMessage.fromJson(Map<String, dynamic> json, {Map<String, User> users}) {
+    return VoteMessage(
+      direction: json['direction'],
+      user: users != null ? users[json['userID']] : null,
+    );
+  }
+}
+
+class FavoriteMessage {
+  final User user;
+
+  FavoriteMessage({this.user});
+
+  factory FavoriteMessage.fromJson(Map<String, dynamic> json, {Map<String, User> users}) {
+    return FavoriteMessage(
+      user: users != null ? users[json['userID']] : null,
+    );
+  }
+}
+
 // TODO make this able to be stored in the device's keychain
 class UwaveCredentials {
   final String email;
@@ -321,6 +350,12 @@ class UwaveClient {
       final leave = UserLeaveMessage.fromJson(message.data, users: _knownUsers);
       // this._knownUsers.remove(leave.id);
       this._eventsController.add(leave);
+    } else if (message.command == 'vote') {
+      final vote = VoteMessage.fromJson(message.data, users: _knownUsers);
+      this._eventsController.add(vote);
+    } else if (message.command == 'favorite') {
+      final vote = FavoriteMessage.fromJson(message.data, users: _knownUsers);
+      this._eventsController.add(vote);
     }
   }
 
