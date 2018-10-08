@@ -95,18 +95,19 @@ class UserJoinMessageView extends StatelessWidget {
   Widget build(BuildContext context) {
     final avatar = message.user?.avatarUrl != null
       ? CircleAvatar(
+          radius: 12.0,
           backgroundImage: NetworkImage(message.user.avatarUrl),
         )
       : CircleAvatar(
+          radius: 12.0,
           backgroundColor: Colors.pink.shade800,
           child: Text('UK'),
         );
-    final username = message.user?.username ?? '<unknown>';
 
-    return ListTile(
-      dense: true,
+    return ChatTile(
+      sender: message.user,
       leading: avatar,
-      title: Text('$username joined', style: TextStyle(color: Color(0xFFAAAAAA))),
+      child: Text('joined the room', style: TextStyle(color: Color(0xFFAAAAAA))),
     );
   }
 }
@@ -120,18 +121,61 @@ class UserLeaveMessageView extends StatelessWidget {
   Widget build(BuildContext context) {
     final avatar = message.user?.avatarUrl != null
       ? CircleAvatar(
+          radius: 12.0,
           backgroundImage: NetworkImage(message.user.avatarUrl),
         )
       : CircleAvatar(
+          radius: 12.0,
           backgroundColor: Colors.pink.shade800,
           child: Text('UK'),
         );
-    final username = message.user?.username ?? '<unknown>';
 
-    return ListTile(
-      dense: true,
+    return ChatTile(
+      sender: message.user,
       leading: avatar,
-      title: Text('$username left', style: TextStyle(color: Color(0xFFAAAAAA))),
+      child: Text('left the room', style: TextStyle(color: Color(0xFFAAAAAA))),
+    );
+  }
+}
+
+class ChatTile extends StatelessWidget {
+  ChatTile({
+    this.sender,
+    this.leading,
+    this.child,
+  });
+
+  final User sender;
+  final Widget leading;
+  final Widget child;
+
+  @override
+  Widget build(_) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Container(
+            margin: const EdgeInsets.only(right: 16.0),
+            child: leading,
+          ),
+          // This Expanded() instances makes sure the text fills at most the rest
+          // of the horizontal space, rather than going over it.
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                DefaultTextStyle(
+                  child: UsernameView(user: sender),
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Container(child: child),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -145,18 +189,19 @@ class ChatMessageView extends StatelessWidget {
   Widget build(_) {
     final avatar = message.user?.avatarUrl != null
       ? CircleAvatar(
+          radius: 12.0,
           backgroundImage: NetworkImage(message.user.avatarUrl),
         )
       : CircleAvatar(
+          radius: 12.0,
           backgroundColor: Colors.pink.shade800,
           child: Text('UK'),
         );
 
-    return ListTile(
-      dense: true,
+    return ChatTile(
+      sender: message.user,
       leading: avatar,
-      title: Text(message.user?.username ?? '<unknown>'),
-      subtitle: MarkupSpan(tree: message.parsedMessage),
+      child: MarkupSpan(tree: message.parsedMessage),
     );
   }
 }
@@ -205,11 +250,34 @@ class MarkupSpan extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RichText(
-      text: TextSpan(
+    return Text.rich(
+      TextSpan(
         style: DefaultTextStyle.of(context).style,
         children: tree.map(_toTextSpan).toList(),
       ),
+    );
+  }
+}
+
+class UsernameView extends StatelessWidget {
+  static Map<String, Color> _roleColors = {
+    'admin': Color(0xFFFF3B74),
+    'manager': Color(0xFF05DAA5),
+    'moderator': Color(0xFF00B3DC),
+    'special': Color(0xFFFC911D),
+  };
+
+  final User user;
+
+  UsernameView({this.user});
+
+  @override
+  Widget build(_) {
+    final colorRole = user.roles.firstWhere((name) => _roleColors.containsKey(name));
+    final color = colorRole != null ? _roleColors[colorRole] : null;
+
+    return Text(user.username,
+      style: color != null ? TextStyle(color: color) : null,
     );
   }
 }
