@@ -1,10 +1,13 @@
+import 'dart:async' show Future;
 import 'package:flutter/material.dart';
-import './settings.dart' show Settings, UwaveSettings;
+import './settings.dart' show Settings, UwaveSettings, PlaybackType;
 
-Text _getAudioOnlyValue(bool audioOnly, bool audioOnlyData) {
-  return audioOnly ? const Text('Always') :
-    audioOnlyData ? const Text('When using mobile data') :
-    const Text('Never');
+Text _getPlaybackValue(PlaybackType type) {
+  switch (type) {
+    case PlaybackType.both: return const Text('Audio and Video');
+    case PlaybackType.audioOnly: return const Text('Audio only');
+    case PlaybackType.disabled: return const Text('Disabled');
+  }
 }
 
 class PlaybackSettingsRoute extends StatefulWidget {
@@ -15,37 +18,28 @@ class PlaybackSettingsRoute extends StatefulWidget {
 }
 
 class _PlaybackSettingsRouteState extends State<PlaybackSettingsRoute> {
-  void _audioOnlyDialog() {
-    showDialog<Null>(
+  void _playbackTypeDialog() {
+    _PlaybackTypesDialog.show(
+      title: const Text('Playback on WiFi'),
       context: context,
-      builder: (BuildContext context) {
-        void apply(bool audioOnly, bool audioOnlyData) {
-          final settings = UwaveSettings.of(context);
-          settings.audioOnly = audioOnly;
-          settings.audioOnlyData = audioOnlyData;
+    ).then((type) {
+      if (type != null) {
+        final settings = UwaveSettings.of(context);
+        settings.playbackType = type;
+      }
+    });
+  }
 
-          Navigator.pop(context, null);
-        }
-
-        return SimpleDialog(
-          title: const Text('Audio-only playback'),
-          children: [
-            SimpleDialogOption(
-              child: _getAudioOnlyValue(true, true),
-              onPressed: () { apply(true, true); },
-            ),
-            SimpleDialogOption(
-              child: _getAudioOnlyValue(false, true),
-              onPressed: () { apply(false, true); },
-            ),
-            SimpleDialogOption(
-              child: _getAudioOnlyValue(false, false),
-              onPressed: () { apply(false, false); },
-            ),
-          ],
-        );
-      },
-    );
+  void _playbackTypeDataDialog() {
+    _PlaybackTypesDialog.show(
+      title: const Text('Playback on mobile data'),
+      context: context,
+    ).then((type) {
+      if (type != null) {
+        final settings = UwaveSettings.of(context);
+        settings.playbackTypeData = type;
+      }
+    });
   }
 
   Widget _buildFormFields(Settings settings) {
@@ -54,9 +48,14 @@ class _PlaybackSettingsRouteState extends State<PlaybackSettingsRoute> {
         context: context,
         tiles: [
           ListTile(
-            title: const Text('Audio-only playback'),
-            subtitle: _getAudioOnlyValue(settings.audioOnly, settings.audioOnlyData),
-            onTap: _audioOnlyDialog,
+            title: const Text('Playback on WiFi'),
+            subtitle: _getPlaybackValue(settings.playbackType),
+            onTap: _playbackTypeDialog,
+          ),
+          ListTile(
+            title: const Text('Playback on mobile data'),
+            subtitle: _getPlaybackValue(settings.playbackTypeData),
+            onTap: _playbackTypeDataDialog,
           ),
           ListTile(
             title: const Text('Preferred video resolution'),
@@ -81,6 +80,47 @@ class _PlaybackSettingsRouteState extends State<PlaybackSettingsRoute> {
         title: const Text('Video Settings'),
       ),
       body: _buildFormFields(settings),
+    );
+  }
+}
+
+typedef _PlaybackTypeCallback = void Function(PlaybackType);
+class _PlaybackTypesDialog extends StatelessWidget {
+  final Widget title;
+  final _PlaybackTypeCallback onSelect;
+
+  _PlaybackTypesDialog({this.onSelect, this.title});
+
+  @override
+  Widget build(_) {
+    return SimpleDialog(
+      title: title,
+      children: [
+        SimpleDialogOption(
+          child: _getPlaybackValue(PlaybackType.both),
+          onPressed: () { onSelect(PlaybackType.both); },
+        ),
+        SimpleDialogOption(
+          child: _getPlaybackValue(PlaybackType.audioOnly),
+          onPressed: () { onSelect(PlaybackType.audioOnly); },
+        ),
+        SimpleDialogOption(
+          child: _getPlaybackValue(PlaybackType.disabled),
+          onPressed: () { onSelect(PlaybackType.disabled); },
+        ),
+      ],
+    );
+  }
+
+  static Future<PlaybackType> show({BuildContext context, Widget title}) {
+    return showDialog<PlaybackType>(
+      context: context,
+      builder: (context) => _PlaybackTypesDialog(
+        title: title,
+        onSelect: (PlaybackType type) {
+          Navigator.pop(context, type);
+        },
+      ),
     );
   }
 }

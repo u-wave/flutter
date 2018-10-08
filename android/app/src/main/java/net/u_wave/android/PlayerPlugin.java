@@ -46,6 +46,12 @@ import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipe.extractor.stream.VideoStream;
 
 public class PlayerPlugin implements MethodCallHandler, Player.EventListener {
+  private static class PlaybackType {
+    public static final byte BOTH = 0;
+    public static final byte AUDIO_ONLY = 1;
+    public static final byte DISABLED = 2;
+  }
+
   /** Plugin registration. */
   public static void registerWith(Registrar registrar) {
     final MethodChannel channel = new MethodChannel(registrar.messenger(), "u-wave.net/player");
@@ -97,7 +103,7 @@ public class PlayerPlugin implements MethodCallHandler, Player.EventListener {
     final String sourceType = data.get("sourceType");
     final String sourceID = data.get("sourceID");
     final int seek = Integer.parseInt(data.get("seek"));
-    final boolean audioOnly = data.get("audioOnly") != null && data.get("audioOnly").equals("true");
+    final int playbackType = Integer.parseInt(data.get("playbackType"));
 
     if (sourceType == null) {
       result.error("MissingParameter", "Missing parameter \"sourceType\"", null);
@@ -110,14 +116,14 @@ public class PlayerPlugin implements MethodCallHandler, Player.EventListener {
 
     final TextureRegistry textures = registrar.textures();
 
-    if (audioOnly) {
-      textureEntry = null;
-      surface = null;
-      player.setVideoSurface(null);
-    } else {
+    if (playbackType == PlaybackType.BOTH) {
       textureEntry = textures.createSurfaceTexture();
       surface = new Surface(textureEntry.surfaceTexture());
       player.setVideoSurface(surface);
+    } else {
+      textureEntry = null;
+      surface = null;
+      player.setVideoSurface(null);
     }
 
     currentResult = result;
@@ -131,7 +137,7 @@ public class PlayerPlugin implements MethodCallHandler, Player.EventListener {
 
               StreamInfo info = StreamInfo.getInfo(NewPipe.getService(sourceName), sourceURL);
 
-              MediaSource mediaSource = getCombinedMediaSource(info, audioOnly);
+              MediaSource mediaSource = getCombinedMediaSource(info, playbackType);
               player.prepare(mediaSource);
               player.seekTo(seek);
               player.setPlayWhenReady(true);
@@ -193,11 +199,11 @@ public class PlayerPlugin implements MethodCallHandler, Player.EventListener {
     return bestStream;
   }
 
-  private MediaSource getCombinedMediaSource(StreamInfo info, boolean preferAudioOnly) {
+  private MediaSource getCombinedMediaSource(StreamInfo info, int playbackType) {
     final VideoStream videoStream = getPreferredVideoStream(info);
     AudioStream audioStream = null;
 
-    if (videoStream == null || videoStream.isVideoOnly() || preferAudioOnly) {
+    if (videoStream == null || videoStream.isVideoOnly() || playbackType == PlaybackType.AUDIO_ONLY) {
       audioStream = getPreferredAudioStream(info);
     }
 
@@ -211,7 +217,7 @@ public class PlayerPlugin implements MethodCallHandler, Player.EventListener {
       ? getMediaSource(Uri.parse(audioStream.getUrl())) : null;
 
     MediaSource mediaSource = videoSource != null ? videoSource : audioSource;
-    if (preferAudioOnly) {
+    if (playbackType == PlaybackType.AUDIO_ONLY) {
       mediaSource = audioSource != null ? audioSource : videoSource;
     } else if (videoSource != null && audioSource != null) {
       mediaSource = new MergingMediaSource(new MediaSource[] {

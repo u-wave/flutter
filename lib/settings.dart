@@ -2,6 +2,12 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart' show SharedPreferences;
 
+enum PlaybackType {
+  disabled,
+  audioOnly,
+  both,
+}
+
 class SettingUpdate {
   final String name;
   final dynamic value;
@@ -14,8 +20,8 @@ class Settings {
   static const _DEFAULT_MAX_VIDEO_RESOLUTION_DATA = '360p';
   static const _DEFAULT_PREFERRED_AUDIO = 'best';
   static const _DEFAULT_MAX_AUDIO_DATA = 'best';
-  static const _DEFAULT_AUDIO_ONLY = false;
-  static const _DEFAULT_AUDIO_ONLY_DATA = false;
+  static const _DEFAULT_PLAYBACK_TYPE = PlaybackType.both;
+  static const _DEFAULT_PLAYBACK_TYPE_DATA = PlaybackType.both;
 
   final SharedPreferences _prefs;
   final StreamController<SettingUpdate> _updateController = StreamController.broadcast();
@@ -34,21 +40,33 @@ class Settings {
   }
 
   String get preferredVideoResolution => _prefs.getString('videoResolution') ?? _DEFAULT_PREFERRED_VIDEO_RESOLUTION;
+
   String get maxVideoResolutionData => _prefs.getString('videoResolutionData') ?? _DEFAULT_MAX_VIDEO_RESOLUTION_DATA;
+
   String get preferredAudioBitrate => _prefs.getString('audioBitrate') ?? _DEFAULT_PREFERRED_AUDIO;
+
   String get maxAudioBitrateData => _prefs.getString('audioBitrateData') ?? _DEFAULT_MAX_AUDIO_DATA;
-  bool get audioOnly => _prefs.getBool('audioOnly') ?? _DEFAULT_AUDIO_ONLY;
-  set audioOnly (bool value) {
-    final old = audioOnly;
-    _prefs.setBool('audioOnly', value);
-    if (old != value) _emitUpdate('audioOnly', value);
+
+  PlaybackType get playbackType {
+    int index = _prefs.getInt('playbackType');
+    if (index == null) return _DEFAULT_PLAYBACK_TYPE;
+    return PlaybackType.values[index];
+  }
+  set playbackType (PlaybackType value) {
+    final old = playbackType;
+    _prefs.setInt('playbackType', value.index);
+    if (old != value) _emitUpdate('playbackType', value);
   }
 
-  bool get audioOnlyData => _prefs.getBool('audioOnlyData') ?? _DEFAULT_AUDIO_ONLY_DATA;
-  set audioOnlyData (bool value) {
-    final old = audioOnlyData;
-    _prefs.setBool('audioOnlyData', value);
-    if (old != value) _emitUpdate('audioOnlyData', value);
+  PlaybackType get playbackTypeData {
+    int index = _prefs.getInt('playbackTypeData');
+    if (index == null) return _DEFAULT_PLAYBACK_TYPE_DATA;
+    return PlaybackType.values[index];
+  }
+  set playbackTypeData (PlaybackType value) {
+    final old = playbackTypeData;
+    _prefs.setInt('playbackTypeData', value.index);
+    if (old != value) _emitUpdate('playbackTypeData', value);
   }
 }
 
