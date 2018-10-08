@@ -54,18 +54,30 @@ class _UwaveServerListState extends State<UwaveServerList> {
         title: Text(widget.title),
       ),
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: Center(
-          child: Column(
-            children:
-                _servers.map<Widget>((server) => _renderServer(server)).toList(),
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: <Widget>[
+            const Text('This is alpha quality software—it may crash regularly!'),
+          ]..addAll(
+            _servers.map<Widget>((server) => ServerCard(
+              server: server,
+              onJoin: () { _listen(server); },
+            )).toList(),
           ),
         ),
       )
     );
   }
+}
 
-  Widget _renderServer(UwaveServer server) {
+class ServerCard extends StatelessWidget {
+  final UwaveServer server;
+  final VoidCallback onJoin;
+
+  ServerCard({this.server, this.onJoin});
+
+  @override
+  Widget build(_) {
     return Card(
       child: Column(
         mainAxisSize: MainAxisSize.max,
@@ -74,9 +86,7 @@ class _UwaveServerListState extends State<UwaveServerList> {
             title: Text(server.name),
             subtitle: Text(server.subtitle),
             trailing: const Icon(Icons.more_vert),
-            onTap: () {
-              _listen(server);
-            },
+            onTap: onJoin,
           ),
           ServerThumbnail(server: server),
         ],
