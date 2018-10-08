@@ -16,6 +16,7 @@ class SettingUpdate {
 }
 
 class Settings {
+  static const _DEFAULT_NOW_PLAYING_NOTIFICATION = true;
   static const _DEFAULT_PREFERRED_VIDEO_RESOLUTION = '360p';
   static const _DEFAULT_MAX_VIDEO_RESOLUTION_DATA = '360p';
   static const _DEFAULT_PREFERRED_AUDIO = 'best';
@@ -39,6 +40,13 @@ class Settings {
     _updateController.add(SettingUpdate(name, value));
   }
 
+  bool get nowPlayingNotification => _prefs.getBool('nowPlayingNotification') ?? _DEFAULT_NOW_PLAYING_NOTIFICATION;
+  set nowPlayingNotification(bool enabled) {
+    final old = nowPlayingNotification;
+    _prefs.setBool('nowPlayingNotification', enabled);
+    if (old != enabled) _emitUpdate('nowPlayingNotification', enabled);
+  }
+
   String get preferredVideoResolution => _prefs.getString('videoResolution') ?? _DEFAULT_PREFERRED_VIDEO_RESOLUTION;
 
   String get maxVideoResolutionData => _prefs.getString('videoResolutionData') ?? _DEFAULT_MAX_VIDEO_RESOLUTION_DATA;
@@ -52,7 +60,7 @@ class Settings {
     if (index == null) return _DEFAULT_PLAYBACK_TYPE;
     return PlaybackType.values[index];
   }
-  set playbackType (PlaybackType value) {
+  set playbackType(PlaybackType value) {
     final old = playbackType;
     _prefs.setInt('playbackType', value.index);
     if (old != value) _emitUpdate('playbackType', value);
@@ -63,7 +71,7 @@ class Settings {
     if (index == null) return _DEFAULT_PLAYBACK_TYPE_DATA;
     return PlaybackType.values[index];
   }
-  set playbackTypeData (PlaybackType value) {
+  set playbackTypeData(PlaybackType value) {
     final old = playbackTypeData;
     _prefs.setInt('playbackTypeData', value.index);
     if (old != value) _emitUpdate('playbackTypeData', value);
