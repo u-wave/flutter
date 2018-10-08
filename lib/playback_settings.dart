@@ -19,7 +19,11 @@ class _PlaybackSettingsRouteState extends State<PlaybackSettingsRoute> {
     showDialog<Null>(
       context: context,
       builder: (BuildContext context) {
-        void close() {
+        void apply(bool audioOnly, bool audioOnlyData) {
+          final settings = UwaveSettings.of(context);
+          settings.audioOnly = audioOnly;
+          settings.audioOnlyData = audioOnlyData;
+
           Navigator.pop(context, null);
         }
 
@@ -28,15 +32,15 @@ class _PlaybackSettingsRouteState extends State<PlaybackSettingsRoute> {
           children: [
             SimpleDialogOption(
               child: _getAudioOnlyValue(true, true),
-              onPressed: close,
+              onPressed: () { apply(true, true); },
             ),
             SimpleDialogOption(
               child: _getAudioOnlyValue(false, true),
-              onPressed: close,
+              onPressed: () { apply(false, true); },
             ),
             SimpleDialogOption(
               child: _getAudioOnlyValue(false, false),
-              onPressed: close,
+              onPressed: () { apply(false, false); },
             ),
           ],
         );

@@ -39,14 +39,16 @@ class Settings {
   String get maxAudioBitrateData => _prefs.getString('audioBitrateData') ?? _DEFAULT_MAX_AUDIO_DATA;
   bool get audioOnly => _prefs.getBool('audioOnly') ?? _DEFAULT_AUDIO_ONLY;
   set audioOnly (bool value) {
+    final old = audioOnly;
     _prefs.setBool('audioOnly', value);
-    _emitUpdate('audioOnly', value);
+    if (old != value) _emitUpdate('audioOnly', value);
   }
 
   bool get audioOnlyData => _prefs.getBool('audioOnlyData') ?? _DEFAULT_AUDIO_ONLY_DATA;
   set audioOnlyData (bool value) {
+    final old = audioOnlyData;
     _prefs.setBool('audioOnlyData', value);
-    _emitUpdate('audioOnlyData', value);
+    if (old != value) _emitUpdate('audioOnlyData', value);
   }
 }
 
