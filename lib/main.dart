@@ -2,11 +2,17 @@ import 'package:flutter/material.dart';
 import './u_wave/announce.dart' show UwaveServer;
 import './server_list.dart' show UwaveServerList;
 import './listen.dart' show UwaveListen;
+import './settings.dart' show Settings, UwaveSettings;
 
-void main() => runApp(UwaveApp());
+void main() async {
+  final settings = await Settings.load();
+  runApp(UwaveSettings(
+    settings: settings,
+    child: UwaveApp(),
+  ));
+}
 
 class UwaveApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

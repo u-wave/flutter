@@ -7,6 +7,7 @@ import './u_wave/announce.dart' show UwaveServer;
 import './u_wave/u_wave.dart';
 import './u_wave/markup.dart';
 import './server_list.dart' show ServerThumbnail;
+import './settings.dart' show UwaveSettings;
 import './playback_settings.dart' show PlaybackSettingsRoute;
 import './signin_views.dart' show SignInRoute;
 
@@ -95,6 +96,7 @@ class _UwaveListenState extends State<UwaveListen> {
   _play(HistoryEntry entry) {
     final seek = DateTime.now().difference(entry.timestamp)
         + Duration(seconds: entry.start);
+    final settings = UwaveSettings.of(context);
 
     debugPrint('Playing entry ${entry.media.artist} - ${entry.media.title} from $seek');
     _playing = entry;
@@ -102,7 +104,7 @@ class _UwaveListenState extends State<UwaveListen> {
       'sourceType': entry.media.sourceType,
       'sourceID': entry.media.sourceID,
       'seek': '${seek.isNegative ? 0 : seek.inMilliseconds}',
-      // 'audioOnly': 'true',
+      'audioOnly': settings.audioOnly ? 'true' : 'false',
     }).then((result) {
       setState(() {
         if (result == null) {
@@ -126,6 +128,7 @@ class _UwaveListenState extends State<UwaveListen> {
 
   Future<Null> _showSignInPage() async {
     await Navigator.push(context, MaterialPageRoute(
+      maintainState: true,
       builder: (context) => SignInRoute(
         uwave: _client,
         onComplete: (creds) {
@@ -168,6 +171,7 @@ class _UwaveListenState extends State<UwaveListen> {
 
   void _onOpenPlaybackSettings() {
     Navigator.push(context, MaterialPageRoute(
+      maintainState: true,
       builder: (_) => PlaybackSettingsRoute(),
     ));
   }
