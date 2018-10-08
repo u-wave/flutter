@@ -14,6 +14,11 @@ import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.MergingMediaSource;
+import com.google.android.exoplayer2.source.SingleSampleMediaSource;
+import com.google.android.exoplayer2.source.hls.HlsMediaSource;
+import com.google.android.exoplayer2.source.smoothstreaming.DefaultSsChunkSource;
+import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.source.dash.DashMediaSource;
 import com.google.android.exoplayer2.source.dash.DefaultDashChunkSource;
@@ -54,6 +59,7 @@ public class PlayerPlugin implements MethodCallHandler, Player.EventListener {
   private Surface surface;
   private SurfaceTextureEntry textureEntry;
   private Result currentResult;
+  private String preferredResolution = "360p";
 
   private PlayerPlugin(Registrar registrar) {
     this.registrar = registrar;
@@ -125,10 +131,7 @@ public class PlayerPlugin implements MethodCallHandler, Player.EventListener {
 
               StreamInfo info = StreamInfo.getInfo(NewPipe.getService(sourceName), sourceURL);
 
-              Stream bestStream = audioOnly ? getBestAudioStream(info) : getVideoStream(info);
-
-              final Uri uri = Uri.parse(bestStream.getUrl());
-              MediaSource mediaSource = getMediaSource(uri);
+              MediaSource mediaSource = getCombinedMediaSource(info, audioOnly);
               player.prepare(mediaSource);
               player.seekTo(seek);
               player.setPlayWhenReady(true);
@@ -147,43 +150,87 @@ public class PlayerPlugin implements MethodCallHandler, Player.EventListener {
     new Thread(loader).start();
   }
 
-  private AudioStream getBestAudioStream(StreamInfo info) {
+  private AudioStream getPreferredAudioStream(StreamInfo info) {
     AudioStream bestStream = null;
     for (AudioStream stream : info.getAudioStreams()) {
+      System.out.println("  audio: " + stream.getFormat().getName() + " " + stream.getFormat().getMimeType() + " - " + stream.getAverageBitrate() + "bps");
+
       if (bestStream == null) {
         bestStream = stream;
       } else if (stream.getAverageBitrate() > bestStream.getAverageBitrate()) {
         bestStream = stream;
       }
     }
+
+    System.out.println("best: " + bestStream.getFormat().getName() + " at " + bestStream.getUrl());
+
     return bestStream;
   }
 
-  private VideoStream getVideoStream(StreamInfo info) {
+  private VideoStream getPreferredVideoStream(StreamInfo info) {
     VideoStream bestStream = null;
     for (VideoStream stream : info.getVideoStreams()) {
-      if (stream.isVideoOnly()) continue;
-
-      System.out.println("  stream: " + stream.getFormat().getName() + " " + stream.getFormat().getMimeType() + " - " + stream.getResolution());
+      System.out.println("  video: " + stream.getFormat().getName() + " " + stream.getFormat().getMimeType() + " - " + stream.getResolution());
 
       if (bestStream == null) {
         bestStream = stream;
       }
+      if (stream.getResolution().equals(preferredResolution)) {
+        bestStream = stream;
+      }
     }
 
-    System.out.println("best: " + bestStream.getResolution() + " at " + bestStream.getUrl());
+    System.out.println("best: " + bestStream.getFormat().getName() + " at " + bestStream.getUrl());
 
     return bestStream;
   }
 
+  private MediaSource getCombinedMediaSource(StreamInfo info, boolean preferAudioOnly) {
+    final VideoStream videoStream = getPreferredVideoStream(info);
+    AudioStream audioStream = null;
+
+    if (videoStream == null || videoStream.isVideoOnly() || preferAudioOnly) {
+      audioStream = getPreferredAudioStream(info);
+    }
+
+    if (videoStream == null && audioStream == null) {
+      return null;
+    }
+
+    final MediaSource videoSource = videoStream != null
+      ? getMediaSource(Uri.parse(videoStream.getUrl())) : null;
+    final MediaSource audioSource = audioStream != null
+      ? getMediaSource(Uri.parse(audioStream.getUrl())) : null;
+
+    MediaSource mediaSource = videoSource != null ? videoSource : audioSource;
+    if (preferAudioOnly) {
+      mediaSource = audioSource != null ? audioSource : videoSource;
+    } else if (videoSource != null && audioSource != null) {
+      mediaSource = new MergingMediaSource(new MediaSource[] {
+        videoSource,
+        audioSource
+      });
+    }
+
+    return mediaSource;
+  }
+
   private MediaSource getMediaSource(Uri uri) {
     switch (Util.inferContentType(uri)) {
+      case C.TYPE_SS:
+        return new SsMediaSource.Factory(
+                new DefaultSsChunkSource.Factory(dataSourceFactory), dataSourceFactory)
+            .createMediaSource(uri);
       case C.TYPE_DASH:
         return new DashMediaSource.Factory(
                 new DefaultDashChunkSource.Factory(dataSourceFactory), dataSourceFactory)
             .createMediaSource(uri);
+      case C.TYPE_HLS:
+        return new HlsMediaSource.Factory(dataSourceFactory)
+            .createMediaSource(uri);
       case C.TYPE_OTHER:
-        return new ExtractorMediaSource.Factory(dataSourceFactory).createMediaSource(uri);
+        return new ExtractorMediaSource.Factory(dataSourceFactory)
+            .createMediaSource(uri);
     }
     return null;
   }
