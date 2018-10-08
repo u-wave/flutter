@@ -249,7 +249,7 @@ class _UwaveListenState extends State<UwaveListen> {
 
     final Widget footer = _signedIn
       ? ChatInput(user: _client.currentUser, onSend: _sendChat)
-      : SignIn(serverName: widget.server.name, onSignIn: _signIn);
+      : SignInButton(serverName: widget.server.name, onSignIn: _signIn);
 
     return Scaffold(
       appBar: AppBar(
@@ -355,11 +355,11 @@ class _MediaProgressBarState extends State<MediaProgressBar> {
   }
 }
 
-class SignIn extends StatelessWidget {
+class SignInButton extends StatelessWidget {
   final String serverName;
   final VoidCallback onSignIn;
 
-  SignIn({this.serverName, this.onSignIn});
+  SignInButton({this.serverName, this.onSignIn});
 
   @override
   Widget build(BuildContext context) {
