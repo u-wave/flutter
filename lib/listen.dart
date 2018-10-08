@@ -32,6 +32,8 @@ class _UwaveListenState extends State<UwaveListen> {
   bool _showOverlay = false;
   double _aspectRatio;
   HistoryEntry _playing;
+  Stream<Duration> _currentProgress;
+  StreamSubscription<Duration> _currentProgressSubscription;
   StreamSubscription<HistoryEntry> _advanceSubscription;
 
   @override
@@ -79,7 +81,13 @@ class _UwaveListenState extends State<UwaveListen> {
   }
 
   @override
-  dispose() {
+  void reassemble() {
+    super.reassemble();
+    if (_playing != null) _play(_playing);
+  }
+
+  @override
+  void dispose() {
     super.dispose();
     notificationChannel.invokeMethod('nowPlaying', null);
     _advanceSubscription.cancel();
@@ -102,12 +110,20 @@ class _UwaveListenState extends State<UwaveListen> {
 
   /// Start playing a history entry.
   _play(HistoryEntry entry) {
+    if (_currentProgressSubscription != null) {
+      _currentProgressSubscription.cancel();
+      _currentProgressSubscription = null;
+    }
+
     final seek = DateTime.now().difference(entry.timestamp)
         + Duration(seconds: entry.start);
     final settings = UwaveSettings.of(context);
 
     debugPrint('Playing entry ${entry.media.artist} - ${entry.media.title} from $seek');
     _playing = entry;
+    _currentProgress = Stream.periodic(const Duration(seconds: 1), (_) {
+      return DateTime.now().difference(entry.timestamp);
+    }).asBroadcastStream();
     notificationChannel.invokeMethod('nowPlaying', <String, String>{
       'artist': entry.artist,
       'title': entry.title,
@@ -130,12 +146,23 @@ class _UwaveListenState extends State<UwaveListen> {
         }
       });
     });
+
+    _currentProgressSubscription = _currentProgress.listen((past) {
+      notificationChannel.invokeMethod('setProgress', <int>[
+        past.inSeconds,
+        entry.end - entry.start,
+      ]);
+    });
   }
 
   /// Stop playing.
   _stop() {
     debugPrint('Stopping playback');
     playerChannel.invokeMethod('play', null);
+    if (_currentProgressSubscription != null) {
+      _currentProgressSubscription.cancel();
+      _currentProgressSubscription = null;
+    }
     _playerTexture = null;
     _playing = null;
   }
@@ -248,8 +275,9 @@ class _UwaveListenState extends State<UwaveListen> {
       final children = <Widget>[
         PlayerView(
           textureId: _playerTexture,
-          entry: _playing,
           aspectRatio: _aspectRatio,
+          entry: _playing,
+          currentProgress: _currentProgress,
         ),
       ];
 
@@ -311,9 +339,10 @@ class _UwaveListenState extends State<UwaveListen> {
 class PlayerView extends StatelessWidget {
   final int textureId;
   final HistoryEntry entry;
+  final Stream<Duration> currentProgress;
   final double aspectRatio;
 
-  PlayerView({this.textureId, this.entry, this.aspectRatio = 16 / 9});
+  PlayerView({this.textureId, this.entry, this.currentProgress,this.aspectRatio = 16 / 9});
 
   @override
   Widget build(BuildContext context) {
@@ -333,9 +362,8 @@ class PlayerView extends StatelessWidget {
             ),
           ),
           MediaProgressBar(
-            startTime: entry.timestamp,
-            startOffset: entry.start,
-            endOffset: entry.end,
+            currentProgress: currentProgress,
+            duration: Duration(seconds: entry.end - entry.start),
           ),
         ],
       ),
@@ -343,50 +371,28 @@ class PlayerView extends StatelessWidget {
   }
 }
 
-class MediaProgressBar extends StatefulWidget {
-  final DateTime startTime;
-  final int startOffset;
-  final int endOffset;
+class MediaProgressBar extends StatelessWidget {
+  final Stream<Duration> currentProgress;
+  final Duration duration;
 
-  MediaProgressBar({this.startTime, this.startOffset, this.endOffset});
-
-  @override
-  _MediaProgressBarState createState() => _MediaProgressBarState();
-}
-
-class _MediaProgressBarState extends State<MediaProgressBar> {
-  Timer _timer;
-  double _progress = 0.0;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      _update();
-    });
-    _update();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    _timer.cancel();
-  }
-
-  void _update() {
-    final current = DateTime.now().difference(widget.startTime);
-    final offset = current.inSeconds;
-    final duration = widget.endOffset - widget.startOffset;
-
-    setState(() {
-      _progress = offset / duration;
-    });
-  }
+  MediaProgressBar({this.currentProgress, this.duration});
 
   @override
   Widget build(_) {
-    return LinearProgressIndicator(value: _progress);
+    return StreamBuilder<Duration>(
+      stream: currentProgress,
+      builder: (_, snapshot) {
+        Duration progress = const Duration(seconds: 0);
+        switch (snapshot.connectionState) {
+          case ConnectionState.active:
+            progress = snapshot.data;
+            break;
+        }
+        return LinearProgressIndicator(
+          value: progress.inSeconds / duration.inSeconds,
+        );
+      },
+    );
   }
 }
 
