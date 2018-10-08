@@ -162,7 +162,11 @@ public class PlayerPlugin implements MethodCallHandler, Player.EventListener {
       }
     }
 
-    System.out.println("best: " + bestStream.getFormat().getName() + " at " + bestStream.getUrl());
+    if (bestStream != null) {
+      System.out.println("best: " + bestStream.getFormat().getName() + " at " + bestStream.getUrl());
+    } else {
+      System.out.println("!! no audio streams");
+    }
 
     return bestStream;
   }
@@ -180,7 +184,11 @@ public class PlayerPlugin implements MethodCallHandler, Player.EventListener {
       }
     }
 
-    System.out.println("best: " + bestStream.getFormat().getName() + " at " + bestStream.getUrl());
+    if (bestStream != null) {
+      System.out.println("best: " + bestStream.getFormat().getName() + " at " + bestStream.getUrl());
+    } else {
+      System.out.println("!! no video streams");
+    }
 
     return bestStream;
   }
