@@ -10,6 +10,6 @@ public class MainActivity extends FlutterActivity {
     super.onCreate(savedInstanceState);
     GeneratedPluginRegistrant.registerWith(this);
 
-    PlayerPlugin.registerWith(registrarFor("u-wave.net/player"));
+    PlayerPlugin.registerWith(registrarFor(PlayerPlugin.class.getName()));
   }
 }
