@@ -15,13 +15,12 @@ import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.MergingMediaSource;
-import com.google.android.exoplayer2.source.SingleSampleMediaSource;
-import com.google.android.exoplayer2.source.hls.HlsMediaSource;
-import com.google.android.exoplayer2.source.smoothstreaming.DefaultSsChunkSource;
-import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.source.dash.DashMediaSource;
 import com.google.android.exoplayer2.source.dash.DefaultDashChunkSource;
+import com.google.android.exoplayer2.source.hls.HlsMediaSource;
+import com.google.android.exoplayer2.source.smoothstreaming.DefaultSsChunkSource;
+import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
@@ -41,7 +40,6 @@ import java.util.Map;
 import org.schabi.newpipe.extractor.NewPipe;
 import org.schabi.newpipe.extractor.exceptions.ExtractionException;
 import org.schabi.newpipe.extractor.stream.AudioStream;
-import org.schabi.newpipe.extractor.stream.Stream;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipe.extractor.stream.VideoStream;
 
@@ -165,7 +163,14 @@ public class PlayerPlugin implements MethodCallHandler, Player.EventListener, Si
   private AudioStream getPreferredAudioStream(StreamInfo info) {
     AudioStream bestStream = null;
     for (AudioStream stream : info.getAudioStreams()) {
-      System.out.println("  audio: " + stream.getFormat().getName() + " " + stream.getFormat().getMimeType() + " - " + stream.getAverageBitrate() + "bps");
+      System.out.println(
+          "  audio: "
+              + stream.getFormat().getName()
+              + " "
+              + stream.getFormat().getMimeType()
+              + " - "
+              + stream.getAverageBitrate()
+              + "bps");
 
       if (bestStream == null) {
         bestStream = stream;
@@ -175,7 +180,8 @@ public class PlayerPlugin implements MethodCallHandler, Player.EventListener, Si
     }
 
     if (bestStream != null) {
-      System.out.println("best: " + bestStream.getFormat().getName() + " at " + bestStream.getUrl());
+      System.out.println(
+          "best: " + bestStream.getFormat().getName() + " at " + bestStream.getUrl());
     } else {
       System.out.println("!! no audio streams");
     }
@@ -186,7 +192,13 @@ public class PlayerPlugin implements MethodCallHandler, Player.EventListener, Si
   private VideoStream getPreferredVideoStream(StreamInfo info) {
     VideoStream bestStream = null;
     for (VideoStream stream : info.getVideoStreams()) {
-      System.out.println("  video: " + stream.getFormat().getName() + " " + stream.getFormat().getMimeType() + " - " + stream.getResolution());
+      System.out.println(
+          "  video: "
+              + stream.getFormat().getName()
+              + " "
+              + stream.getFormat().getMimeType()
+              + " - "
+              + stream.getResolution());
 
       if (bestStream == null) {
         bestStream = stream;
@@ -197,7 +209,8 @@ public class PlayerPlugin implements MethodCallHandler, Player.EventListener, Si
     }
 
     if (bestStream != null) {
-      System.out.println("best: " + bestStream.getFormat().getName() + " at " + bestStream.getUrl());
+      System.out.println(
+          "best: " + bestStream.getFormat().getName() + " at " + bestStream.getUrl());
     } else {
       System.out.println("!! no video streams");
     }
@@ -217,19 +230,16 @@ public class PlayerPlugin implements MethodCallHandler, Player.EventListener, Si
       return null;
     }
 
-    final MediaSource videoSource = videoStream != null
-      ? getMediaSource(Uri.parse(videoStream.getUrl())) : null;
-    final MediaSource audioSource = audioStream != null
-      ? getMediaSource(Uri.parse(audioStream.getUrl())) : null;
+    final MediaSource videoSource =
+        videoStream != null ? getMediaSource(Uri.parse(videoStream.getUrl())) : null;
+    final MediaSource audioSource =
+        audioStream != null ? getMediaSource(Uri.parse(audioStream.getUrl())) : null;
 
     MediaSource mediaSource = videoSource != null ? videoSource : audioSource;
     if (playbackType == PlaybackType.AUDIO_ONLY) {
       mediaSource = audioSource != null ? audioSource : videoSource;
     } else if (videoSource != null && audioSource != null) {
-      mediaSource = new MergingMediaSource(new MediaSource[] {
-        videoSource,
-        audioSource
-      });
+      mediaSource = new MergingMediaSource(new MediaSource[] {videoSource, audioSource});
     }
 
     return mediaSource;
@@ -246,11 +256,9 @@ public class PlayerPlugin implements MethodCallHandler, Player.EventListener, Si
                 new DefaultDashChunkSource.Factory(dataSourceFactory), dataSourceFactory)
             .createMediaSource(uri);
       case C.TYPE_HLS:
-        return new HlsMediaSource.Factory(dataSourceFactory)
-            .createMediaSource(uri);
+        return new HlsMediaSource.Factory(dataSourceFactory).createMediaSource(uri);
       case C.TYPE_OTHER:
-        return new ExtractorMediaSource.Factory(dataSourceFactory)
-            .createMediaSource(uri);
+        return new ExtractorMediaSource.Factory(dataSourceFactory).createMediaSource(uri);
     }
     return null;
   }
