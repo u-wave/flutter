@@ -19,24 +19,26 @@ class PlaybackSettingsRoute extends StatefulWidget {
 
 class _PlaybackSettingsRouteState extends State<PlaybackSettingsRoute> {
   void _playbackTypeDialog() {
+    final settings = UwaveSettings.of(context);
     _PlaybackTypesDialog.show(
       title: const Text('Playback on WiFi'),
+      value: settings.playbackType,
       context: context,
     ).then((type) {
       if (type != null) {
-        final settings = UwaveSettings.of(context);
         settings.playbackType = type;
       }
     });
   }
 
   void _playbackTypeDataDialog() {
+    final settings = UwaveSettings.of(context);
     _PlaybackTypesDialog.show(
       title: const Text('Playback on mobile data'),
+      value: settings.playbackTypeData,
       context: context,
     ).then((type) {
       if (type != null) {
-        final settings = UwaveSettings.of(context);
         settings.playbackTypeData = type;
       }
     });
@@ -86,37 +88,45 @@ class _PlaybackSettingsRouteState extends State<PlaybackSettingsRoute> {
 
 typedef _PlaybackTypeCallback = void Function(PlaybackType);
 class _PlaybackTypesDialog extends StatelessWidget {
-  final Widget title;
   final _PlaybackTypeCallback onSelect;
+  final Widget title;
+  final PlaybackType value;
 
-  _PlaybackTypesDialog({this.onSelect, this.title});
+  _PlaybackTypesDialog({this.onSelect, this.title, this.value});
 
   @override
   Widget build(_) {
     return SimpleDialog(
       title: title,
       children: [
-        SimpleDialogOption(
-          child: _getPlaybackValue(PlaybackType.both),
-          onPressed: () { onSelect(PlaybackType.both); },
+        RadioListTile(
+          title: _getPlaybackValue(PlaybackType.both),
+          value: PlaybackType.both,
+          groupValue: value,
+          onChanged: onSelect,
         ),
-        SimpleDialogOption(
-          child: _getPlaybackValue(PlaybackType.audioOnly),
-          onPressed: () { onSelect(PlaybackType.audioOnly); },
+        RadioListTile(
+          title: _getPlaybackValue(PlaybackType.audioOnly),
+          value: PlaybackType.audioOnly,
+          groupValue: value,
+          onChanged: onSelect,
         ),
-        SimpleDialogOption(
-          child: _getPlaybackValue(PlaybackType.disabled),
-          onPressed: () { onSelect(PlaybackType.disabled); },
+        RadioListTile(
+          title: _getPlaybackValue(PlaybackType.disabled),
+          value: PlaybackType.disabled,
+          groupValue: value,
+          onChanged: onSelect,
         ),
       ],
     );
   }
 
-  static Future<PlaybackType> show({BuildContext context, Widget title}) {
+  static Future<PlaybackType> show({BuildContext context, Widget title, PlaybackType value}) {
     return showDialog<PlaybackType>(
       context: context,
       builder: (context) => _PlaybackTypesDialog(
         title: title,
+        value: value,
         onSelect: (PlaybackType type) {
           Navigator.pop(context, type);
         },
