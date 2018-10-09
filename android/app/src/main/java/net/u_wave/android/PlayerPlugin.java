@@ -331,7 +331,7 @@ public class PlayerPlugin implements MethodCallHandler, Player.EventListener, Si
 
   @Override
   public void onPlayerError(ExoPlaybackException err) {
-    currentResult.error("ExoPlaybackException", err.getMessage(), err);
+    currentResult.error("ExoPlaybackException", err.getMessage(), null);
     currentResult = null;
     err.printStackTrace();
   }
