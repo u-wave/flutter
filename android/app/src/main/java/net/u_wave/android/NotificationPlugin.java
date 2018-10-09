@@ -3,6 +3,7 @@ package net.u_wave.android;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.widget.RemoteViews;
@@ -14,8 +15,10 @@ import io.flutter.plugin.common.PluginRegistry.Registrar;
 import java.util.List;
 import java.util.Map;
 
-public class NotificationPlugin implements MethodCallHandler {
+public class NotificationPlugin implements MethodCallHandler,
+       SharedPreferences.OnSharedPreferenceChangeListener {
   public static final String NAME = "u-wave.net/notification";
+  private static final String PREFERENCE_NAME = "flutter.nowPlayingNotification";
   private static final int NOTIFY_NOW_PLAYING = 0;
 
   private static final String ACTION_UPVOTE = "net.u_wave.android.UPVOTE";
@@ -32,10 +35,14 @@ public class NotificationPlugin implements MethodCallHandler {
   private final Registrar registrar;
   private final NotificationCompat.Builder notificationBuilder;
   private final RemoteViews notificationView;
+  private final SharedPreferences preferences;
+  private NowPlaying nowPlaying;
+  private boolean enabled = false;
 
   private NotificationPlugin(Registrar registrar) {
     final Context context = registrar.context();
     this.registrar = registrar;
+    preferences = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE);
 
     notificationView = new RemoteViews("net.u_wave.android", R.layout.player_notification);
 
@@ -74,10 +81,29 @@ public class NotificationPlugin implements MethodCallHandler {
             .setOngoing(true)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setCustomContentView(notificationView);
+
+    preferences.registerOnSharedPreferenceChangeListener(this);
+    setEnabled(preferences.getBoolean(PREFERENCE_NAME, enabled));
+  }
+
+  public void close() {
+    cancelNowPlayingNotification();
+    preferences.unregisterOnSharedPreferenceChangeListener(this);
   }
 
   private NotificationManagerCompat getNotificationManager() {
     return NotificationManagerCompat.from(registrar.context());
+  }
+
+  private void setEnabled(boolean enabled) {
+    this.enabled = enabled;
+    if (nowPlaying != null) {
+      if (enabled) {
+        publishNowPlayingNotification();
+      } else {
+        cancelNowPlayingNotification();
+      }
+    }
   }
 
   private void publishNowPlayingNotification() {
@@ -85,10 +111,15 @@ public class NotificationPlugin implements MethodCallHandler {
     manager.notify(NOTIFY_NOW_PLAYING, notificationBuilder.build());
   }
 
+  private void cancelNowPlayingNotification() {
+    NotificationManagerCompat manager = getNotificationManager();
+    manager.cancel(NOTIFY_NOW_PLAYING);
+  }
+
   private void onNowPlaying(Map<String, String> args, Result result) {
     if (args == null) {
-      NotificationManagerCompat manager = getNotificationManager();
-      manager.cancel(NOTIFY_NOW_PLAYING);
+      nowPlaying = null;
+      cancelNowPlayingNotification();
       result.success(null);
       return;
     }
@@ -98,11 +129,13 @@ public class NotificationPlugin implements MethodCallHandler {
     final int duration = Integer.parseInt(args.get("duration"));
     final int seek = Integer.parseInt(args.get("seek"));
 
-    notificationView.setTextViewText(R.id.title, args.get("title"));
-    notificationView.setTextViewText(R.id.artist, args.get("artist"));
-    notificationView.setProgressBar(R.id.progressBar, duration, seek, false);
+    nowPlaying = new NowPlaying(args.get("artist"), args.get("title"), duration, seek);
 
-    publishNowPlayingNotification();
+    notificationView.setTextViewText(R.id.artist, nowPlaying.artist);
+    notificationView.setTextViewText(R.id.title, nowPlaying.title);
+    notificationView.setProgressBar(R.id.progressBar, nowPlaying.duration, nowPlaying.progress, false);
+
+    if (enabled) publishNowPlayingNotification();
 
     result.success(null);
   }
@@ -112,12 +145,16 @@ public class NotificationPlugin implements MethodCallHandler {
       throw new IllegalArgumentException(
           "Incorrect number of arguments to setProgress, expected 2");
     }
+    if (nowPlaying == null) {
+      throw new RuntimeException("No media is currently played");
+    }
 
     final int progress = args.get(0);
     final int duration = args.get(1);
 
+    nowPlaying.setProgress(duration, progress);
     notificationView.setProgressBar(R.id.progressBar, duration, progress, false);
-    publishNowPlayingNotification();
+    if (enabled) publishNowPlayingNotification();
 
     result.success(null);
   }
@@ -136,6 +173,34 @@ public class NotificationPlugin implements MethodCallHandler {
       default:
         result.notImplemented();
         return;
+    }
+  }
+
+  /* OnSharedPreferenceChangeListener */
+  public void onSharedPreferenceChanged(SharedPreferences self, String key) {
+    if (!key.equals(PREFERENCE_NAME)) {
+      return;
+    }
+
+    setEnabled(self.getBoolean(PREFERENCE_NAME, enabled));
+  }
+
+  private static class NowPlaying {
+    public final String artist;
+    public final String title;
+    public int duration;
+    public int progress;
+
+    NowPlaying(String artist, String title, int duration, int progress) {
+      this.artist = artist;
+      this.title = title;
+      this.duration = duration;
+      this.progress = progress;
+    }
+
+    public void setProgress(int duration, int progress) {
+      this.duration = duration;
+      this.progress = progress;
     }
   }
 }

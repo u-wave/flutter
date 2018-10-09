@@ -49,6 +49,13 @@ class _PlaybackSettingsRouteState extends State<PlaybackSettingsRoute> {
       children: ListTile.divideTiles(
         context: context,
         tiles: [
+          SwitchListTile(
+            title: const Text('Show current track in notification'),
+            value: settings.nowPlayingNotification,
+            onChanged: (value) {
+              settings.nowPlayingNotification = value;
+            },
+          ),
           ListTile(
             title: const Text('Playback on WiFi'),
             subtitle: _getPlaybackValue(settings.playbackType),
