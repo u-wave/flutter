@@ -81,7 +81,6 @@ class Player {
     }
 
     final seek = DateTime.now().difference(entry.timestamp);
-    final duration = Duration(seconds: entry.end - entry.start);
     final seekInMedia = seek + Duration(seconds: entry.start);
 
     print('Playing entry ${entry.media.artist} - ${entry.media.title} from $seekInMedia');

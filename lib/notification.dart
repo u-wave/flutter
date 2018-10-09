@@ -35,7 +35,7 @@ class NowPlayingNotification {
       _channel.invokeMethod('nowPlaying', <String, String>{
         'artist': artist,
         'title': title,
-        'duration': '${duration}',
+        'duration': '$duration',
         'seek': '${seek.inSeconds}',
       });
     });

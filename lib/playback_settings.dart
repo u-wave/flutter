@@ -8,6 +8,7 @@ Text _getPlaybackValue(PlaybackType type) {
     case PlaybackType.audioOnly: return const Text('Audio only');
     case PlaybackType.disabled: return const Text('Disabled');
   }
+  throw 'Unexpected PlaybackType';
 }
 
 class PlaybackSettingsRoute extends StatefulWidget {

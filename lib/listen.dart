@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart' show FlutterSecureStorage;
 import './u_wave/announce.dart' show UwaveServer;
 import './u_wave/u_wave.dart';
@@ -326,8 +325,15 @@ class MediaProgressBar extends StatelessWidget {
       builder: (_, snapshot) {
         Duration progress = const Duration(seconds: 0);
         switch (snapshot.connectionState) {
+          case ConnectionState.none:
+          case ConnectionState.waiting:
+            progress = const Duration(seconds: 0);
+            break;
           case ConnectionState.active:
             progress = snapshot.data;
+            break;
+          case ConnectionState.done:
+            progress = duration;
             break;
         }
         return LinearProgressIndicator(
