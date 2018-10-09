@@ -119,14 +119,13 @@ class _UwaveListenState extends State<UwaveListen> {
     _currentProgress = Stream.periodic(
       const Duration(seconds: 1),
       (_) => DateTime.now().difference(entry.timestamp),
-    ).take(seek.inSeconds - entry.start)
-        .asBroadcastStream();
+    ).asBroadcastStream();
 
     NowPlayingNotification.getInstance().show(
       artist: entry.artist,
       title: entry.title,
       duration: entry.end - entry.start,
-      progress: _currentProgress,
+      progress: _currentProgress.take(entry.end - seek.inSeconds),
     );
 
     playerChannel.invokeMethod('play', <String, String>{
