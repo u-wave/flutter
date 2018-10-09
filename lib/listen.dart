@@ -10,6 +10,7 @@ import './settings.dart' show UwaveSettings;
 import './playback_settings.dart' show PlaybackSettingsRoute;
 import './signin_views.dart' show SignInRoute;
 import './chat_views.dart' show ChatMessages, ChatInput;
+import './notification.dart' show NowPlayingNotification;
 
 class UwaveListen extends StatefulWidget {
   final UwaveServer server;
@@ -33,7 +34,6 @@ class _UwaveListenState extends State<UwaveListen> {
   double _aspectRatio;
   HistoryEntry _playing;
   Stream<Duration> _currentProgress;
-  StreamSubscription<Duration> _currentProgressSubscription;
   StreamSubscription<HistoryEntry> _advanceSubscription;
 
   @override
@@ -89,7 +89,6 @@ class _UwaveListenState extends State<UwaveListen> {
   @override
   void dispose() {
     super.dispose();
-    notificationChannel.invokeMethod('nowPlaying', null);
     _advanceSubscription.cancel();
     _stop();
   }
@@ -110,30 +109,30 @@ class _UwaveListenState extends State<UwaveListen> {
 
   /// Start playing a history entry.
   _play(HistoryEntry entry) {
-    if (_currentProgressSubscription != null) {
-      _currentProgressSubscription.cancel();
-      _currentProgressSubscription = null;
-    }
-
-    final seek = DateTime.now().difference(entry.timestamp)
-        + Duration(seconds: entry.start);
+    final seek = DateTime.now().difference(entry.timestamp);
+    final seekInMedia = seek + Duration(seconds: entry.start);
     final settings = UwaveSettings.of(context);
 
-    debugPrint('Playing entry ${entry.media.artist} - ${entry.media.title} from $seek');
+    debugPrint('Playing entry ${entry.media.artist} - ${entry.media.title} from $seekInMedia');
     _playing = entry;
-    _currentProgress = Stream.periodic(const Duration(seconds: 1), (_) {
-      return DateTime.now().difference(entry.timestamp);
-    }).asBroadcastStream();
-    notificationChannel.invokeMethod('nowPlaying', <String, String>{
-      'artist': entry.artist,
-      'title': entry.title,
-      'duration': '${entry.end - entry.start}',
-      'seek': '${seek.isNegative ? 0 : seek.inSeconds}',
-    });
+
+    _currentProgress = Stream.periodic(
+      const Duration(seconds: 1),
+      (_) => DateTime.now().difference(entry.timestamp),
+    ).take(seek.inSeconds - entry.start)
+        .asBroadcastStream();
+
+    NowPlayingNotification.getInstance().show(
+      artist: entry.artist,
+      title: entry.title,
+      duration: entry.end - entry.start,
+      progress: _currentProgress,
+    );
+
     playerChannel.invokeMethod('play', <String, String>{
       'sourceType': entry.media.sourceType,
       'sourceID': entry.media.sourceID,
-      'seek': '${seek.isNegative ? 0 : seek.inMilliseconds}',
+      'seek': '${seekInMedia.isNegative ? 0 : seekInMedia.inMilliseconds}',
       'playbackType': '${settings.playbackType.index}',
     }).then((result) {
       setState(() {
@@ -146,23 +145,14 @@ class _UwaveListenState extends State<UwaveListen> {
         }
       });
     });
-
-    _currentProgressSubscription = _currentProgress.listen((past) {
-      notificationChannel.invokeMethod('setProgress', <int>[
-        past.inSeconds,
-        entry.end - entry.start,
-      ]);
-    });
   }
 
   /// Stop playing.
   _stop() {
     debugPrint('Stopping playback');
     playerChannel.invokeMethod('play', null);
-    if (_currentProgressSubscription != null) {
-      _currentProgressSubscription.cancel();
-      _currentProgressSubscription = null;
-    }
+    NowPlayingNotification.getInstance()
+      .close();
     _playerTexture = null;
     _playing = null;
   }
