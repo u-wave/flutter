@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import './u_wave/u_wave.dart' show HistoryEntry, Media;
@@ -112,7 +113,7 @@ class Player {
     final seek = DateTime.now().difference(entry.timestamp);
     final seekInMedia = seek + Duration(seconds: entry.start);
 
-    print('Playing entry ${entry.media.artist} - ${entry.media.title} from $seekInMedia');
+    debugPrint('Playing entry ${entry.media.artist} - ${entry.media.title} from $seekInMedia');
 
     final npType = _getNewPipeSourceName(entry.media.sourceType);
     final npUrl = _getNewPipeSourceURL(entry.media);

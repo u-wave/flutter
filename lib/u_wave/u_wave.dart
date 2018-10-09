@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:http/http.dart' as http;
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -24,7 +25,7 @@ class _TimeSynchronizer {
     _referenceLocalTime = DateTime.now();
     _referenceServerTime = time;
     _offset = _referenceLocalTime.difference(_referenceServerTime);
-    print('Update server time, offset is $_offset');
+    debugPrint('Update server time, offset is $_offset');
   }
 
   /// Turn a server timestamp into a local one.
@@ -208,7 +209,8 @@ class UwaveClient {
   final String socketUrl;
   final _TimeSynchronizer _serverTime = _TimeSynchronizer();
   final http.Client _client = http.Client();
-  final WebSocketChannel _channel;
+  Timer _disconnectTimer;
+  WebSocketChannel _channel;
   final StreamController<ChatMessage> _chatMessagesController =
       StreamController.broadcast();
   final StreamController<HistoryEntry> _advanceController =
@@ -230,14 +232,37 @@ class UwaveClient {
       : _channel = IOWebSocketChannel.connect(socketUrl),
         socketUrl = socketUrl;
 
-  Future<UwaveNowState> init({UwaveCredentials credentials}) async {
-    if (credentials == null) credentials = _activeCredentials;
+  void _restartDisconnectTimer() {
+    if (_disconnectTimer != null) _disconnectTimer.cancel();
+    _disconnectTimer = Timer(const Duration(seconds: 30), () {
+      debugPrint('Socket timed out ... reconnecting');
+      reconnect().catchError((err) {
+        debugPrint('Failed to reconnect: $err');
+        // TODO retry
+      });
+    });
+  }
 
+  void _initSocket() {
+    _restartDisconnectTimer();
     _channel.stream.listen((message) {
+      _restartDisconnectTimer();
       if (message == "-") return;
       final decoded = json.decode(message);
       this._onMessage(_SocketMessage.fromJson(decoded));
     });
+  }
+
+  Future<UwaveNowState> reconnect() async {
+    _channel.sink.close(ws_status.goingAway);
+    _channel = IOWebSocketChannel.connect(socketUrl);
+    return await init(credentials: _activeCredentials);
+  }
+
+  Future<UwaveNowState> init({UwaveCredentials credentials}) async {
+    if (credentials == null) credentials = _activeCredentials;
+
+    _initSocket();
 
     final headers = <String, String>{
       'accept': 'application/json',

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:http/http.dart' as http;
 import 'package:w3c_event_source/event_source.dart' show EventSource, MessageEvent;
 
@@ -18,6 +19,7 @@ class UwaveAnnounceClient {
   {
     final eventsUri = Uri.parse(_url).replace(path: '/events');
     _events = EventSource(eventsUri).events.listen((event) {
+      debugPrint('update: ${event.name} ${event.data}');
       if (event.name == 'message') {
         _onEvent(event.data);
       }
