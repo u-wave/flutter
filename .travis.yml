@@ -1,0 +1,37 @@
+language: android
+jdk:
+    - oraclejdk8
+android:
+  components:
+    # The BuildTools version used by üWave Flutter
+    - tools
+    - build-tools-27.0.3
+    # The SDK version used to compile üWave Flutter
+    - android-27
+
+addons:
+  apt:
+    # Flutter depends on /usr/lib/x86_64-linux-gnu/libstdc++.so.6 version GLIBCXX_3.4.18
+    sources:
+      - ubuntu-toolchain-r-test # if we don't specify this, the libstdc++6 we get is the wrong version
+    packages:
+      - libstdc++6
+      - fonts-droid
+
+licenses:
+  - '.+'
+
+before_install:
+  - yes | sdkmanager "platforms;android-27"
+  - mkdir -p ~/.sdk && pushd ~/.sdk
+  - curl -O https://storage.googleapis.com/flutter_infra/releases/beta/linux/flutter_linux_v0.8.2-beta.tar.xz
+  - tar xf flutter_linux_v0.8.2-beta.tar.xz
+  - export PATH="$(pwd)/flutter/bin:$PATH"
+  - popd
+  - flutter config --no-analytics
+  - flutter doctor
+
+script:
+  - flutter build apk
+  - flutter analyze lib
+  - flutter test
