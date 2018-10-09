@@ -45,7 +45,7 @@ import org.schabi.newpipe.extractor.stream.Stream;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipe.extractor.stream.VideoStream;
 
-public class PlayerPlugin implements MethodCallHandler, Player.EventListener {
+public class PlayerPlugin implements MethodCallHandler, Player.EventListener, SimpleExoPlayer.VideoListener {
   private static class PlaybackType {
     public static final byte DISABLED = 0;
     public static final byte AUDIO_ONLY = 1;
@@ -56,7 +56,7 @@ public class PlayerPlugin implements MethodCallHandler, Player.EventListener {
   public static void registerWith(Registrar registrar) {
     final MethodChannel channel = new MethodChannel(registrar.messenger(), "u-wave.net/player");
     NewPipe.init(new DartDownloader(channel));
-    channel.setMethodCallHandler(new PlayerPlugin(registrar));
+    channel.setMethodCallHandler(new PlayerPlugin(registrar, channel));
   }
 
   private final DefaultHttpDataSourceFactory dataSourceFactory;
@@ -66,9 +66,12 @@ public class PlayerPlugin implements MethodCallHandler, Player.EventListener {
   private SurfaceTextureEntry textureEntry;
   private Result currentResult;
   private String preferredResolution = "360p";
+  private final MethodChannel channel;
 
-  private PlayerPlugin(Registrar registrar) {
+  private PlayerPlugin(Registrar registrar, MethodChannel channel) {
     this.registrar = registrar;
+    this.channel = channel;
+
     Context context = registrar.context();
     dataSourceFactory =
         new DefaultHttpDataSourceFactory(Util.getUserAgent(context, "android.u-wave.net"));
@@ -80,6 +83,7 @@ public class PlayerPlugin implements MethodCallHandler, Player.EventListener {
             new DefaultTrackSelector(new AdaptiveTrackSelection.Factory(bandwidthMeter)),
             new DefaultLoadControl());
     player.addListener(this);
+    player.setVideoListener(this);
   }
 
   void onPlay(Map<String, String> data, final Result result) {
@@ -95,7 +99,7 @@ public class PlayerPlugin implements MethodCallHandler, Player.EventListener {
 
     if (data == null) {
       player.stop();
-      player.setVideoSurface(null);
+      player.clearVideoSurface();
       result.success(null);
       return;
     }
@@ -338,5 +342,14 @@ public class PlayerPlugin implements MethodCallHandler, Player.EventListener {
   @Override
   public void onShuffleModeEnabledChanged(boolean enabled) {
     System.out.println("onShuffleModeEnabledChanged enabled=" + (enabled ? "true" : "false"));
+  }
+
+  /* Player.VideoListener */
+  @Override
+  public void onRenderedFirstFrame() {}
+
+  @Override
+  public void onVideoSizeChanged(int width, int height, int rotation, float pixelRatio) {
+    channel.invokeMethod("setAspectRatio", (double) width / (double) height);
   }
 }

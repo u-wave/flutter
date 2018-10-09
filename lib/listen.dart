@@ -29,6 +29,7 @@ class _UwaveListenState extends State<UwaveListen> {
   bool _clientConnected = false;
   bool _signedIn = false;
   bool _showOverlay = false;
+  double _aspectRatio;
   HistoryEntry _playing;
   StreamSubscription<HistoryEntry> _advanceSubscription;
 
@@ -43,6 +44,11 @@ class _UwaveListenState extends State<UwaveListen> {
     playerChannel.setMethodCallHandler((methodCall) async {
       if (methodCall.method == 'download') {
         return await _download(Map<String, String>.from(methodCall.arguments));
+      }
+      if (methodCall.method == 'setAspectRatio') {
+        _aspectRatio = methodCall.arguments.toDouble();
+        debugPrint('setAspectRatio($_aspectRatio)');
+        return null;
       }
       throw MissingPluginException('Unknown method ${methodCall.method}');
     });
@@ -235,6 +241,7 @@ class _UwaveListenState extends State<UwaveListen> {
         PlayerView(
           textureId: _playerTexture,
           entry: _playing,
+          aspectRatio: _aspectRatio,
         ),
       ];
 
@@ -296,8 +303,9 @@ class _UwaveListenState extends State<UwaveListen> {
 class PlayerView extends StatelessWidget {
   final int textureId;
   final HistoryEntry entry;
+  final double aspectRatio;
 
-  PlayerView({this.textureId, this.entry});
+  PlayerView({this.textureId, this.entry, this.aspectRatio = 16 / 9});
 
   @override
   Widget build(BuildContext context) {
@@ -310,7 +318,10 @@ class PlayerView extends StatelessWidget {
             child: Center(
               child: textureId == null
                 ? Image.network(entry.media.thumbnailUrl)
-                : Texture(textureId: textureId)
+                : AspectRatio(
+                    aspectRatio: aspectRatio,
+                    child: Texture(textureId: textureId,
+                  )),
             ),
           ),
           MediaProgressBar(
