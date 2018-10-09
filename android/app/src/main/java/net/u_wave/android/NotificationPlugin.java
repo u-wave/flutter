@@ -1,6 +1,7 @@
 package net.u_wave.android;
 
 import android.app.PendingIntent;
+import android.app.Notification;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -33,54 +34,17 @@ public class NotificationPlugin implements MethodCallHandler,
   }
 
   private final Registrar registrar;
-  private final NotificationCompat.Builder notificationBuilder;
-  private final RemoteViews notificationView;
   private final SharedPreferences preferences;
+  private NowPlayingNotification nowPlayingNotification;
   private NowPlaying nowPlaying;
   private boolean enabled = false;
 
   private NotificationPlugin(Registrar registrar) {
     final Context context = registrar.context();
     this.registrar = registrar;
+
+    nowPlayingNotification = new NowPlayingNotification(context);
     preferences = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE);
-
-    notificationView = new RemoteViews("net.u_wave.android", R.layout.player_notification);
-
-    // TODO hook these up via a background service.
-    notificationView.setOnClickPendingIntent(
-        R.id.upvote,
-        PendingIntent.getBroadcast(
-            context,
-            NOTIFY_NOW_PLAYING,
-            new Intent(ACTION_UPVOTE),
-            PendingIntent.FLAG_UPDATE_CURRENT));
-    notificationView.setOnClickPendingIntent(
-        R.id.downvote,
-        PendingIntent.getBroadcast(
-            context,
-            NOTIFY_NOW_PLAYING,
-            new Intent(ACTION_DOWNVOTE),
-            PendingIntent.FLAG_UPDATE_CURRENT));
-    notificationView.setOnClickPendingIntent(
-        R.id.muteUnmute,
-        PendingIntent.getBroadcast(
-            context,
-            NOTIFY_NOW_PLAYING,
-            new Intent(ACTION_MUTE_UNMUTE),
-            PendingIntent.FLAG_UPDATE_CURRENT));
-    notificationView.setOnClickPendingIntent(
-        R.id.disconnect,
-        PendingIntent.getBroadcast(
-            context,
-            NOTIFY_NOW_PLAYING,
-            new Intent(ACTION_DISCONNECT),
-            PendingIntent.FLAG_UPDATE_CURRENT));
-
-    notificationBuilder =
-        new NotificationCompat.Builder(registrar.context(), NAME)
-            .setOngoing(true)
-            .setSmallIcon(R.mipmap.ic_launcher)
-            .setCustomContentView(notificationView);
 
     preferences.registerOnSharedPreferenceChangeListener(this);
     setEnabled(preferences.getBoolean(PREFERENCE_NAME, enabled));
@@ -108,7 +72,7 @@ public class NotificationPlugin implements MethodCallHandler,
 
   private void publishNowPlayingNotification() {
     NotificationManagerCompat manager = getNotificationManager();
-    manager.notify(NOTIFY_NOW_PLAYING, notificationBuilder.build());
+    manager.notify(NOTIFY_NOW_PLAYING, nowPlayingNotification.build());
   }
 
   private void cancelNowPlayingNotification() {
@@ -130,10 +94,7 @@ public class NotificationPlugin implements MethodCallHandler,
     final int seek = Integer.parseInt(args.get("seek"));
 
     nowPlaying = new NowPlaying(args.get("artist"), args.get("title"), duration, seek);
-
-    notificationView.setTextViewText(R.id.artist, nowPlaying.artist);
-    notificationView.setTextViewText(R.id.title, nowPlaying.title);
-    notificationView.setProgressBar(R.id.progressBar, nowPlaying.duration, nowPlaying.progress, false);
+    nowPlayingNotification.update(nowPlaying);
 
     if (enabled) publishNowPlayingNotification();
 
@@ -153,7 +114,8 @@ public class NotificationPlugin implements MethodCallHandler,
     final int duration = args.get(1);
 
     nowPlaying.setProgress(duration, progress);
-    notificationView.setProgressBar(R.id.progressBar, duration, progress, false);
+    nowPlayingNotification.update(nowPlaying);
+
     if (enabled) publishNowPlayingNotification();
 
     result.success(null);
@@ -201,6 +163,62 @@ public class NotificationPlugin implements MethodCallHandler,
     public void setProgress(int duration, int progress) {
       this.duration = duration;
       this.progress = progress;
+    }
+  }
+
+  private static class NowPlayingNotification {
+    private static final String NAME = "u-wave.net/nowPlaying";
+
+    private final NotificationCompat.Builder builder;
+    private final RemoteViews view;
+
+    NowPlayingNotification(Context context) {
+      view = new RemoteViews("net.u_wave.android", R.layout.player_notification);
+
+      // TODO hook these up via a background service.
+      view.setOnClickPendingIntent(
+          R.id.upvote,
+          PendingIntent.getBroadcast(
+              context,
+              NOTIFY_NOW_PLAYING,
+              new Intent(ACTION_UPVOTE),
+              PendingIntent.FLAG_UPDATE_CURRENT));
+      view.setOnClickPendingIntent(
+          R.id.downvote,
+          PendingIntent.getBroadcast(
+              context,
+              NOTIFY_NOW_PLAYING,
+              new Intent(ACTION_DOWNVOTE),
+              PendingIntent.FLAG_UPDATE_CURRENT));
+      view.setOnClickPendingIntent(
+          R.id.muteUnmute,
+          PendingIntent.getBroadcast(
+              context,
+              NOTIFY_NOW_PLAYING,
+              new Intent(ACTION_MUTE_UNMUTE),
+              PendingIntent.FLAG_UPDATE_CURRENT));
+      view.setOnClickPendingIntent(
+          R.id.disconnect,
+          PendingIntent.getBroadcast(
+              context,
+              NOTIFY_NOW_PLAYING,
+              new Intent(ACTION_DISCONNECT),
+              PendingIntent.FLAG_UPDATE_CURRENT));
+
+      builder = new NotificationCompat.Builder(context, NAME)
+        .setOngoing(true)
+        .setSmallIcon(R.mipmap.ic_launcher)
+        .setCustomContentView(view);
+    }
+
+    public Notification build() {
+      return builder.build();
+    }
+
+    public void update(NowPlaying nowPlaying) {
+      view.setTextViewText(R.id.artist, nowPlaying.artist);
+      view.setTextViewText(R.id.title, nowPlaying.title);
+      view.setProgressBar(R.id.progressBar, nowPlaying.duration, nowPlaying.progress, false);
     }
   }
 }
