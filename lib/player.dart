@@ -23,10 +23,6 @@ final _channel = MethodChannel('u-wave.net/player')
     switch (methodCall.method) {
       case 'download':
         return await _download(Map<String, String>.from(methodCall.arguments));
-      case 'setAspectRatio':
-        Player.getInstance()
-            .setAspectRatio(methodCall.arguments.toDouble());
-        return null;
       default:
         throw MissingPluginException('Unknown method ${methodCall.method}');
     }
@@ -35,10 +31,34 @@ final _channel = MethodChannel('u-wave.net/player')
 class PlaybackSettings {
   final int texture;
   final double aspectRatio;
+  final Stream<Duration> onProgress;
 
   bool get hasTexture => texture != null;
 
-  PlaybackSettings({this.texture, this.aspectRatio});
+  PlaybackSettings({this.texture, this.aspectRatio, this.onProgress});
+}
+
+class ProgressTimer {
+  Timer _timer;
+  StreamController<Duration> _controller =
+      StreamController.broadcast();
+  Stream<Duration> get stream => _controller.stream;
+
+  DateTime startTime;
+  ProgressTimer({this.startTime}) {
+    _timer = Timer.periodic(const Duration(seconds: 1), _update);
+    _update(_timer);
+  }
+
+  void _update(Timer _) {
+    _controller.add(
+        DateTime.now().difference(startTime));
+  }
+
+  void cancel() {
+    _timer.cancel();
+    _controller.close();
+  }
 }
 
 class Player {
@@ -52,45 +72,43 @@ class Player {
     return _instance;
   }
 
-  Stream<Duration> _currentProgress;
-  Stream<Duration> get progress => _currentProgress;
-  StreamController<double> _aspectRatio = StreamController.broadcast();
-  Stream<double> get onAspectRatio => _aspectRatio.stream;
+  ProgressTimer _progressTimer;
 
   Future<PlaybackSettings> play(HistoryEntry entry, Settings settings) async {
+    if (_progressTimer != null) {
+      _progressTimer.cancel();
+      _progressTimer = null;
+    }
+
     final seek = DateTime.now().difference(entry.timestamp);
     final duration = Duration(seconds: entry.end - entry.start);
     final seekInMedia = seek + Duration(seconds: entry.start);
 
     print('Playing entry ${entry.media.artist} - ${entry.media.title} from $seekInMedia');
 
-    _currentProgress = Stream.periodic(
-      const Duration(seconds: 1),
-      (_) => DateTime.now().difference(entry.timestamp),
-    )
-      .asBroadcastStream()
-      .take(duration.inSeconds - seek.inSeconds);
-
-    final texture = await _channel.invokeMethod('play', <String, String>{
+    final Map<dynamic, dynamic> result = await _channel.invokeMethod('play', <String, String>{
       'sourceType': entry.media.sourceType,
       'sourceID': entry.media.sourceID,
       'seek': '${seekInMedia.isNegative ? 0 : seekInMedia.inMilliseconds}',
       'playbackType': '${settings.playbackType.index}',
     });
 
-    // TODO return texture + aspect ratio from channel
+    final int texture = result['texture'];
+    final double aspectRatio = result['aspectRatio'];
 
+    _progressTimer = ProgressTimer(startTime: entry.timestamp);
     return PlaybackSettings(
       texture: texture,
-      aspectRatio: 16 / 9,
+      aspectRatio: aspectRatio,
+      onProgress: _progressTimer.stream,
     );
   }
 
   void stop() {
+    if (_progressTimer != null) {
+      _progressTimer.cancel();
+      _progressTimer = null;
+    }
     _channel.invokeMethod('play', null);
-  }
-
-  void setAspectRatio(double newAspectRatio) {
-    _aspectRatio.add(newAspectRatio);
   }
 }

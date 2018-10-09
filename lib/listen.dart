@@ -97,7 +97,7 @@ class _UwaveListenState extends State<UwaveListen> {
       artist: entry.artist,
       title: entry.title,
       duration: entry.end - entry.start,
-      progress: player.progress,
+      progress: playbackSettings.onProgress,
     );
   }
 
@@ -219,7 +219,7 @@ class _UwaveListenState extends State<UwaveListen> {
           textureId: _playbackSettings.texture,
           aspectRatio: _playbackSettings.aspectRatio,
           entry: _playing,
-          currentProgress: Player.getInstance().progress,
+          currentProgress: _playbackSettings.onProgress,
         ),
       ];
 
@@ -284,7 +284,7 @@ class PlayerView extends StatelessWidget {
   final Stream<Duration> currentProgress;
   final double aspectRatio;
 
-  PlayerView({this.textureId, this.entry, this.currentProgress,this.aspectRatio = 16 / 9});
+  PlayerView({this.textureId, this.entry, this.currentProgress, this.aspectRatio = 16 / 9});
 
   @override
   Widget build(BuildContext context) {

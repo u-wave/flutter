@@ -37,6 +37,7 @@ import io.flutter.view.TextureRegistry;
 import io.flutter.view.TextureRegistry.SurfaceTextureEntry;
 import java.io.IOException;
 import java.util.Map;
+import java.util.HashMap;
 import org.schabi.newpipe.extractor.NewPipe;
 import org.schabi.newpipe.extractor.exceptions.ExtractionException;
 import org.schabi.newpipe.extractor.stream.AudioStream;
@@ -67,6 +68,8 @@ public class PlayerPlugin implements MethodCallHandler, Player.EventListener, Si
   private Result currentResult;
   private String preferredResolution = "360p";
   private final MethodChannel channel;
+  private int videoWidth;
+  private int videoHeight;
 
   private PlayerPlugin(Registrar registrar, MethodChannel channel) {
     this.registrar = registrar;
@@ -312,7 +315,11 @@ public class PlayerPlugin implements MethodCallHandler, Player.EventListener, Si
             + readyState);
 
     if (readyState == Player.STATE_READY) {
-      currentResult.success(textureEntry != null ? textureEntry.id() : null);
+      Map<String, Object> playbackSettings = new HashMap<String, Object>();
+      playbackSettings.put("texture", textureEntry != null ? textureEntry.id() : null);
+      playbackSettings.put("aspectRatio", (double) videoWidth / (double) videoHeight);
+
+      currentResult.success(playbackSettings);
       currentResult = null;
     }
   }
@@ -363,6 +370,7 @@ public class PlayerPlugin implements MethodCallHandler, Player.EventListener, Si
 
   @Override
   public void onVideoSizeChanged(int width, int height, int rotation, float pixelRatio) {
-    channel.invokeMethod("setAspectRatio", (double) width / (double) height);
+    this.videoWidth = width;
+    this.videoHeight = height;
   }
 }
