@@ -92,14 +92,17 @@ public class PlayerPlugin implements MethodCallHandler, Player.EventListener, Si
       currentResult = null;
     }
 
+    if (data == null) {
+      player.stop();
+      player.clearVideoSurface();
+    }
+
     if (textureEntry != null) {
       textureEntry.release();
       textureEntry = null;
     }
 
     if (data == null) {
-      player.stop();
-      player.clearVideoSurface();
       result.success(null);
       return;
     }
