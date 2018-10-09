@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart' show FlutterSecureStorage;
 import './u_wave/announce.dart' show UwaveServer;
@@ -11,6 +10,7 @@ import './playback_settings.dart' show PlaybackSettingsRoute;
 import './signin_views.dart' show SignInRoute;
 import './chat_views.dart' show ChatMessages, ChatInput;
 import './notification.dart' show NowPlayingNotification;
+import './player.dart' show Player, PlaybackSettings;
 
 class UwaveListen extends StatefulWidget {
   final UwaveServer server;
@@ -22,18 +22,13 @@ class UwaveListen extends StatefulWidget {
 }
 
 class _UwaveListenState extends State<UwaveListen> {
-  static const playerChannel = MethodChannel('u-wave.net/player');
-  static const notificationChannel = MethodChannel('u-wave.net/notification');
   final _playerViewKey = GlobalKey<_UwaveListenState>();
   final _storage = FlutterSecureStorage();
-  int _playerTexture;
   UwaveClient _client;
   bool _clientConnected = false;
-  bool _signedIn = false;
   bool _showOverlay = false;
-  double _aspectRatio;
   HistoryEntry _playing;
-  Stream<Duration> _currentProgress;
+  PlaybackSettings _playbackSettings;
   StreamSubscription<HistoryEntry> _advanceSubscription;
 
   @override
@@ -43,18 +38,6 @@ class _UwaveListenState extends State<UwaveListen> {
       apiUrl: widget.server.apiUrl,
       socketUrl: widget.server.socketUrl,
     );
-
-    playerChannel.setMethodCallHandler((methodCall) async {
-      if (methodCall.method == 'download') {
-        return await _download(Map<String, String>.from(methodCall.arguments));
-      }
-      if (methodCall.method == 'setAspectRatio') {
-        _aspectRatio = methodCall.arguments.toDouble();
-        debugPrint('setAspectRatio($_aspectRatio)');
-        return null;
-      }
-      throw MissingPluginException('Unknown method ${methodCall.method}');
-    });
 
     _advanceSubscription = _client.advanceMessages.listen((entry) {
       setState(() {
@@ -75,7 +58,6 @@ class _UwaveListenState extends State<UwaveListen> {
     }).then((_) {
       setState(() {
         _clientConnected = true;
-        _signedIn = _client.currentUser != null;
       });
     });
   }
@@ -93,66 +75,39 @@ class _UwaveListenState extends State<UwaveListen> {
     _stop();
   }
 
-  /// Download a URL's contents to a string.
-  ///
-  /// This is called by the NewPipe extractor, so I don't have to learn and
-  /// ship a Java HTTP client but can instead use the Dart one :P
-  Future<String> _download(Map<String, String> headers) async {
-    final url = headers.remove('_url');
-    final response = await http.get(url, headers: headers);
-    if (response.statusCode != 200) {
-      throw 'Unexpected response ${response.statusCode} from $url';
-    }
-    headers['_url'] = url; // restore
-    return response.body;
-  }
-
   /// Start playing a history entry.
-  _play(HistoryEntry entry) {
-    final seek = DateTime.now().difference(entry.timestamp);
-    final seekInMedia = seek + Duration(seconds: entry.start);
+  Future<Null> _play(HistoryEntry entry) async {
+    final player = Player.getInstance();
     final settings = UwaveSettings.of(context);
 
-    debugPrint('Playing entry ${entry.media.artist} - ${entry.media.title} from $seekInMedia');
-    _playing = entry;
+    final playbackSettings = await player.play(entry, settings);
 
-    _currentProgress = Stream.periodic(
-      const Duration(seconds: 1),
-      (_) => DateTime.now().difference(entry.timestamp),
-    ).asBroadcastStream();
+    if (playbackSettings.hasTexture) {
+      debugPrint('Using player texture #${playbackSettings.texture}');
+    } else {
+      debugPrint('Audio-only: no player texture');
+    }
+
+    setState(() {
+      _playing = entry;
+      _playbackSettings = playbackSettings;
+    });
 
     NowPlayingNotification.getInstance().show(
       artist: entry.artist,
       title: entry.title,
       duration: entry.end - entry.start,
-      progress: _currentProgress.take(entry.end - seek.inSeconds),
+      progress: player.progress,
     );
-
-    playerChannel.invokeMethod('play', <String, String>{
-      'sourceType': entry.media.sourceType,
-      'sourceID': entry.media.sourceID,
-      'seek': '${seekInMedia.isNegative ? 0 : seekInMedia.inMilliseconds}',
-      'playbackType': '${settings.playbackType.index}',
-    }).then((result) {
-      setState(() {
-        if (result == null) {
-          _playerTexture = null;
-          debugPrint('Audio-only: no player texture');
-        } else {
-          _playerTexture = result as int;
-          debugPrint('Using player texture #$_playerTexture');
-        }
-      });
-    });
   }
 
   /// Stop playing.
   _stop() {
     debugPrint('Stopping playback');
-    playerChannel.invokeMethod('play', null);
+    Player.getInstance()
+      ..stop();
     NowPlayingNotification.getInstance()
-      .close();
-    _playerTexture = null;
+      ..close();
     _playing = null;
   }
 
@@ -177,9 +132,7 @@ class _UwaveListenState extends State<UwaveListen> {
 
   void _signIn() {
     _showSignInPage().then((_) {
-      setState(() {
-        _signedIn = _client.currentUser != null;
-      });
+      setState(() { /* rerender based on _client.currentUser */ });
     });
   }
 
@@ -245,7 +198,7 @@ class _UwaveListenState extends State<UwaveListen> {
 
   Widget _buildPlayerOverlay() {
     final List<Widget> children = [];
-    if (_signedIn) {
+    if (_client.currentUser != null) {
       children.add(_buildVoteButtons());
     }
     children.add(_buildSettingsIcon());
@@ -263,10 +216,10 @@ class _UwaveListenState extends State<UwaveListen> {
     if (_playing != null) {
       final children = <Widget>[
         PlayerView(
-          textureId: _playerTexture,
-          aspectRatio: _aspectRatio,
+          textureId: _playbackSettings.texture,
+          aspectRatio: _playbackSettings.aspectRatio,
           entry: _playing,
-          currentProgress: _currentProgress,
+          currentProgress: Player.getInstance().progress,
         ),
       ];
 
@@ -295,7 +248,7 @@ class _UwaveListenState extends State<UwaveListen> {
       messages: _client.chatMessages,
     );
 
-    final Widget footer = _signedIn
+    final Widget footer = _client.currentUser != null
       ? ChatInput(user: _client.currentUser, onSend: _sendChat)
       : SignInButton(serverName: widget.server.name, onSignIn: _signIn);
 
