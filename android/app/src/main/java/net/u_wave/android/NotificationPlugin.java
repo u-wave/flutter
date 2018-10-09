@@ -207,6 +207,7 @@ public class NotificationPlugin implements MethodCallHandler,
 
       builder = new NotificationCompat.Builder(context, NAME)
         .setOngoing(true)
+        .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
         .setSmallIcon(R.mipmap.ic_launcher)
         .setCustomContentView(view);
     }
