@@ -13,8 +13,8 @@ First [install Flutter](https://flutter.io/get-started/install/).
 Then, clone the repo:
 
 ```bash
-git clone https://github.com/u-wave/android.git u-wave-android
-cd u-wave-android
+git clone https://github.com/u-wave/flutter.git u-wave-flutter
+cd u-wave-flutter
 ```
 
 Connect your phone using USB debugging. Then you can run the app:
