@@ -37,7 +37,7 @@ public class NotificationPlugin
   private final SharedPreferences preferences;
   private NowPlayingNotification nowPlayingNotification;
   private NowPlaying nowPlaying;
-  private boolean enabled = false;
+  private boolean enabled = true;
 
   private NotificationPlugin(Registrar registrar) {
     final Context context = registrar.context();
