@@ -2,8 +2,10 @@ package net.u_wave.android;
 
 import android.app.Notification;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
@@ -30,18 +32,21 @@ public class NotificationPlugin
   /** Plugin registration. */
   public static void registerWith(Registrar registrar) {
     final MethodChannel channel = new MethodChannel(registrar.messenger(), NAME);
-    channel.setMethodCallHandler(new NotificationPlugin(registrar));
+    channel.setMethodCallHandler(new NotificationPlugin(registrar, channel));
   }
 
   private final Registrar registrar;
+  private final MethodChannel channel;
   private final SharedPreferences preferences;
+  private BroadcastReceiver receiver;
   private NowPlayingNotification nowPlayingNotification;
   private NowPlaying nowPlaying;
   private boolean enabled = true;
 
-  private NotificationPlugin(Registrar registrar) {
+  private NotificationPlugin(Registrar registrar, MethodChannel channel) {
     final Context context = registrar.context();
     this.registrar = registrar;
+    this.channel = channel;
 
     nowPlayingNotification = new NowPlayingNotification(context);
     preferences = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE);
@@ -73,9 +78,24 @@ public class NotificationPlugin
   private void publishNowPlayingNotification() {
     NotificationManagerCompat manager = getNotificationManager();
     manager.notify(NOTIFY_NOW_PLAYING, nowPlayingNotification.build());
+
+    if (receiver == null) {
+      receiver = new Receiver(channel);
+      IntentFilter filter = new IntentFilter();
+      filter.addAction(ACTION_UPVOTE);
+      filter.addAction(ACTION_DOWNVOTE);
+      filter.addAction(ACTION_MUTE_UNMUTE);
+      filter.addAction(ACTION_DISCONNECT);
+      registrar.context().registerReceiver(receiver, filter);
+    }
   }
 
   private void cancelNowPlayingNotification() {
+    if (receiver != null) {
+      registrar.context().unregisterReceiver(receiver);
+      receiver = null;
+    }
+
     NotificationManagerCompat manager = getNotificationManager();
     manager.cancel(NOTIFY_NOW_PLAYING);
   }
@@ -228,6 +248,23 @@ public class NotificationPlugin
       view.setTextViewText(R.id.artist, nowPlaying.artist);
       view.setTextViewText(R.id.title, nowPlaying.title);
       view.setProgressBar(R.id.progressBar, nowPlaying.duration, nowPlaying.progress, false);
+    }
+  }
+
+  private static class Receiver extends BroadcastReceiver {
+    private final MethodChannel channel;
+
+    Receiver(final MethodChannel channel) {
+      this.channel = channel;
+    }
+
+    @Override
+    public void onReceive(Context context, Intent intent) {
+      switch (intent.getAction()) {
+        case ACTION_DISCONNECT:
+          channel.invokeMethod("disconnect", null);
+          break;
+      }
     }
   }
 }
