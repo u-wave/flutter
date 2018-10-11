@@ -1,7 +1,7 @@
 package net.u_wave.android;
 
-import android.app.PendingIntent;
 import android.app.Notification;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -16,8 +16,8 @@ import io.flutter.plugin.common.PluginRegistry.Registrar;
 import java.util.List;
 import java.util.Map;
 
-public class NotificationPlugin implements MethodCallHandler,
-       SharedPreferences.OnSharedPreferenceChangeListener {
+public class NotificationPlugin
+    implements MethodCallHandler, SharedPreferences.OnSharedPreferenceChangeListener {
   public static final String NAME = "u-wave.net/notification";
   private static final String PREFERENCE_NAME = "flutter.nowPlayingNotification";
   private static final int NOTIFY_NOW_PLAYING = 0;
@@ -205,11 +205,12 @@ public class NotificationPlugin implements MethodCallHandler,
               new Intent(ACTION_DISCONNECT),
               PendingIntent.FLAG_UPDATE_CURRENT));
 
-      builder = new NotificationCompat.Builder(context, NAME)
-        .setOngoing(true)
-        .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-        .setSmallIcon(R.mipmap.ic_launcher)
-        .setCustomContentView(view);
+      builder =
+          new NotificationCompat.Builder(context, NAME)
+              .setOngoing(true)
+              .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+              .setSmallIcon(R.mipmap.ic_launcher)
+              .setCustomContentView(view);
     }
 
     public Notification build() {
