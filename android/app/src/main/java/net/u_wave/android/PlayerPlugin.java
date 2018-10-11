@@ -124,6 +124,7 @@ public class PlayerPlugin implements MethodCallHandler, SimpleExoPlayer.VideoLis
       final MediaSource mediaSource = currentPlayback.getMediaSource();
       player.prepare(mediaSource);
       player.seekTo(currentPlayback.getCurrentSeek());
+      System.out.println("PlaybackAction[" + currentPlayback.getEntry().sourceType + ":" + currentPlayback.getEntry().sourceID + "] getCurrentSeek(): " + currentPlayback.getCurrentSeek());
       result.success(null);
     } else {
       result.error("NoPlayback", "Can't change playback type because nothing is playing.", null);

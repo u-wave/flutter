@@ -140,8 +140,8 @@ class PlaybackAction implements Player.EventListener, SimpleExoPlayer.VideoListe
   }
 
   public int getCurrentSeek() {
-    final long mediaStartTime = (startTime.getTime() / 1000) - entry.seek;
-    final long now = new Date().getTime() / 1000;
+    final long mediaStartTime = startTime.getTime() - entry.seek;
+    final long now = new Date().getTime();
 
     return (int) (now - mediaStartTime);
   }
