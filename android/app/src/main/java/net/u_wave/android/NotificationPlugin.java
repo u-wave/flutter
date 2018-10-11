@@ -169,10 +169,16 @@ public class NotificationPlugin
   private static class NowPlayingNotification {
     private static final String NAME = "u-wave.net/nowPlaying";
 
-    private final NotificationCompat.Builder builder;
-    private final RemoteViews view;
+    private NotificationCompat.Builder builder;
+    private RemoteViews view;
+    private Context context;
 
     NowPlayingNotification(Context context) {
+      this.context = context;
+      create();
+    }
+
+    private void create() {
       view = new RemoteViews("net.u_wave.android", R.layout.player_notification);
 
       // TODO hook these up via a background service.
@@ -218,6 +224,7 @@ public class NotificationPlugin
     }
 
     public void update(NowPlaying nowPlaying) {
+      create();
       view.setTextViewText(R.id.artist, nowPlaying.artist);
       view.setTextViewText(R.id.title, nowPlaying.title);
       view.setProgressBar(R.id.progressBar, nowPlaying.duration, nowPlaying.progress, false);
