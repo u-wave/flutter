@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/services.dart' show MethodChannel;
+import './player.dart' show ProgressTimer;
 
 const _channel = MethodChannel('u-wave.net/notification');
 
@@ -24,23 +25,21 @@ class NowPlayingNotification {
     String artist,
     String title,
     int duration,
-    Stream<Duration> progress,
+    ProgressTimer progress,
   }) {
     if (_progressSubscription != null) {
       _progressSubscription.cancel();
       _progressSubscription = null;
     }
 
-    progress.first.then((seek) {
-      _channel.invokeMethod('nowPlaying', <String, String>{
-        'artist': artist,
-        'title': title,
-        'duration': '$duration',
-        'seek': '${seek.inSeconds}',
-      });
+    _channel.invokeMethod('nowPlaying', <String, String>{
+      'artist': artist,
+      'title': title,
+      'duration': '$duration',
+      'seek': '${progress.current.inSeconds}',
     });
 
-    _progressSubscription = progress.listen((past) {
+    _progressSubscription = progress.stream.listen((past) {
       _setProgress(past.inSeconds, duration);
     });
   }

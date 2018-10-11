@@ -31,7 +31,7 @@ final _channel = MethodChannel('u-wave.net/player')
 class PlaybackSettings {
   final int texture;
   final double aspectRatio;
-  final Stream<Duration> onProgress;
+  final ProgressTimer onProgress;
 
   bool get hasTexture => texture != null;
 
@@ -40,23 +40,32 @@ class PlaybackSettings {
 
 class ProgressTimer {
   Timer _timer;
-  StreamController<Duration> _controller =
-      StreamController.broadcast();
+  StreamController<Duration> _controller;
   Stream<Duration> get stream => _controller.stream;
+  Duration get current => DateTime.now().difference(startTime);
 
   DateTime startTime;
   ProgressTimer({this.startTime}) {
+    _controller = StreamController.broadcast(
+      onListen: _startTimer,
+      onCancel: _stopTimer,
+    );
+  }
+
+  void _startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), _update);
     _update(_timer);
   }
 
+  void _stopTimer() {
+    _timer.cancel();
+  }
+
   void _update(Timer _) {
-    _controller.add(
-        DateTime.now().difference(startTime));
+    _controller.add(current);
   }
 
   void cancel() {
-    _timer.cancel();
     _controller.close();
   }
 }
@@ -99,7 +108,7 @@ class Player {
     return PlaybackSettings(
       texture: texture,
       aspectRatio: aspectRatio,
-      onProgress: _progressTimer.stream,
+      onProgress: _progressTimer,
     );
   }
 

@@ -7,6 +7,7 @@ import './playback_settings.dart' show PlaybackSettingsRoute;
 import './signin_views.dart' show SignInRoute;
 import './chat_views.dart' show ChatMessages, ChatInput;
 import './listen_store.dart' show ListenStore;
+import './player.dart' show ProgressTimer;
 
 class UwaveListen extends StatefulWidget {
   final UwaveServer server;
@@ -222,7 +223,7 @@ class _UwaveListenState extends State<UwaveListen> {
 class PlayerView extends StatelessWidget {
   final int textureId;
   final HistoryEntry entry;
-  final Stream<Duration> currentProgress;
+  final ProgressTimer currentProgress;
   final double aspectRatio;
 
   PlayerView({this.textureId, this.entry, this.currentProgress, this.aspectRatio = 16 / 9});
@@ -255,7 +256,7 @@ class PlayerView extends StatelessWidget {
 }
 
 class MediaProgressBar extends StatelessWidget {
-  final Stream<Duration> currentProgress;
+  final ProgressTimer currentProgress;
   final Duration duration;
 
   MediaProgressBar({this.currentProgress, this.duration});
@@ -263,13 +264,13 @@ class MediaProgressBar extends StatelessWidget {
   @override
   Widget build(_) {
     return StreamBuilder<Duration>(
-      stream: currentProgress,
+      stream: currentProgress.stream,
       builder: (_, snapshot) {
         Duration progress = const Duration(seconds: 0);
         switch (snapshot.connectionState) {
           case ConnectionState.none:
           case ConnectionState.waiting:
-            progress = const Duration(seconds: 0);
+            progress = currentProgress.current;
             break;
           case ConnectionState.active:
             progress = snapshot.data;
