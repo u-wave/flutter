@@ -1,54 +1,11 @@
-import 'dart:async' show Stream, StreamSubscription;
 import 'package:flutter/material.dart';
 import './u_wave/u_wave.dart' show User, ChatMessage, UserJoinMessage, UserLeaveMessage;
 import './u_wave/markup.dart' as markup;
 
-class ChatMessages extends StatefulWidget {
-  final Stream<dynamic> notifications;
-  final Stream<ChatMessage> messages;
+class ChatMessages extends StatelessWidget {
+  final List<dynamic> messages;
 
-  ChatMessages({Key key, this.notifications, this.messages}) : super(key: key);
-
-  @override
-  _ChatMessagesState createState() => _ChatMessagesState();
-}
-
-class _ChatMessagesState extends State<ChatMessages> {
-  final List<dynamic> _messages = [];
-  StreamSubscription<ChatMessage> _chatSubscription;
-  StreamSubscription<dynamic> _notificationsSubscription;
-
-  static _isSupportedNotification(message) {
-    return message is UserJoinMessage ||
-        message is UserLeaveMessage;
-  }
-
-  @override
-  void initState() {
-    super.initState();
-
-    _chatSubscription = widget.messages.listen((message) {
-      setState(() {
-        _messages.add(message);
-      });
-    });
-    _notificationsSubscription = widget.notifications.listen((message) {
-      setState(() {
-        if (_isSupportedNotification(message)) {
-          _messages.add(message);
-        }
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    _chatSubscription.cancel();
-    _notificationsSubscription.cancel();
-    _chatSubscription = null;
-    _notificationsSubscription = null;
-  }
+  ChatMessages({Key key, this.messages}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -56,9 +13,9 @@ class _ChatMessagesState extends State<ChatMessages> {
       color: Color(0xFF151515),
       child: ListView.builder(
         shrinkWrap: true,
-        itemCount: _messages.length,
+        itemCount: messages.length,
         itemBuilder: (context, index) {
-          final message = _messages[index];
+          final message = messages[index];
           if (message is ChatMessage) {
             return ChatMessageView(message);
           }
@@ -68,7 +25,10 @@ class _ChatMessagesState extends State<ChatMessages> {
           if (message is UserLeaveMessage) {
             return UserLeaveMessageView(message);
           }
-          return Text('Unexpected message type!');
+          return Text(
+            'Unexpected message type!',
+            style: TextStyle(color: Color(0xFFFF0000)),
+          );
         },
       ),
     );
@@ -80,7 +40,7 @@ class ChatInput extends StatefulWidget {
   final User user;
   final OnSendCallback onSend;
 
-  ChatInput({this.user, this.onSend});
+  ChatInput({this.user, this.onSend}) : assert(user != null), assert(onSend != null);
 
   @override
   _ChatInputState createState() => _ChatInputState();

@@ -3,16 +3,25 @@ import './u_wave/announce.dart' show UwaveServer;
 import './server_list.dart' show UwaveServerList;
 import './listen.dart' show UwaveListen;
 import './settings.dart' show Settings, UwaveSettings;
+import './listen_store.dart' show ListenStore;
 
 void main() async {
   final settings = await Settings.load();
+  final listenStore = ListenStore(settings: settings);
+
   runApp(UwaveSettings(
     settings: settings,
-    child: UwaveApp(),
+    child: UwaveApp(
+      listenStore: listenStore,
+    ),
   ));
 }
 
 class UwaveApp extends StatelessWidget {
+  final ListenStore listenStore;
+
+  UwaveApp({this.listenStore});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -32,7 +41,10 @@ class UwaveApp extends StatelessWidget {
   void _listen(BuildContext context, UwaveServer server) {
     Navigator.push(context, MaterialPageRoute(
       maintainState: false,
-      builder: (context) => UwaveListen(server: server),
+      builder: (context) => UwaveListen(
+        server: server,
+        store: listenStore,
+      ),
     ));
   }
 }

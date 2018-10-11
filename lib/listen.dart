@@ -1,21 +1,18 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart' show FlutterSecureStorage;
-import 'package:connectivity/connectivity.dart' show Connectivity, ConnectivityResult;
 import './u_wave/announce.dart' show UwaveServer;
 import './u_wave/u_wave.dart';
 import './server_list.dart' show ServerThumbnail;
-import './settings.dart' show UwaveSettings, PlaybackType;
 import './playback_settings.dart' show PlaybackSettingsRoute;
 import './signin_views.dart' show SignInRoute;
 import './chat_views.dart' show ChatMessages, ChatInput;
-import './notification.dart' show NowPlayingNotification;
-import './player.dart' show Player, PlaybackSettings;
+import './listen_store.dart' show ListenStore;
 
 class UwaveListen extends StatefulWidget {
   final UwaveServer server;
+  final ListenStore store;
 
-  UwaveListen({Key key, this.server}) : super(key: key);
+  UwaveListen({Key key, this.server, this.store}) : super(key: key);
 
   @override
   _UwaveListenState createState() => _UwaveListenState();
@@ -23,128 +20,51 @@ class UwaveListen extends StatefulWidget {
 
 class _UwaveListenState extends State<UwaveListen> {
   final _playerViewKey = GlobalKey<_UwaveListenState>();
-  final _storage = FlutterSecureStorage();
-  UwaveClient _client;
+  StreamSubscription<Null> _updateSubscription;
   bool _clientConnected = false;
   bool _showOverlay = false;
-  HistoryEntry _playing;
-  PlaybackType _playbackType = PlaybackType.disabled;
-  PlaybackSettings _playbackSettings;
-  StreamSubscription<HistoryEntry> _advanceSubscription;
-  StreamSubscription<ConnectivityResult> _connectivitySubscription;
 
   @override
   void initState() {
     super.initState();
-    _client = UwaveClient(
-      apiUrl: widget.server.apiUrl,
-      socketUrl: widget.server.socketUrl,
-    );
 
-    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((result) {
-      final settings = UwaveSettings.of(context);
-      if (settings.playbackType == settings.playbackTypeData) {
-        return; // no need to switch playback types
-      }
-
-      final playbackType = result == ConnectivityResult.wifi
-          ? settings.playbackType
-          : settings.playbackTypeData;
-
-      debugPrint('Connectivity changed, switching to $playbackType');
-      Player.getInstance()
-          .setPlaybackType(playbackType);
-
-      setState(() { _playbackType = playbackType; });
-    });
-
-    _advanceSubscription = _client.advanceMessages.listen((entry) {
+    _updateSubscription = widget.store.onUpdate.listen((_) {
       setState(() {
-        if (entry != null) {
-          _play(entry);
-        } else {
-          _stop();
-        }
+        debugPrint('rerendering...');
+        // Just rerender
       });
     });
 
-    _connect();
-  }
-
-  Future<Null> _connect() async {
-    final key = widget.server.publicKey;
-    final json = await _storage.read(key: 'credentials:$key');
-    final credentials = json is String
-      ? UwaveCredentials.deserialize(json)
-      : null;
-
-    await _client.init(credentials: credentials);
-
-    setState(() {
-      _clientConnected = true;
+    widget.store.connect(widget.server).then((_) {
+      setState(() {
+        _clientConnected = true;
+      });
     });
   }
 
   @override
   void reassemble() {
     super.reassemble();
-    if (_playing != null) _play(_playing);
+    // Reconnect.
+    widget.store.disconnect();
+    widget.store.connect(widget.server);
   }
 
   @override
   void dispose() {
     super.dispose();
-    _advanceSubscription.cancel();
-    _connectivitySubscription.cancel();
-    _stop();
-  }
-
-  /// Start playing a history entry.
-  Future<Null> _play(HistoryEntry entry) async {
-    final player = Player.getInstance();
-    final playbackSettings = await player.play(entry, _playbackType);
-
-    if (playbackSettings.hasTexture) {
-      debugPrint('Using player texture #${playbackSettings.texture}');
-    } else {
-      debugPrint('Audio-only: no player texture');
-    }
-
-    setState(() {
-      _playing = entry;
-      _playbackSettings = playbackSettings;
-    });
-
-    NowPlayingNotification.getInstance().show(
-      artist: entry.artist,
-      title: entry.title,
-      duration: entry.end - entry.start,
-      progress: playbackSettings.onProgress,
-    );
-  }
-
-  /// Stop playing.
-  _stop() {
-    debugPrint('Stopping playback');
-    Player.getInstance()
-      ..stop();
-    NowPlayingNotification.getInstance()
-      ..close();
-    _playing = null;
+    _updateSubscription.cancel();
+    _updateSubscription = null;
   }
 
   Future<Null> _showSignInPage() async {
     await Navigator.push(context, MaterialPageRoute(
       maintainState: true,
       builder: (context) => SignInRoute(
-        uwave: _client,
+        uwave: widget.store.uwaveClient,
         onComplete: (creds) {
           if (creds != null) {
-            final key = widget.server.publicKey;
-            _storage.write(
-              key: 'credentials:$key',
-              value: creds.serialize(),
-            );
+            widget.store.saveCredentials(creds);
           }
           Navigator.pop(context);
         },
@@ -159,7 +79,7 @@ class _UwaveListenState extends State<UwaveListen> {
   }
 
   void _sendChat(String message) {
-    _client.sendChatMessage(message);
+    widget.store.sendChat(message);
   }
 
   void _onTapDown(BuildContext context, TapDownDetails details) {
@@ -189,7 +109,7 @@ class _UwaveListenState extends State<UwaveListen> {
           IconButton(
             icon: const Icon(Icons.thumb_up),
             onPressed: () {
-              _client.upvote();
+              // _client.upvote();
             },
           ),
           // TODO implement
@@ -199,7 +119,7 @@ class _UwaveListenState extends State<UwaveListen> {
           IconButton(
             icon: const Icon(Icons.thumb_down),
             onPressed: () {
-              _client.downvote();
+              // _client.downvote();
             },
           ),
         ],
@@ -220,7 +140,7 @@ class _UwaveListenState extends State<UwaveListen> {
 
   Widget _buildPlayerOverlay() {
     final List<Widget> children = [];
-    if (_client.currentUser != null) {
+    if (widget.store.isSignedIn) {
       children.add(_buildVoteButtons());
     }
     children.add(_buildSettingsIcon());
@@ -235,13 +155,13 @@ class _UwaveListenState extends State<UwaveListen> {
   }
 
   Widget _buildPlayer() {
-    if (_playing != null) {
+    if (widget.store.isPlaying) {
       final children = <Widget>[
         PlayerView(
-          textureId: _playbackSettings.texture,
-          aspectRatio: _playbackSettings.aspectRatio,
-          entry: _playing,
-          currentProgress: _playbackSettings.onProgress,
+          textureId: widget.store.playbackSettings.texture,
+          aspectRatio: widget.store.playbackSettings.aspectRatio,
+          entry: widget.store.currentEntry,
+          currentProgress: widget.store.playbackSettings.onProgress,
         ),
       ];
 
@@ -266,19 +186,18 @@ class _UwaveListenState extends State<UwaveListen> {
   @override
   Widget build(BuildContext context) {
     final chatMessages = ChatMessages(
-      notifications: _client.events,
-      messages: _client.chatMessages,
+      messages: widget.store.chatHistory,
     );
 
-    final Widget footer = _client.currentUser != null
-      ? ChatInput(user: _client.currentUser, onSend: _sendChat)
+    final Widget footer = widget.store.isSignedIn
+      ? ChatInput(user: widget.store.currentUser, onSend: _sendChat)
       : SignInButton(serverName: widget.server.name, onSignIn: _signIn);
 
     return Scaffold(
       appBar: AppBar(
-        title: _playing == null
+        title: widget.store.currentEntry == null
           ? Text(widget.server.name)
-          : CurrentMediaTitle(artist: _playing.artist, title: _playing.title),
+          : CurrentMediaTitle(artist: widget.store.currentEntry.artist, title: widget.store.currentEntry.title),
       ),
       body: GestureDetector(
         onTapDown: (details) => _onTapDown(context, details),
