@@ -24,6 +24,7 @@ import io.flutter.plugin.common.MethodChannel.Result;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 import io.flutter.view.TextureRegistry.SurfaceTextureEntry;
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import org.schabi.newpipe.extractor.NewPipe;
@@ -43,6 +44,7 @@ class PlaybackAction implements Player.EventListener, SimpleExoPlayer.VideoListe
   private int videoWidth;
   private int videoHeight;
   private final String id;
+  private final Date startTime = new Date();
 
   private StreamInfo streamInfo;
 
@@ -61,6 +63,14 @@ class PlaybackAction implements Player.EventListener, SimpleExoPlayer.VideoListe
       textureEntry = null;
       surface = null;
     }
+  }
+
+  public Entry getEntry() {
+    return entry;
+  }
+
+  public Surface getSurface() {
+    return surface;
   }
 
   public void cancel() {
@@ -129,8 +139,11 @@ class PlaybackAction implements Player.EventListener, SimpleExoPlayer.VideoListe
     return getCombinedMediaSource();
   }
 
-  public Surface getSurface() {
-    return surface;
+  public int getCurrentSeek() {
+    final long mediaStartTime = (startTime.getTime() / 1000) - entry.seek;
+    final long now = new Date().getTime() / 1000;
+
+    return (int) (now - mediaStartTime);
   }
 
   private AudioStream getPreferredAudioStream(StreamInfo info) {
@@ -330,7 +343,7 @@ class PlaybackAction implements Player.EventListener, SimpleExoPlayer.VideoListe
     public final String sourceType;
     public final String sourceID;
     public final int seek;
-    public final byte playbackType;
+    public byte playbackType;
     public final String preferredResolution = "360p";
 
     Entry(String sourceType, String sourceID, int seek, byte playbackType) {
@@ -341,7 +354,11 @@ class PlaybackAction implements Player.EventListener, SimpleExoPlayer.VideoListe
     }
 
     public boolean shouldPlayVideo() {
-      return this.playbackType == PlaybackType.BOTH;
+      return playbackType == PlaybackType.BOTH;
+    }
+
+    public void setPlaybackType(byte newPlaybackType) {
+      playbackType = newPlaybackType;
     }
 
     public String getNewPipeSourceName() {

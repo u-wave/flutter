@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart' show FlutterSecureStorage;
+import 'package:connectivity/connectivity.dart' show Connectivity, ConnectivityResult;
 import './u_wave/announce.dart' show UwaveServer;
 import './u_wave/u_wave.dart';
 import './server_list.dart' show ServerThumbnail;
-import './settings.dart' show UwaveSettings;
+import './settings.dart' show UwaveSettings, PlaybackType;
 import './playback_settings.dart' show PlaybackSettingsRoute;
 import './signin_views.dart' show SignInRoute;
 import './chat_views.dart' show ChatMessages, ChatInput;
@@ -27,8 +28,10 @@ class _UwaveListenState extends State<UwaveListen> {
   bool _clientConnected = false;
   bool _showOverlay = false;
   HistoryEntry _playing;
+  PlaybackType _playbackType = PlaybackType.disabled;
   PlaybackSettings _playbackSettings;
   StreamSubscription<HistoryEntry> _advanceSubscription;
+  StreamSubscription<ConnectivityResult> _connectivitySubscription;
 
   @override
   void initState() {
@@ -37,6 +40,23 @@ class _UwaveListenState extends State<UwaveListen> {
       apiUrl: widget.server.apiUrl,
       socketUrl: widget.server.socketUrl,
     );
+
+    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((result) {
+      final settings = UwaveSettings.of(context);
+      if (settings.playbackType == settings.playbackTypeData) {
+        return; // no need to switch playback types
+      }
+
+      final playbackType = result == ConnectivityResult.wifi
+          ? settings.playbackType
+          : settings.playbackTypeData;
+
+      debugPrint('Connectivity changed, switching to $playbackType');
+      Player.getInstance()
+          .setPlaybackType(playbackType);
+
+      setState(() { _playbackType = playbackType; });
+    });
 
     _advanceSubscription = _client.advanceMessages.listen((entry) {
       setState(() {
@@ -48,16 +68,20 @@ class _UwaveListenState extends State<UwaveListen> {
       });
     });
 
+    _connect();
+  }
+
+  Future<Null> _connect() async {
     final key = widget.server.publicKey;
-    _storage.read(key: 'credentials:$key').then((json) {
-      final credentials = json is String
-        ? UwaveCredentials.deserialize(json)
-        : null;
-      return _client.init(credentials: credentials);
-    }).then((_) {
-      setState(() {
-        _clientConnected = true;
-      });
+    final json = await _storage.read(key: 'credentials:$key');
+    final credentials = json is String
+      ? UwaveCredentials.deserialize(json)
+      : null;
+
+    await _client.init(credentials: credentials);
+
+    setState(() {
+      _clientConnected = true;
     });
   }
 
@@ -71,15 +95,14 @@ class _UwaveListenState extends State<UwaveListen> {
   void dispose() {
     super.dispose();
     _advanceSubscription.cancel();
+    _connectivitySubscription.cancel();
     _stop();
   }
 
   /// Start playing a history entry.
   Future<Null> _play(HistoryEntry entry) async {
     final player = Player.getInstance();
-    final settings = UwaveSettings.of(context);
-
-    final playbackSettings = await player.play(entry, settings);
+    final playbackSettings = await player.play(entry, _playbackType);
 
     if (playbackSettings.hasTexture) {
       debugPrint('Using player texture #${playbackSettings.texture}');

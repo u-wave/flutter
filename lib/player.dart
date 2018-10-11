@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import './u_wave/u_wave.dart' show HistoryEntry;
-import './settings.dart' show Settings;
+import './settings.dart' show PlaybackType;
 
 /// Download a URL's contents to a string.
 ///
@@ -74,7 +74,7 @@ class Player {
 
   ProgressTimer _progressTimer;
 
-  Future<PlaybackSettings> play(HistoryEntry entry, Settings settings) async {
+  Future<PlaybackSettings> play(HistoryEntry entry, PlaybackType playbackType) async {
     if (_progressTimer != null) {
       _progressTimer.cancel();
       _progressTimer = null;
@@ -89,7 +89,7 @@ class Player {
       'sourceType': entry.media.sourceType,
       'sourceID': entry.media.sourceID,
       'seek': '${seekInMedia.isNegative ? 0 : seekInMedia.inMilliseconds}',
-      'playbackType': '${settings.playbackType.index}',
+      'playbackType': '${playbackType.index}',
     });
 
     final int texture = result['texture'];
@@ -101,6 +101,10 @@ class Player {
       aspectRatio: aspectRatio,
       onProgress: _progressTimer.stream,
     );
+  }
+
+  Future<Null> setPlaybackType(PlaybackType playbackType) async {
+    await _channel.invokeMethod('setPlaybackType', playbackType.index);
   }
 
   void stop() {

@@ -110,14 +110,20 @@ public class PlayerPlugin implements MethodCallHandler, SimpleExoPlayer.VideoLis
         .start();
   }
 
-  private void onSetPlaybackType(Byte playbackType, Result result) {
+  private void onSetPlaybackType(Integer playbackType, Result result) {
     if (playbackType == null) {
       result.error("MissingParameter", "Missing parameter \"playbackType\"", null);
       return;
     }
 
+    final byte playbackTypeId = playbackType.byteValue();
+
     if (currentPlayback != null) {
-      // set playback type
+      currentPlayback.getEntry()
+        .setPlaybackType(playbackTypeId);
+      final MediaSource mediaSource = currentPlayback.getMediaSource();
+      player.prepare(mediaSource);
+      player.seekTo(currentPlayback.getCurrentSeek());
       result.success(null);
     } else {
       result.error("NoPlayback", "Can't change playback type because nothing is playing.", null);
@@ -133,7 +139,7 @@ public class PlayerPlugin implements MethodCallHandler, SimpleExoPlayer.VideoLis
         onPlay((Map<String, String>) call.arguments, result);
         break;
       case "setPlaybackType":
-        onSetPlaybackType((Byte) call.arguments, result);
+        onSetPlaybackType((Integer) call.arguments, result);
         break;
       default:
         result.notImplemented();
