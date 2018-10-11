@@ -2,9 +2,8 @@
 
 A [Flutter](https://flutter.io) and [NewPipe](https://newpipe.schabi.org) based client for [üWave](https://u-wave.net)!
 
-|||
-|-|-|
-| ![Server List](./assets/screenshots/servers.png) | ![Listening](./assets/screenshots/listen.png) |
+[<img src="./assets/screenshots/servers.png" alt="Server List" width=320>](./assets/screenshots/servers.png)
+[<img src="./assets/screenshots/listen.png" alt="Listening" width=320>](./assets/screenshots/listen.png)
 
 ## Getting Started
 
