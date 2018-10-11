@@ -43,6 +43,7 @@ class ListenStore {
   PlaybackSettings get playbackSettings => _playbackSettings;
   bool get isSignedIn => _client.currentUser != null;
   User get currentUser => _client.currentUser;
+  UwaveServer get server => _server;
   UwaveClient get uwaveClient => _client;
 
   ListenStore({Settings settings}) : assert(settings != null) {
@@ -114,6 +115,8 @@ class ListenStore {
   void disconnect() {
     if (_server == null) return;
 
+    stop();
+
     _connectivitySubscription.cancel();
     _advanceSubscription.cancel();
     _eventsSubscription.cancel();
@@ -128,6 +131,8 @@ class ListenStore {
     _settingsSubscription = null;
 
     chatHistory.clear();
+
+    _server = null;
 
     _emitUpdate();
   }

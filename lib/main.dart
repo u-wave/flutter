@@ -33,6 +33,7 @@ class UwaveApp extends StatelessWidget {
       ),
       home: UwaveServerList(
         title: 'Public üWave Servers',
+        listenStore: listenStore,
         onJoin: (context, server) =>  _listen(context, server),
       ),
     );
