@@ -148,8 +148,11 @@ class ListenStore {
         : _settings.playbackTypeData;
 
     _log('Connectivity changed, switching to $playbackType');
-    Player.getInstance()
-        ..setPlaybackType(playbackType);
+
+    if (_playing != null) {
+      Player.getInstance()
+          ..setPlaybackType(playbackType);
+    }
 
     _playbackType = playbackType;
     _emitUpdate();
