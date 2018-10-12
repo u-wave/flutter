@@ -1,6 +1,8 @@
 package net.u_wave.android;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.source.MediaSource;
@@ -44,6 +46,11 @@ public class PlayerPlugin implements MethodCallHandler, SimpleExoPlayer.VideoLis
     player.setVideoListener(this);
   }
 
+  private void runOnMainThread(Runnable runner) {
+    Handler mainThread = new Handler(registrar.context().getMainLooper());
+    mainThread.post(runner);
+  }
+
   void onPlay(Map<String, String> data, final Result result) {
     if (currentPlayback != null) {
       currentPlayback.cancel();
@@ -80,22 +87,28 @@ public class PlayerPlugin implements MethodCallHandler, SimpleExoPlayer.VideoLis
             new PlaybackAction.Listener() {
               @Override
               public void onEnd(PlaybackAction self) {
-                player.removeListener(self);
-                player.stop();
-                player.clearVideoSurface();
+                runOnMainThread(() -> {
+                  player.removeListener(self);
+                  player.stop();
+                  player.clearVideoSurface();
+                });
               }
             });
 
-    player.addListener(action);
-    player.setVideoSurface(action.getSurface());
+    runOnMainThread(() -> {
+      player.addListener(action);
+      player.setVideoSurface(action.getSurface());
+    });
     currentPlayback = action;
 
     new Thread(
             () -> {
               final MediaSource mediaSource = action.getMediaSource();
-              player.prepare(mediaSource);
-              player.seekTo(seek);
-              player.setPlayWhenReady(true);
+              runOnMainThread(() -> {
+                player.prepare(mediaSource);
+                player.seekTo(seek);
+                player.setPlayWhenReady(true);
+              });
             })
         .start();
   }
