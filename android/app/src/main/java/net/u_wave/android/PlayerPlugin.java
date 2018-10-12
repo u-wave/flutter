@@ -38,8 +38,7 @@ public class PlayerPlugin implements MethodCallHandler, SimpleExoPlayer.VideoLis
     dataSourceFactory =
         new DefaultHttpDataSourceFactory(Util.getUserAgent(context, "android.u-wave.net"));
 
-    player =
-        ExoPlayerFactory.newSimpleInstance(context);
+    player = ExoPlayerFactory.newSimpleInstance(context);
 
     player.setVideoListener(this);
   }
@@ -109,12 +108,17 @@ public class PlayerPlugin implements MethodCallHandler, SimpleExoPlayer.VideoLis
     final byte playbackTypeId = playbackType.byteValue();
 
     if (currentPlayback != null) {
-      currentPlayback.getEntry()
-        .setPlaybackType(playbackTypeId);
+      currentPlayback.getEntry().setPlaybackType(playbackTypeId);
       final MediaSource mediaSource = currentPlayback.getMediaSource();
       player.prepare(mediaSource);
       player.seekTo(currentPlayback.getCurrentSeek());
-      System.out.println("PlaybackAction[" + currentPlayback.getEntry().sourceType + ":" + currentPlayback.getEntry().sourceID + "] getCurrentSeek(): " + currentPlayback.getCurrentSeek());
+      System.out.println(
+          "PlaybackAction["
+              + currentPlayback.getEntry().sourceType
+              + ":"
+              + currentPlayback.getEntry().sourceID
+              + "] getCurrentSeek(): "
+              + currentPlayback.getCurrentSeek());
       result.success(null);
     } else {
       result.error("NoPlayback", "Can't change playback type because nothing is playing.", null);

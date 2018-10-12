@@ -1,5 +1,6 @@
 package net.u_wave.android;
 
+import com.bugsnag.android.Bugsnag;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.Result;
 import java.util.HashMap;
@@ -100,6 +101,8 @@ class DartDownloader implements Downloader {
         done = true;
         try {
           throw new RuntimeException(errorMessage);
+        } catch (RuntimeException err) {
+          Bugsnag.notify(err);
         } finally {
           lock.notify();
         }
