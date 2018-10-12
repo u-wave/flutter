@@ -17,6 +17,40 @@ void _log(String input) {
   debugPrint('[ListenStore] $input');
 }
 
+class VoteStats {
+  final List<User> upvoters = [];
+  final List<User> downvoters = [];
+  final List<User> favoriters = [];
+
+  void addUpvote(User user) {
+    // remove() is safe to call when it's not in the list, too.
+    downvoters.remove(user);
+    upvoters.add(user);
+  }
+
+  void addDownvote(User user) {
+    // remove() is safe to call when it's not in the list, too.
+    upvoters.remove(user);
+    downvoters.add(user);
+  }
+
+  void addFavorite(User user) {
+    favoriters.add(user);
+  }
+
+  bool didUpvote(User user) {
+    return upvoters.any((voter) => voter.id == user.id);
+  }
+
+  bool didDownvote(User user) {
+    return downvoters.any((voter) => voter.id == user.id);
+  }
+
+  bool didFavorite(User user) {
+    return favoriters.any((voter) => voter.id == user.id);
+  }
+}
+
 class ListenStore {
   final _storage = FlutterSecureStorage();
   Settings _settings;
@@ -25,6 +59,7 @@ class ListenStore {
   HistoryEntry _playing;
   PlaybackType _playbackType = PlaybackType.disabled;
   PlaybackSettings _playbackSettings;
+  VoteStats _voteStats;
   Connectivity _connectivity;
   ConnectivityResult _connectivityStatus = ConnectivityResult.none;
   StreamSubscription<HistoryEntry> _advanceSubscription;
@@ -41,6 +76,7 @@ class ListenStore {
   bool get isPlaying => _playing != null;
   HistoryEntry get currentEntry => _playing;
   PlaybackSettings get playbackSettings => _playbackSettings;
+  VoteStats get voteStats => _voteStats;
   bool get isSignedIn => _client.currentUser != null;
   User get currentUser => _client.currentUser;
   UwaveServer get server => _server;
@@ -101,6 +137,16 @@ class ListenStore {
     _eventsSubscription = _client.events.listen((message) {
       if (_isChatVisibleEvent(message)) {
         chatHistory.add(message);
+        _emitUpdate();
+      } else if (message is VoteMessage) {
+        if (message.isUpvote) {
+          _voteStats.addUpvote(message.user);
+        } else if (message.isDownvote) {
+          _voteStats.addDownvote(message.user);
+        }
+        _emitUpdate();
+      } else if (message is FavoriteMessage) {
+        _voteStats.addFavorite(message.user);
         _emitUpdate();
       }
     });
@@ -170,6 +216,7 @@ class ListenStore {
       _log('Audio-only: no player texture');
     }
 
+    _voteStats = VoteStats();
     _playing = entry;
     _playbackSettings = playbackSettings;
     _emitUpdate();

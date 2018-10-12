@@ -103,20 +103,32 @@ class _UwaveListenState extends State<UwaveListen> {
   }
 
   Widget _buildVoteButtons() {
+    final voteStats = widget.store.voteStats;
+    final currentUser = widget.store.currentUser;
+    final didUpvote = voteStats?.didUpvote(currentUser);
+    final didFavorite = voteStats?.didFavorite(currentUser);
+    final didDownvote = voteStats?.didDownvote(currentUser);
+
     return Center(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           IconButton(
-            icon: const Icon(Icons.thumb_up),
+            icon: Icon(
+              Icons.thumb_up,
+              color: didUpvote ? const Color(0xFF4BB64B) : Colors.white,
+            ),
             onPressed: () {
               final client = widget.store.uwaveClient;
               client.upvote();
             },
           ),
-          FavoriteButton(),
+          FavoriteButton(active: didFavorite),
           IconButton(
-            icon: const Icon(Icons.thumb_down),
+            icon: Icon(
+              Icons.thumb_down,
+              color: didDownvote ? const Color(0xFFB64B4B) : Colors.white,
+            ),
             onPressed: () {
               final client = widget.store.uwaveClient;
               client.downvote();
@@ -339,10 +351,17 @@ class CurrentMediaTitle extends StatelessWidget {
 }
 
 class FavoriteButton extends StatelessWidget {
+  final bool active;
+
+  FavoriteButton({this.active});
+
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      icon: const Icon(Icons.favorite_border, color: Color(0xFF9D2053)),
+      icon: Icon(
+        active ? Icons.favorite : Icons.favorite_border,
+        color: const Color(0xFF9D2053),
+      ),
       onPressed: () {
         showModalBottomSheet(
           context: context,

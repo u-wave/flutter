@@ -152,8 +152,8 @@ class VoteMessage {
 
   factory VoteMessage.fromJson(Map<String, dynamic> json, {Map<String, User> users}) {
     return VoteMessage(
-      direction: json['direction'],
-      user: users != null ? users[json['userID']] : null,
+      direction: json['value'],
+      user: users != null ? users[json['_id']] : null,
     );
   }
 }
