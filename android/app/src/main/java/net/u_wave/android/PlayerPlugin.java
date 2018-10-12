@@ -1,15 +1,9 @@
 package net.u_wave.android;
 
 import android.content.Context;
-import com.google.android.exoplayer2.DefaultLoadControl;
-import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.source.MediaSource;
-import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
-import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.upstream.BandwidthMeter;
-import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 import io.flutter.plugin.common.MethodCall;
@@ -44,12 +38,8 @@ public class PlayerPlugin implements MethodCallHandler, SimpleExoPlayer.VideoLis
     dataSourceFactory =
         new DefaultHttpDataSourceFactory(Util.getUserAgent(context, "android.u-wave.net"));
 
-    BandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
     player =
-        ExoPlayerFactory.newSimpleInstance(
-            new DefaultRenderersFactory(context),
-            new DefaultTrackSelector(new AdaptiveTrackSelection.Factory(bandwidthMeter)),
-            new DefaultLoadControl());
+        ExoPlayerFactory.newSimpleInstance(context);
 
     player.setVideoListener(this);
   }
