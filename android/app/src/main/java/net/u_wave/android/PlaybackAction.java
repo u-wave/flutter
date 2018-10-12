@@ -6,11 +6,9 @@ import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
-import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
-import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.source.MergingMediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.source.dash.DashMediaSource;
@@ -19,7 +17,9 @@ import com.google.android.exoplayer2.source.hls.HlsMediaSource;
 import com.google.android.exoplayer2.source.smoothstreaming.DefaultSsChunkSource;
 import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
+import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.util.Util;
+import com.google.android.exoplayer2.video.VideoListener;
 import io.flutter.plugin.common.MethodChannel.Result;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 import io.flutter.view.TextureRegistry.SurfaceTextureEntry;
@@ -33,7 +33,7 @@ import org.schabi.newpipe.extractor.stream.AudioStream;
 import org.schabi.newpipe.extractor.stream.StreamInfo;
 import org.schabi.newpipe.extractor.stream.VideoStream;
 
-class PlaybackAction implements Player.EventListener, SimpleExoPlayer.VideoListener {
+class PlaybackAction implements Player.EventListener, VideoListener {
   private boolean ended = false;
   private Result flutterResult;
   private final Entry entry;
@@ -49,7 +49,11 @@ class PlaybackAction implements Player.EventListener, SimpleExoPlayer.VideoListe
   private StreamInfo streamInfo;
 
   PlaybackAction(
-      final Registrar registrar, final Result result, final DataSource.Factory dataSourceFactory, final Entry entry, final Listener listener) {
+      final Registrar registrar,
+      final Result result,
+      final DataSource.Factory dataSourceFactory,
+      final Entry entry,
+      final Listener listener) {
     flutterResult = result;
     this.dataSourceFactory = dataSourceFactory;
     this.entry = entry;
@@ -151,12 +155,12 @@ class PlaybackAction implements Player.EventListener, SimpleExoPlayer.VideoListe
     for (AudioStream stream : info.getAudioStreams()) {
       System.out.println(
           "  audio: "
-          + stream.getFormat().getName()
-          + " "
-          + stream.getFormat().getMimeType()
-          + " - "
-          + stream.getAverageBitrate()
-          + "bps");
+              + stream.getFormat().getName()
+              + " "
+              + stream.getFormat().getMimeType()
+              + " - "
+              + stream.getAverageBitrate()
+              + "bps");
 
       if (bestStream == null) {
         bestStream = stream;
@@ -180,11 +184,11 @@ class PlaybackAction implements Player.EventListener, SimpleExoPlayer.VideoListe
     for (VideoStream stream : info.getVideoStreams()) {
       System.out.println(
           "  video: "
-          + stream.getFormat().getName()
-          + " "
-          + stream.getFormat().getMimeType()
-          + " - "
-          + stream.getResolution());
+              + stream.getFormat().getName()
+              + " "
+              + stream.getFormat().getMimeType()
+              + " - "
+              + stream.getResolution());
 
       if (bestStream == null) {
         bestStream = stream;
@@ -264,7 +268,9 @@ class PlaybackAction implements Player.EventListener, SimpleExoPlayer.VideoListe
   @Override
   public void onPlayerStateChanged(boolean playWhenReady, int readyState) {
     System.out.println(
-        "PlaybackAction[" + id + "] onPlayerStateChanged playWhenReady="
+        "PlaybackAction["
+            + id
+            + "] onPlayerStateChanged playWhenReady="
             + (playWhenReady ? "true" : "false")
             + " readyState="
             + readyState);
@@ -281,7 +287,8 @@ class PlaybackAction implements Player.EventListener, SimpleExoPlayer.VideoListe
           flutterResult = null;
         } else {
           try {
-            throw new RuntimeException("onPlayerStateChanged was called, but flutterResult has gone away");
+            throw new RuntimeException(
+                "onPlayerStateChanged was called, but flutterResult has gone away");
           } catch (Exception e) {
             e.printStackTrace();
           }
@@ -326,10 +333,14 @@ class PlaybackAction implements Player.EventListener, SimpleExoPlayer.VideoListe
 
   @Override
   public void onShuffleModeEnabledChanged(boolean enabled) {
-    System.out.println("PlaybackAction[" + id + "] onShuffleModeEnabledChanged enabled=" + (enabled ? "true" : "false"));
+    System.out.println(
+        "PlaybackAction["
+            + id
+            + "] onShuffleModeEnabledChanged enabled="
+            + (enabled ? "true" : "false"));
   }
 
-  /* Player.VideoListener */
+  /* VideoListener */
   @Override
   public void onRenderedFirstFrame() {}
 

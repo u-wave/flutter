@@ -2,12 +2,12 @@ package net.u_wave.android;
 
 import android.content.Context;
 import android.os.Handler;
-import android.os.Looper;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
+import com.google.android.exoplayer2.video.VideoListener;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
@@ -16,7 +16,7 @@ import io.flutter.plugin.common.PluginRegistry.Registrar;
 import java.util.Map;
 import org.schabi.newpipe.extractor.NewPipe;
 
-public class PlayerPlugin implements MethodCallHandler, SimpleExoPlayer.VideoListener {
+public class PlayerPlugin implements MethodCallHandler, VideoListener {
   public static final String NAME = "u-wave.net/player";
 
   /** Plugin registration. */
@@ -40,10 +40,9 @@ public class PlayerPlugin implements MethodCallHandler, SimpleExoPlayer.VideoLis
     dataSourceFactory =
         new DefaultHttpDataSourceFactory(Util.getUserAgent(context, "android.u-wave.net"));
 
-    player =
-        ExoPlayerFactory.newSimpleInstance(context);
+    player = ExoPlayerFactory.newSimpleInstance(context);
 
-    player.setVideoListener(this);
+    player.addVideoListener(this);
   }
 
   private void runOnMainThread(Runnable runner) {
@@ -87,28 +86,31 @@ public class PlayerPlugin implements MethodCallHandler, SimpleExoPlayer.VideoLis
             new PlaybackAction.Listener() {
               @Override
               public void onEnd(PlaybackAction self) {
-                runOnMainThread(() -> {
-                  player.removeListener(self);
-                  player.stop();
-                  player.clearVideoSurface();
-                });
+                runOnMainThread(
+                    () -> {
+                      player.removeListener(self);
+                      player.stop();
+                      player.clearVideoSurface();
+                    });
               }
             });
 
-    runOnMainThread(() -> {
-      player.addListener(action);
-      player.setVideoSurface(action.getSurface());
-    });
+    runOnMainThread(
+        () -> {
+          player.addListener(action);
+          player.setVideoSurface(action.getSurface());
+        });
     currentPlayback = action;
 
     new Thread(
             () -> {
               final MediaSource mediaSource = action.getMediaSource();
-              runOnMainThread(() -> {
-                player.prepare(mediaSource);
-                player.seekTo(seek);
-                player.setPlayWhenReady(true);
-              });
+              runOnMainThread(
+                  () -> {
+                    player.prepare(mediaSource);
+                    player.seekTo(seek);
+                    player.setPlayWhenReady(true);
+                  });
             })
         .start();
   }
@@ -122,12 +124,17 @@ public class PlayerPlugin implements MethodCallHandler, SimpleExoPlayer.VideoLis
     final byte playbackTypeId = playbackType.byteValue();
 
     if (currentPlayback != null) {
-      currentPlayback.getEntry()
-        .setPlaybackType(playbackTypeId);
+      currentPlayback.getEntry().setPlaybackType(playbackTypeId);
       final MediaSource mediaSource = currentPlayback.getMediaSource();
       player.prepare(mediaSource);
       player.seekTo(currentPlayback.getCurrentSeek());
-      System.out.println("PlaybackAction[" + currentPlayback.getEntry().sourceType + ":" + currentPlayback.getEntry().sourceID + "] getCurrentSeek(): " + currentPlayback.getCurrentSeek());
+      System.out.println(
+          "PlaybackAction["
+              + currentPlayback.getEntry().sourceType
+              + ":"
+              + currentPlayback.getEntry().sourceID
+              + "] getCurrentSeek(): "
+              + currentPlayback.getCurrentSeek());
       result.success(null);
     } else {
       result.error("NoPlayback", "Can't change playback type because nothing is playing.", null);
@@ -151,7 +158,7 @@ public class PlayerPlugin implements MethodCallHandler, SimpleExoPlayer.VideoLis
     }
   }
 
-  /* SimpleExoPlayer.VideoListener */
+  /* VideoListener */
   @Override
   public void onRenderedFirstFrame() {
     if (currentPlayback != null) {
