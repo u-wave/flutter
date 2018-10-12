@@ -84,6 +84,7 @@ class PlaybackAction implements Player.EventListener, SimpleExoPlayer.VideoListe
   public void end() {
     System.out.println("PlaybackAction[" + id + "] end()");
     ended = true;
+    listener.onEnd(this);
     if (entry.shouldPlayVideo()) {
       if (textureEntry != null) {
         textureEntry.release();
@@ -95,7 +96,6 @@ class PlaybackAction implements Player.EventListener, SimpleExoPlayer.VideoListe
         }
       }
     }
-    listener.onEnd(this);
   }
 
   private void fail(String name, String message, Object err) {
