@@ -163,6 +163,12 @@ class ListenStore {
         } else if (message.isDownvote) {
           _voteStats.addDownvote(message.user);
         }
+
+        if (_client.currentUser != null && message.user.id == _client.currentUser.id) {
+          NowPlayingNotification.getInstance()
+              ..setVote(message.direction);
+        }
+
         _emitUpdate();
       } else if (message is FavoriteMessage) {
         _voteStats.addFavorite(message.user);

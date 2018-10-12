@@ -59,8 +59,18 @@
             android:focusable="true"
             android:scaleType="fitCenter"
             android:tint="@android:color/white"
-            android:src="@drawable/ic_thumb_up"
-            tools:ignore="ContentDescription"/>
+            android:src="@drawable/ic_thumb_up" />
+
+        <ImageView
+            android:id="@+id/upvoteActive"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginLeft="6dp"
+            android:layout_marginRight="6dp"
+            android:background="#00000000"
+            android:scaleType="fitCenter"
+            android:tint="#4bb64b"
+            android:src="@drawable/ic_thumb_up" />
 
         <ImageButton
             android:id="@+id/downvote"
@@ -75,6 +85,17 @@
             android:tint="@android:color/white"
             android:src="@drawable/ic_thumb_down"
             tools:ignore="ContentDescription"/>
+
+        <ImageView
+            android:id="@+id/downvoteActive"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginLeft="6dp"
+            android:layout_marginRight="6dp"
+            android:background="#00000000"
+            android:scaleType="fitCenter"
+            android:tint="#b64b4b"
+            android:src="@drawable/ic_thumb_down" />
 
         <ImageButton
             android:id="@+id/muteUnmute"

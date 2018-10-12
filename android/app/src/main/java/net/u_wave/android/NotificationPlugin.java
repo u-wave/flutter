@@ -9,6 +9,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
+import android.view.View;
 import android.widget.RemoteViews;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
@@ -118,7 +119,6 @@ public class NotificationPlugin
 
     nowPlaying = new NowPlaying(args.get("artist"), args.get("title"), duration, seek);
     nowPlayingNotification.update(nowPlaying);
-    nowPlayingNotification.setVote(vote);
 
     if (enabled) publishNowPlayingNotification();
 
@@ -127,6 +127,9 @@ public class NotificationPlugin
 
   private void onVote(int direction, Result result) {
     vote = direction;
+
+    nowPlayingNotification.update(nowPlaying, vote);
+
     if (enabled) publishNowPlayingNotification();
     result.success(null);
   }
@@ -144,7 +147,7 @@ public class NotificationPlugin
     final int duration = args.get(1);
 
     nowPlaying.setProgress(duration, progress);
-    nowPlayingNotification.update(nowPlaying);
+    nowPlayingNotification.update(nowPlaying, vote);
 
     if (enabled) publishNowPlayingNotification();
 
@@ -205,7 +208,6 @@ public class NotificationPlugin
     private NotificationCompat.Builder builder;
     private RemoteViews view;
     private Context context;
-    private int vote = 0;
 
     NowPlayingNotification(Context context) {
       this.context = context;
@@ -215,10 +217,6 @@ public class NotificationPlugin
     private void create() {
       view = new RemoteViews("net.u_wave.android", R.layout.player_notification);
 
-      view.setImageViewResource(R.id.upvote, vote == 1 ? R.drawable.ic_thumb_up_active : R.drawable.ic_thumb_up);
-      view.setImageViewResource(R.id.downvote, vote == -1 ? R.drawable.ic_thumb_down_active : R.drawable.ic_thumb_down);
-
-      // TODO hook these up via a background service.
       view.setOnClickPendingIntent(
           R.id.upvote,
           PendingIntent.getBroadcast(
@@ -260,15 +258,21 @@ public class NotificationPlugin
       return builder.build();
     }
 
-    public void setVote(int direction) {
-      vote = direction;
+    public void update(NowPlaying nowPlaying) {
+      update(nowPlaying, 0);
     }
 
-    public void update(NowPlaying nowPlaying) {
+    public void update(NowPlaying nowPlaying, int vote) {
       create();
+
       view.setTextViewText(R.id.artist, nowPlaying.artist);
       view.setTextViewText(R.id.title, nowPlaying.title);
       view.setProgressBar(R.id.progressBar, nowPlaying.duration, nowPlaying.progress, false);
+
+      view.setViewVisibility(R.id.upvote, vote == 1 ? View.GONE : View.VISIBLE);
+      view.setViewVisibility(R.id.upvoteActive, vote == 1 ? View.VISIBLE : View.GONE);
+      view.setViewVisibility(R.id.downvote, vote == -1 ? View.GONE : View.VISIBLE);
+      view.setViewVisibility(R.id.downvoteActive, vote == -1 ? View.VISIBLE : View.GONE);
     }
   }
 
