@@ -42,6 +42,7 @@ public class NotificationPlugin
   private NowPlayingNotification nowPlayingNotification;
   private NowPlaying nowPlaying;
   private boolean enabled = true;
+  private int vote = 0;
 
   private NotificationPlugin(Registrar registrar, MethodChannel channel) {
     final Context context = registrar.context();
@@ -101,6 +102,8 @@ public class NotificationPlugin
   }
 
   private void onNowPlaying(Map<String, String> args, Result result) {
+    vote = 0;
+
     if (args == null) {
       nowPlaying = null;
       cancelNowPlayingNotification();
@@ -115,9 +118,16 @@ public class NotificationPlugin
 
     nowPlaying = new NowPlaying(args.get("artist"), args.get("title"), duration, seek);
     nowPlayingNotification.update(nowPlaying);
+    nowPlayingNotification.setVote(vote);
 
     if (enabled) publishNowPlayingNotification();
 
+    result.success(null);
+  }
+
+  private void onVote(int direction, Result result) {
+    vote = direction;
+    if (enabled) publishNowPlayingNotification();
     result.success(null);
   }
 
@@ -148,6 +158,9 @@ public class NotificationPlugin
     switch (call.method) {
       case "nowPlaying":
         onNowPlaying((Map<String, String>) call.arguments, result);
+        return;
+      case "setVote":
+        onVote((Integer) call.arguments, result);
         return;
       case "setProgress":
         onProgress((List<Integer>) call.arguments, result);
@@ -192,6 +205,7 @@ public class NotificationPlugin
     private NotificationCompat.Builder builder;
     private RemoteViews view;
     private Context context;
+    private int vote = 0;
 
     NowPlayingNotification(Context context) {
       this.context = context;
@@ -200,6 +214,9 @@ public class NotificationPlugin
 
     private void create() {
       view = new RemoteViews("net.u_wave.android", R.layout.player_notification);
+
+      view.setImageViewResource(R.id.upvote, vote == 1 ? R.drawable.ic_thumb_up_active : R.drawable.ic_thumb_up);
+      view.setImageViewResource(R.id.downvote, vote == -1 ? R.drawable.ic_thumb_down_active : R.drawable.ic_thumb_down);
 
       // TODO hook these up via a background service.
       view.setOnClickPendingIntent(
@@ -243,6 +260,10 @@ public class NotificationPlugin
       return builder.build();
     }
 
+    public void setVote(int direction) {
+      vote = direction;
+    }
+
     public void update(NowPlaying nowPlaying) {
       create();
       view.setTextViewText(R.id.artist, nowPlaying.artist);
@@ -260,11 +281,9 @@ public class NotificationPlugin
 
     @Override
     public void onReceive(Context context, Intent intent) {
-      switch (intent.getAction()) {
-        case ACTION_DISCONNECT:
-          channel.invokeMethod("disconnect", null);
-          break;
-      }
+      System.out.println("Receiving broadcast: " + intent.getAction());
+      // TODO these should use an EventChannel more likely?
+      channel.invokeMethod("intent", intent.getAction());
     }
   }
 }

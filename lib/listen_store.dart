@@ -67,6 +67,7 @@ class ListenStore {
   StreamSubscription<ChatMessage> _chatSubscription;
   StreamSubscription<dynamic> _eventsSubscription;
   StreamSubscription<SettingUpdate> _settingsSubscription;
+  StreamSubscription<String> _notificationSubscription;
 
   StreamController<Null> _update = StreamController.broadcast();
   Stream<Null> get onUpdate => _update.stream;
@@ -113,6 +114,24 @@ class ListenStore {
 
       _connectivityStatus = result;
       _onUpdatePlaybackType();
+    });
+
+    final notification = NowPlayingNotification.getInstance();
+    _notificationSubscription = notification.onIntent.listen((action) {
+      switch (action) {
+        case 'net.u_wave.android.UPVOTE':
+          _client?.upvote();
+          break;
+        case 'net.u_wave.android.DOWNVOTE':
+          _client?.downvote();
+          break;
+        case 'net.u_wave.android.MUTE_UNMUTE':
+          // TODO override playbackType by PlaybackType.none
+          break;
+        case 'net.u_wave.android.DISCONNECT':
+          disconnect();
+          break;
+      }
     });
 
     _settingsSubscription = _settings.onUpdate.listen((update) {
@@ -168,6 +187,7 @@ class ListenStore {
     _eventsSubscription.cancel();
     _chatSubscription.cancel();
     _settingsSubscription.cancel();
+    _notificationSubscription.cancel();
     _client.dispose();
 
     _connectivitySubscription = null;
@@ -175,6 +195,7 @@ class ListenStore {
     _eventsSubscription = null;
     _chatSubscription = null;
     _settingsSubscription = null;
+    _notificationSubscription = null;
 
     chatHistory.clear();
 
