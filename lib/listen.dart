@@ -30,6 +30,12 @@ class _UwaveListenState extends State<UwaveListen> {
     super.initState();
 
     _updateSubscription = widget.store.onUpdate.listen((_) {
+      if (widget.store.server == null) {
+        // Disconnected, navigate back to home.
+        Navigator.popUntil(context, (route) => route.isFirst);
+        return;
+      }
+
       setState(() {
         debugPrint('rerendering...');
         // Just rerender
