@@ -105,21 +105,13 @@ class CurrentServer extends StatelessWidget {
         children: <Widget>[
           ListTile(
             leading: const Icon(Icons.headset),
-            title: Text('Connected to ${server.name}'),
-          ),
-          ButtonTheme.bar(
-            child: ButtonBar(
-              children: [
-                FlatButton(
-                  child: const Text('Disconnect'),
-                  onPressed: onDisconnect,
-                ),
-                FlatButton(
-                  child: const Text('Open'),
-                  onPressed: onOpen,
-                ),
-              ],
+            title: Text(server.name),
+            subtitle: const Text('Tap to open'),
+            trailing: RaisedButton(
+              child: const Text('Disconnect'),
+              onPressed: onDisconnect,
             ),
+            onTap: onOpen,
           ),
         ],
       ),
