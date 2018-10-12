@@ -110,17 +110,16 @@ class _UwaveListenState extends State<UwaveListen> {
           IconButton(
             icon: const Icon(Icons.thumb_up),
             onPressed: () {
-              // _client.upvote();
+              final client = widget.store.uwaveClient;
+              client.upvote();
             },
           ),
-          // TODO implement
-          // IconButton(
-          //   icon: const Icon(Icons.favorite_border, color: Color(0xFF9D2053)),
-          // ),
+          FavoriteButton(),
           IconButton(
             icon: const Icon(Icons.thumb_down),
             onPressed: () {
-              // _client.downvote();
+              final client = widget.store.uwaveClient;
+              client.downvote();
             },
           ),
         ],
@@ -335,6 +334,30 @@ class CurrentMediaTitle extends StatelessWidget {
           )),
         ],
       ),
+    );
+  }
+}
+
+class FavoriteButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.favorite_border, color: Color(0xFF9D2053)),
+      onPressed: () {
+        showModalBottomSheet(
+          context: context,
+          builder: (_) => BottomSheet(
+            onClosing: () {},
+            builder: (_) => ListView(
+              children: <Widget>[
+                ListTile(title: Text('Free-For-All Fridays')),
+                ListTile(title: Text('K-Indie')),
+                ListTile(title: Text('K-Pop')),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
