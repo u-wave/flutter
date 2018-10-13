@@ -248,11 +248,13 @@ class ListenStore {
     _playbackSettings = playbackSettings;
     _emitUpdate();
 
+    print('entry.user ${entry.user}');
     notification.show(
       artist: entry.artist,
       title: entry.title,
       duration: entry.end - entry.start,
       progress: playbackSettings.onProgress,
+      isCurrentUser: entry.user != null && entry.user.id == _client.currentUser?.id,
     );
   }
 

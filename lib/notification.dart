@@ -38,6 +38,7 @@ class NowPlayingNotification {
     String title,
     int duration,
     ProgressTimer progress,
+    bool isCurrentUser = false,
   }) {
     if (_progressSubscription != null) {
       _progressSubscription.cancel();
@@ -49,6 +50,7 @@ class NowPlayingNotification {
       'title': title,
       'duration': '$duration',
       'seek': '${progress.current.inSeconds}',
+      'isCurrentUser': isCurrentUser ? 'true' : 'false',
     });
 
     _progressSubscription = progress.stream.listen((past) {

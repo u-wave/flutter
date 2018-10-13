@@ -116,8 +116,9 @@ public class NotificationPlugin
         "[NotificationPlugin] nowPlaying: " + args.get("artist") + " - " + args.get("title"));
     final int duration = Integer.parseInt(args.get("duration"));
     final int seek = Integer.parseInt(args.get("seek"));
+    final boolean isCurrentUser = args.get("isCurrentUser").equals("true");
 
-    nowPlaying = new NowPlaying(args.get("artist"), args.get("title"), duration, seek);
+    nowPlaying = new NowPlaying(args.get("artist"), args.get("title"), duration, seek, isCurrentUser);
     nowPlayingNotification.update(nowPlaying);
 
     if (enabled) publishNowPlayingNotification();
@@ -188,12 +189,14 @@ public class NotificationPlugin
     public final String title;
     public int duration;
     public int progress;
+    public boolean isCurrentUser;
 
-    NowPlaying(String artist, String title, int duration, int progress) {
+    NowPlaying(String artist, String title, int duration, int progress, boolean isCurrentUser) {
       this.artist = artist;
       this.title = title;
       this.duration = duration;
       this.progress = progress;
+      this.isCurrentUser = isCurrentUser;
     }
 
     public void setProgress(int duration, int progress) {
@@ -204,6 +207,10 @@ public class NotificationPlugin
 
   private static class NowPlayingNotification {
     private static final String NAME = "u-wave.net/nowPlaying";
+
+    private static final int NOVOTE = 0;
+    private static final int UPVOTE = 1;
+    private static final int DOWNVOTE = -1;
 
     private NotificationCompat.Builder builder;
     private RemoteViews view;
@@ -259,7 +266,7 @@ public class NotificationPlugin
     }
 
     public void update(NowPlaying nowPlaying) {
-      update(nowPlaying, 0);
+      update(nowPlaying, NOVOTE);
     }
 
     public void update(NowPlaying nowPlaying, int vote) {
@@ -269,10 +276,17 @@ public class NotificationPlugin
       view.setTextViewText(R.id.title, nowPlaying.title);
       view.setProgressBar(R.id.progressBar, nowPlaying.duration, nowPlaying.progress, false);
 
-      view.setViewVisibility(R.id.upvote, vote == 1 ? View.GONE : View.VISIBLE);
-      view.setViewVisibility(R.id.upvoteActive, vote == 1 ? View.VISIBLE : View.GONE);
-      view.setViewVisibility(R.id.downvote, vote == -1 ? View.GONE : View.VISIBLE);
-      view.setViewVisibility(R.id.downvoteActive, vote == -1 ? View.VISIBLE : View.GONE);
+      if (nowPlaying.isCurrentUser) {
+        view.setViewVisibility(R.id.upvote, vote == UPVOTE ? View.GONE : View.VISIBLE);
+        view.setViewVisibility(R.id.upvoteActive, vote == UPVOTE ? View.VISIBLE : View.GONE);
+        view.setViewVisibility(R.id.downvote, vote == DOWNVOTE ? View.GONE : View.VISIBLE);
+        view.setViewVisibility(R.id.downvoteActive, vote == DOWNVOTE ? View.VISIBLE : View.GONE);
+      } else {
+        view.setViewVisibility(R.id.upvote, View.GONE);
+        view.setViewVisibility(R.id.upvoteActive, View.GONE);
+        view.setViewVisibility(R.id.downvote, View.GONE);
+        view.setViewVisibility(R.id.downvoteActive, View.GONE);
+      }
     }
   }
 
