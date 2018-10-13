@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../event_source/event_source.dart' show EventSource, MessageEvent;
+import 'package:w3c_event_source/event_source.dart' show EventSource, MessageEvent;
 
 typedef OnUpdateCallback = void Function(Map<String, UwaveServer> servers);
 class UwaveAnnounceClient {
@@ -18,7 +18,6 @@ class UwaveAnnounceClient {
   {
     final eventsUri = Uri.parse(_url).replace(path: '/events');
     _events = EventSource(eventsUri).events.listen((event) {
-      print('update: ${event.name} ${event.data}');
       if (event.name == 'message') {
         _onEvent(event.data);
       }
@@ -28,7 +27,6 @@ class UwaveAnnounceClient {
   }
 
   void _updated() {
-    print('emit update');
     _onUpdate.add(_servers);
   }
 
