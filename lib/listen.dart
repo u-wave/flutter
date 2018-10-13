@@ -68,6 +68,7 @@ class _UwaveListenState extends State<UwaveListen> {
     await Navigator.push(context, MaterialPageRoute(
       maintainState: true,
       builder: (context) => SignInRoute(
+        server: widget.server,
         uwave: widget.store.uwaveClient,
         onComplete: (creds) {
           if (creds != null) {

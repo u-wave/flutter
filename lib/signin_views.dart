@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import './u_wave/announce.dart' show UwaveServer;
 import './u_wave/u_wave.dart' show UwaveClient, UwaveCredentials;
 
 typedef SignInCallback = void Function(UwaveCredentials);
 class SignInRoute extends StatefulWidget {
+  final UwaveServer server;
   final UwaveClient uwave;
   final SignInCallback onComplete;
 
-  SignInRoute({this.uwave, this.onComplete});
+  SignInRoute({this.server, this.uwave, this.onComplete});
 
   @override
   _SignInRouteState createState() => _SignInRouteState();
@@ -37,13 +39,18 @@ class _SignInRouteState extends State<SignInRoute> {
   Widget build(_) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sign In'),
+        title: Text('Sign In to ${widget.server.name}'),
       ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Column(
             children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                child: Text(widget.server.subtitle),
+              ),
+
               _SignInForm(onSubmit: _signIn),
               Divider(),
               _RegisterForm(onSubmit: _register),
@@ -78,28 +85,33 @@ class _SignInFormState extends State<_SignInForm> {
 
   @override
   Widget build(_) {
-    final email = TextFormField(
-      controller: _emailController,
-      decoration: const InputDecoration(
-        labelText: 'Email',
-        suffixIcon: const Icon(Icons.email),
+    final email = StyledField(
+      child: TextFormField(
+        controller: _emailController,
+        decoration: const InputDecoration(
+          labelText: 'Email',
+          suffixIcon: const Icon(Icons.email),
+        ),
+        keyboardType: TextInputType.emailAddress,
       ),
-      keyboardType: TextInputType.emailAddress,
     );
 
-    final password = TextFormField(
-      controller: _passwordController,
-      decoration: const InputDecoration(
-        labelText: 'Password',
-        suffixIcon: const Icon(Icons.lock),
+    final password = StyledField(
+      child: TextFormField(
+        controller: _passwordController,
+        decoration: const InputDecoration(
+          labelText: 'Password',
+          suffixIcon: const Icon(Icons.lock),
+        ),
+        obscureText: true,
       ),
-      obscureText: true,
     );
 
     final submitButton = Row(
       children: [
         Expanded(
           child: RaisedButton(
+            color: Theme.of(context).primaryColor,
             child: Text('Sign In'),
             onPressed: _submit,
           ),
@@ -142,36 +154,43 @@ class _RegisterFormState extends State<_RegisterForm> {
 
   @override
   Widget build(_) {
-    final username = TextFormField(
-      controller: _usernameController,
-      decoration: const InputDecoration(
-        labelText: 'Username',
-        suffixIcon: const Icon(Icons.person),
+    final username = StyledField(
+      child: TextFormField(
+        controller: _usernameController,
+        decoration: const InputDecoration(
+          labelText: 'Username',
+          suffixIcon: const Icon(Icons.person),
+        ),
       ),
     );
 
-    final email = TextFormField(
-      controller: _emailController,
-      decoration: const InputDecoration(
-        labelText: 'Email',
-        suffixIcon: const Icon(Icons.email),
+    final email = StyledField(
+      child: TextFormField(
+        controller: _emailController,
+        decoration: const InputDecoration(
+          labelText: 'Email',
+          suffixIcon: const Icon(Icons.email),
+        ),
+        keyboardType: TextInputType.emailAddress,
       ),
-      keyboardType: TextInputType.emailAddress,
     );
 
-    final password = TextFormField(
-      controller: _passwordController,
-      decoration: const InputDecoration(
-        labelText: 'Password',
-        suffixIcon: const Icon(Icons.lock),
+    final password = StyledField(
+      child: TextFormField(
+        controller: _passwordController,
+        decoration: const InputDecoration(
+          labelText: 'Password',
+          suffixIcon: const Icon(Icons.lock),
+        ),
+        obscureText: true,
       ),
-      obscureText: true,
     );
 
     final submitButton = Row(
       children: [
         Expanded(
           child: RaisedButton(
+            color: Theme.of(context).primaryColor,
             child: Text('Register'),
             onPressed: _submit,
           ),
@@ -186,6 +205,43 @@ class _RegisterFormState extends State<_RegisterForm> {
         password,
         submitButton,
       ],
+    );
+  }
+}
+
+class StyledField extends StatelessWidget {
+  final Widget child;
+
+  StyledField({this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    const borderLight = BorderSide(width: 1.0, color: Color(0xFF3E3E3E));
+    const borderDark = BorderSide(width: 1.0, color: Color(0xFF2C2C2C));
+    const border = Border(
+      top: borderLight,
+      bottom: borderDark,
+      left: borderDark,
+      right: borderLight,
+    );
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16.0),
+      decoration: BoxDecoration(
+        color: const Color(0xFF383838),
+        border: border,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: Theme(
+          data: Theme.of(context).copyWith(
+            inputDecorationTheme: InputDecorationTheme(
+              border: InputBorder.none,
+            ),
+          ),
+          child: child,
+        ),
+      ),
     );
   }
 }
