@@ -39,14 +39,16 @@ class _SignInRouteState extends State<SignInRoute> {
       appBar: AppBar(
         title: const Text('Sign In'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: Column(
-          children: <Widget>[
-            _SignInForm(onSubmit: _signIn),
-            Divider(),
-            _RegisterForm(onSubmit: _register),
-          ],
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Column(
+            children: <Widget>[
+              _SignInForm(onSubmit: _signIn),
+              Divider(),
+              _RegisterForm(onSubmit: _register),
+            ],
+          ),
         ),
       ),
     );
@@ -80,6 +82,7 @@ class _SignInFormState extends State<_SignInForm> {
       controller: _emailController,
       decoration: const InputDecoration(
         labelText: 'Email',
+        suffixIcon: const Icon(Icons.email),
       ),
       keyboardType: TextInputType.emailAddress,
     );
@@ -88,6 +91,7 @@ class _SignInFormState extends State<_SignInForm> {
       controller: _passwordController,
       decoration: const InputDecoration(
         labelText: 'Password',
+        suffixIcon: const Icon(Icons.lock),
       ),
       obscureText: true,
     );
@@ -142,6 +146,7 @@ class _RegisterFormState extends State<_RegisterForm> {
       controller: _usernameController,
       decoration: const InputDecoration(
         labelText: 'Username',
+        suffixIcon: const Icon(Icons.person),
       ),
     );
 
@@ -149,6 +154,7 @@ class _RegisterFormState extends State<_RegisterForm> {
       controller: _emailController,
       decoration: const InputDecoration(
         labelText: 'Email',
+        suffixIcon: const Icon(Icons.email),
       ),
       keyboardType: TextInputType.emailAddress,
     );
@@ -157,6 +163,7 @@ class _RegisterFormState extends State<_RegisterForm> {
       controller: _passwordController,
       decoration: const InputDecoration(
         labelText: 'Password',
+        suffixIcon: const Icon(Icons.lock),
       ),
       obscureText: true,
     );
