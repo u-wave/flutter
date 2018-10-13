@@ -1,23 +1,23 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../event_source/event_source.dart' show EventSource;
+import '../event_source/event_source.dart' show EventSource, MessageEvent;
 
 typedef OnUpdateCallback = void Function(Map<String, UwaveServer> servers);
 class UwaveAnnounceClient {
   final String _url;
   final Map<String, UwaveServer> _servers = {};
-  EventSource _events;
+  StreamSubscription<MessageEvent> _events;
 
-  OnUpdateCallback onUpdate;
+  StreamController<Map<String, UwaveServer>> _onUpdate = StreamController.broadcast();
+  Stream<Map<String, UwaveServer>> get onUpdate => _onUpdate.stream;
   Iterable<UwaveServer> get servers => _servers.values;
 
   UwaveAnnounceClient({String url})
       : _url = url ?? 'https://announce.u-wave.net'
   {
     final eventsUri = Uri.parse(_url).replace(path: '/events');
-    _events = EventSource(eventsUri);
-    _events.events.listen((event) {
+    _events = EventSource(eventsUri).events.listen((event) {
       print('update: ${event.name} ${event.data}');
       if (event.name == 'message') {
         _onEvent(event.data);
@@ -29,7 +29,7 @@ class UwaveAnnounceClient {
 
   void _updated() {
     print('emit update');
-    if (onUpdate != null) onUpdate(_servers);
+    _onUpdate.add(_servers);
   }
 
   void _onEvent(String data) {
@@ -56,7 +56,8 @@ class UwaveAnnounceClient {
   }
 
   void close() {
-    _events.close();
+    _events.cancel();
+    _onUpdate.close();
   }
 }
 

@@ -1,6 +1,6 @@
 import 'dart:async' show Future, Stream, StreamController;
-import 'dart:convert' show LineSplitter;
-import 'package:http/http.dart' as http;
+import 'dart:io' show HttpClient, Socket, SocketOption;
+import 'dart:convert' show LineSplitter, utf8;
 
 // NOTE THIS DOES NOT CURRENTLY WORK!
 // I think Dart's http client buffers data, which is not good for event-streams.
@@ -27,12 +27,11 @@ class EventSource {
   static const int CLOSED = 2;
 
   /// Client used for the request.
-  http.Client _client;
+  HttpClient _client;
   /// Data controller for the `.events` attribute.
-  final StreamController<MessageEvent> _streamController =
-    StreamController.broadcast();
+  StreamController<MessageEvent> _streamController;
   /// Mutable readyState.
-  int _readyState = CONNECTING;
+  int _readyState = CLOSED;
   /// Time in ms to wait before reconnecting.
   int _reconnectTime = 3000;
   /// The last-seen event ID, used when reconnecting.
@@ -46,33 +45,40 @@ class EventSource {
   final Uri url;
 
   /// A number representing the state of the connection.
-  int get readyState => this._readyState;
+  int get readyState => _readyState;
 
   /// A stream of events coming in from the endpoint.
-  Stream<MessageEvent> get events => this._streamController.stream;
+  Stream<MessageEvent> get events => _streamController.stream;
 
   /// Create an EventSource for a given remote URL.
-  EventSource(this.url);
+  EventSource(this.url) {
+    _streamController = StreamController.broadcast(
+      onListen: () { open(); },
+      onCancel: () { close(); },
+    );
+  }
 
   /// Opens the connection. Once the returned Future completes, events will start coming in on the `.events` attribute.
   Future<Null> open() async {
+    if (_readyState != CLOSED) return;
+
     _readyState = CONNECTING;
-    final request = http.Request('GET', this.url);
-    request.headers['Accept'] = _MIME_TYPE;
+
+    _client = HttpClient();
+
+    final request = await _client.getUrl(url);
+    request.headers.set('Accept', _MIME_TYPE);
     if (_lastEventID != null) {
-      request.headers['Last-Event-ID'] = _lastEventID;
+      request.headers.set('Last-Event-ID', _lastEventID);
     }
 
-    _client = http.Client();
-    final response = await _client.send(request);
+    final response = await request.close();
     _readyState = OPEN;
 
-    response.stream
-      .toStringStream()
+    response
+      .transform(utf8.decoder)
       .transform(LineSplitter())
-      .listen((line) {
-        _onMessage(line);
-      });
+      .listen(_onMessage);
   }
 
   /// Closes the connection, if any, and sets the `readyState` attribute to `CLOSED`.

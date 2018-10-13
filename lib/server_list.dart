@@ -16,12 +16,8 @@ class UwaveServerList extends StatefulWidget {
 }
 
 class _UwaveServerListState extends State<UwaveServerList> {
-  UwaveAnnounceClient _client = UwaveAnnounceClient();
+  UwaveAnnounceClient _client;
   List<UwaveServer> _servers = List();
-
-  void _updateServers() {
-    _client.fetchServers();
-  }
 
   void _listen(UwaveServer server) {
     widget.onJoin(context, server);
@@ -37,16 +33,17 @@ class _UwaveServerListState extends State<UwaveServerList> {
   @override
   void initState() {
     super.initState();
-    _client.onUpdate = (_) {
+    _client = UwaveAnnounceClient();
+    _client.onUpdate.listen((_) {
       setState(() {
         _servers = _client.servers.toList();
       });
-    };
+    });
   }
 
   void reassemble() {
     super.reassemble();
-    this._updateServers();
+    _client.fetchServers();
   }
 
   @override
