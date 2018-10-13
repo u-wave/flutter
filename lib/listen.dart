@@ -216,7 +216,13 @@ class _UwaveListenState extends State<UwaveListen> {
       appBar: AppBar(
         title: widget.store.currentEntry == null
           ? Text(widget.server.name)
-          : CurrentMediaTitle(artist: widget.store.currentEntry.artist, title: widget.store.currentEntry.title),
+          : SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: CurrentMediaTitle(
+                artist: widget.store.currentEntry.artist,
+                title: widget.store.currentEntry.title,
+              ),
+            ),
       ),
       body: GestureDetector(
         onTapDown: (details) => _onTapDown(context, details),
