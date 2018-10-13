@@ -124,6 +124,23 @@ class ServerCard extends StatelessWidget {
 
   @override
   Widget build(_) {
+    final thumbnail = <Widget>[];
+    thumbnail.add(
+      ServerThumbnail(server: server),
+    );
+
+    if (server.currentMedia != null) {
+      thumbnail.add(
+        Container(
+          color: Color(0x77000000),
+          child: ListTile(
+            title: Text(server.currentMedia.title),
+            subtitle: Text(server.currentMedia.artist),
+          ),
+        ),
+      );
+    }
+
     return Card(
       child: Column(
         mainAxisSize: MainAxisSize.max,
@@ -134,7 +151,9 @@ class ServerCard extends StatelessWidget {
             trailing: const Icon(Icons.more_vert),
             onTap: onJoin,
           ),
-          ServerThumbnail(server: server),
+          thumbnail.length == 1
+            ? thumbnail
+            : Stack(alignment: Alignment.bottomLeft, children: thumbnail),
         ],
       ),
     );
@@ -152,10 +171,13 @@ class ServerThumbnail extends StatelessWidget {
       tag: 'thumb:${server.publicKey}',
       child: AspectRatio(
         aspectRatio: 16 / 9,
-        child: Center(
+        child: Container(
+          color: Color(0xFF000000),
           child: server.currentMedia != null
-            ? Image.network(server.currentMedia.thumbnailUrl)
-            : Container(color: Color(0xFF000000)),
+            ? Center(
+                child: Image.network(server.currentMedia.thumbnailUrl),
+              )
+            : null,
         ),
       ),
     );
