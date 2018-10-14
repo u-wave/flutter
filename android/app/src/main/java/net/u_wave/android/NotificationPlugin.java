@@ -116,9 +116,11 @@ public class NotificationPlugin
         "[NotificationPlugin] nowPlaying: " + args.get("artist") + " - " + args.get("title"));
     final int duration = Integer.parseInt(args.get("duration"));
     final int seek = Integer.parseInt(args.get("seek"));
-    final boolean showVoteButtons = args.containsKey("showVoteButtons") && args.get("showVoteButtons").equals("true");
+    final boolean showVoteButtons =
+        args.containsKey("showVoteButtons") && args.get("showVoteButtons").equals("true");
 
-    nowPlaying = new NowPlaying(args.get("artist"), args.get("title"), duration, seek, showVoteButtons);
+    nowPlaying =
+        new NowPlaying(args.get("artist"), args.get("title"), duration, seek, showVoteButtons);
     nowPlayingNotification.update(nowPlaying);
 
     if (enabled) publishNowPlayingNotification();

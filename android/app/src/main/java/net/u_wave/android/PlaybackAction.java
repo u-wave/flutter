@@ -1,11 +1,14 @@
 package net.u_wave.android;
 
 import android.net.Uri;
+import android.os.Handler;
 import android.view.Surface;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlaybackException;
+import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
+import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
@@ -37,14 +40,15 @@ class PlaybackAction implements Player.EventListener, VideoListener {
   private boolean ended = false;
   private Result flutterResult;
   private final Entry entry;
-  private final Listener listener;
   private final Surface surface;
   private final SurfaceTextureEntry textureEntry;
   private final DataSource.Factory dataSourceFactory;
+  private final SimpleExoPlayer player;
   private int videoWidth;
   private int videoHeight;
   private final String id;
   private final Date startTime = new Date();
+  private final Handler mainThread;
 
   private StreamInfo streamInfo;
 
@@ -52,13 +56,17 @@ class PlaybackAction implements Player.EventListener, VideoListener {
       final Registrar registrar,
       final Result result,
       final DataSource.Factory dataSourceFactory,
-      final Entry entry,
-      final Listener listener) {
+      final Entry entry) {
     flutterResult = result;
     this.dataSourceFactory = dataSourceFactory;
     this.entry = entry;
-    this.listener = listener;
     id = entry.sourceUrl;
+
+    mainThread = new Handler(registrar.context().getMainLooper());
+
+    player = ExoPlayerFactory.newSimpleInstance(registrar.context());
+    player.addVideoListener(this);
+    player.addListener(this);
 
     if (entry.shouldPlayVideo()) {
       textureEntry = registrar.textures().createSurfaceTexture();
@@ -73,8 +81,15 @@ class PlaybackAction implements Player.EventListener, VideoListener {
     return entry;
   }
 
-  public Surface getSurface() {
-    return surface;
+  public void start() {
+    final MediaSource mediaSource = getMediaSource();
+    mainThread.post(
+        () -> {
+          player.prepare(mediaSource);
+          player.seekTo(getCurrentSeek());
+          player.setPlayWhenReady(true);
+          player.setVideoSurface(surface);
+        });
   }
 
   public void cancel() {
@@ -88,7 +103,6 @@ class PlaybackAction implements Player.EventListener, VideoListener {
   public void end() {
     System.out.println("PlaybackAction[" + id + "] end()");
     ended = true;
-    listener.onEnd(this);
     if (entry.shouldPlayVideo()) {
       if (textureEntry != null) {
         textureEntry.release();
@@ -100,6 +114,15 @@ class PlaybackAction implements Player.EventListener, VideoListener {
         }
       }
     }
+
+    mainThread.post(
+        () -> {
+          player.stop();
+          player.clearVideoSurface();
+          player.removeListener(this);
+          player.removeVideoListener(this);
+          player.release();
+        });
   }
 
   private void fail(String name, String message, Object err) {
@@ -120,8 +143,7 @@ class PlaybackAction implements Player.EventListener, VideoListener {
   private StreamInfo getStreamInfo() {
     System.out.println("PlaybackAction[" + id + "] getStreamInfo()");
     try {
-      return StreamInfo.getInfo(
-          NewPipe.getService(entry.sourceName), entry.sourceUrl);
+      return StreamInfo.getInfo(NewPipe.getService(entry.sourceName), entry.sourceUrl);
     } catch (IOException err) {
       fail("IOException", err.getMessage(), null);
       err.printStackTrace();
@@ -276,14 +298,15 @@ class PlaybackAction implements Player.EventListener, VideoListener {
             + readyState);
 
     if (readyState == Player.STATE_READY) {
-      Map<String, Object> playbackSettings = new HashMap<String, Object>();
-      playbackSettings.put("texture", textureEntry != null ? textureEntry.id() : null);
-      playbackSettings.put("aspectRatio", (double) videoWidth / (double) videoHeight);
+      PlaybackSettings playbackSettings =
+          new PlaybackSettings(
+              textureEntry != null ? textureEntry.id() : null,
+              (double) videoWidth / (double) videoHeight);
 
       if (!ended) {
         if (flutterResult != null) {
           System.out.println("PlaybackAction[" + id + "] success()");
-          flutterResult.success(playbackSettings);
+          flutterResult.success(playbackSettings.toMap());
           flutterResult = null;
         } else {
           try {
@@ -379,7 +402,20 @@ class PlaybackAction implements Player.EventListener, VideoListener {
     public static final byte BOTH = 2;
   }
 
-  public static interface Listener {
-    public void onEnd(PlaybackAction self);
+  public static class PlaybackSettings {
+    private final long texture;
+    private final double aspectRatio;
+
+    PlaybackSettings(long texture, double aspectRatio) {
+      this.texture = texture;
+      this.aspectRatio = aspectRatio;
+    }
+
+    public Map<String, Object> toMap() {
+      final Map<String, Object> map = new HashMap<>();
+      map.put("texture", texture);
+      map.put("aspectRatio", aspectRatio);
+      return map;
+    }
   }
 }
