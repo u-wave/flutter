@@ -22,7 +22,7 @@ class Settings {
   static const _DEFAULT_PREFERRED_AUDIO = 'best';
   static const _DEFAULT_MAX_AUDIO_DATA = 'best';
   static const _DEFAULT_PLAYBACK_TYPE = PlaybackType.both;
-  static const _DEFAULT_PLAYBACK_TYPE_DATA = PlaybackType.both;
+  static const _DEFAULT_PLAYBACK_TYPE_DATA = PlaybackType.audioOnly;
 
   final SharedPreferences _prefs;
   final StreamController<SettingUpdate> _updateController = StreamController.broadcast();
@@ -64,6 +64,11 @@ class Settings {
     final old = playbackType;
     _prefs.setInt('playbackType', value.index);
     if (old != value) _emitUpdate('playbackType', value);
+    // Make sure mobile data playback is not higher quality.
+    // eg. when switching WiFi type from Video to Audio-only, also switch mobile data type.
+    if (value.index < playbackTypeData.index) {
+      playbackTypeData = value;
+    }
   }
 
   PlaybackType get playbackTypeData {

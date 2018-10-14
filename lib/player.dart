@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import './u_wave/u_wave.dart' show HistoryEntry;
+import './u_wave/u_wave.dart' show HistoryEntry, Media;
 import './settings.dart' show PlaybackType;
 
 /// Download a URL's contents to a string.
@@ -27,6 +27,10 @@ final _channel = MethodChannel('u-wave.net/player')
         throw MissingPluginException('Unknown method ${methodCall.method}');
     }
   });
+
+bool _isAudioOnlySourceType(String sourceType) {
+  return sourceType == 'soundcloud';
+}
 
 class PlaybackSettings {
   final int texture;
@@ -70,6 +74,22 @@ class ProgressTimer {
   }
 }
 
+String _getNewPipeSourceName(String sourceType) {
+  if (sourceType == 'youtube') return 'YouTube';
+  if (sourceType == 'soundcloud') return 'SoundCloud';
+  return null;
+}
+
+String _getNewPipeSourceURL(Media media) {
+  if (media.sourceType == 'youtube') {
+    return 'https://youtube.com/watch?v=${media.sourceID}';
+  }
+  if (media.sourceType == 'soundcloud') {
+    return media.sourceData['permalinkUrl'] ?? 'https://api.soundcloud.com/tracks/${media.sourceID}';
+  }
+  return null;
+}
+
 class Player {
   Player._();
 
@@ -94,9 +114,17 @@ class Player {
 
     print('Playing entry ${entry.media.artist} - ${entry.media.title} from $seekInMedia');
 
+    final npType = _getNewPipeSourceName(entry.media.sourceType);
+    final npUrl = _getNewPipeSourceURL(entry.media);
+
+    if (playbackType == PlaybackType.both &&
+        _isAudioOnlySourceType(entry.media.sourceType)) {
+      playbackType = PlaybackType.audioOnly;
+    }
+
     final Map<dynamic, dynamic> result = await _channel.invokeMethod('play', <String, String>{
-      'sourceType': entry.media.sourceType,
-      'sourceID': entry.media.sourceID,
+      'sourceName': npType,
+      'sourceUrl': npUrl,
       'seek': '${seekInMedia.isNegative ? 0 : seekInMedia.inMilliseconds}',
       'playbackType': '${playbackType.index}',
     });

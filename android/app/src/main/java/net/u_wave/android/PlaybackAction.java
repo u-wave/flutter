@@ -58,7 +58,7 @@ class PlaybackAction implements Player.EventListener, VideoListener {
     this.dataSourceFactory = dataSourceFactory;
     this.entry = entry;
     this.listener = listener;
-    id = entry.sourceType + ":" + entry.sourceID;
+    id = entry.sourceUrl;
 
     if (entry.shouldPlayVideo()) {
       textureEntry = registrar.textures().createSurfaceTexture();
@@ -121,7 +121,7 @@ class PlaybackAction implements Player.EventListener, VideoListener {
     System.out.println("PlaybackAction[" + id + "] getStreamInfo()");
     try {
       return StreamInfo.getInfo(
-          NewPipe.getService(entry.getNewPipeSourceName()), entry.getNewPipeSourceURL());
+          NewPipe.getService(entry.sourceName), entry.sourceUrl);
     } catch (IOException err) {
       fail("IOException", err.getMessage(), null);
       err.printStackTrace();
@@ -351,15 +351,15 @@ class PlaybackAction implements Player.EventListener, VideoListener {
   }
 
   public static class Entry {
-    public final String sourceType;
-    public final String sourceID;
+    public final String sourceName;
+    public final String sourceUrl;
     public final int seek;
     public byte playbackType;
     public final String preferredResolution = "360p";
 
-    Entry(String sourceType, String sourceID, int seek, byte playbackType) {
-      this.sourceType = sourceType;
-      this.sourceID = sourceID;
+    Entry(String sourceName, String sourceUrl, int seek, byte playbackType) {
+      this.sourceName = sourceName;
+      this.sourceUrl = sourceUrl;
       this.seek = seek;
       this.playbackType = playbackType;
     }
@@ -370,22 +370,6 @@ class PlaybackAction implements Player.EventListener, VideoListener {
 
     public void setPlaybackType(byte newPlaybackType) {
       playbackType = newPlaybackType;
-    }
-
-    public String getNewPipeSourceName() {
-      if (sourceType.equals("youtube")) return "YouTube";
-      if (sourceType.equals("soundcloud")) return "SoundCloud";
-      return null;
-    }
-
-    public String getNewPipeSourceURL() {
-      if (sourceType.equals("youtube")) {
-        return "https://youtube.com/watch?v=" + sourceID;
-      }
-      if (sourceType.equals("soundcloud")) {
-        return "https://api.soundcloud.com/tracks/" + sourceID;
-      }
-      return null;
     }
   }
 

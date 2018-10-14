@@ -61,22 +61,22 @@ public class PlayerPlugin implements MethodCallHandler, VideoListener {
       return;
     }
 
-    final String sourceType = data.get("sourceType");
-    final String sourceID = data.get("sourceID");
+    final String sourceName = data.get("sourceName");
+    final String sourceUrl = data.get("sourceUrl");
     final int seek = Integer.parseInt(data.get("seek"));
     final byte playbackType = Integer.decode(data.get("playbackType")).byteValue();
 
-    if (sourceType == null) {
-      result.error("MissingParameter", "Missing parameter \"sourceType\"", null);
+    if (sourceName == null) {
+      result.error("MissingParameter", "Missing parameter \"sourceName\"", null);
       return;
     }
-    if (sourceID == null) {
-      result.error("MissingParameter", "Missing parameter \"sourceID\"", null);
+    if (sourceUrl == null) {
+      result.error("MissingParameter", "Missing parameter \"sourceUrl\"", null);
       return;
     }
 
     final PlaybackAction.Entry entry =
-        new PlaybackAction.Entry(sourceType, sourceID, seek, playbackType);
+        new PlaybackAction.Entry(sourceName, sourceUrl, seek, playbackType);
     final PlaybackAction action =
         new PlaybackAction(
             registrar,
@@ -130,9 +130,7 @@ public class PlayerPlugin implements MethodCallHandler, VideoListener {
       player.seekTo(currentPlayback.getCurrentSeek());
       System.out.println(
           "PlaybackAction["
-              + currentPlayback.getEntry().sourceType
-              + ":"
-              + currentPlayback.getEntry().sourceID
+              + currentPlayback.getEntry().sourceUrl
               + "] getCurrentSeek(): "
               + currentPlayback.getCurrentSeek());
       result.success(null);
