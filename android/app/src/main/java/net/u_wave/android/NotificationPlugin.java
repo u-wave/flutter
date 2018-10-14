@@ -116,9 +116,9 @@ public class NotificationPlugin
         "[NotificationPlugin] nowPlaying: " + args.get("artist") + " - " + args.get("title"));
     final int duration = Integer.parseInt(args.get("duration"));
     final int seek = Integer.parseInt(args.get("seek"));
-    final boolean isCurrentUser = args.get("isCurrentUser").equals("true");
+    final boolean showVoteButtons = args.has("showVoteButtons") && args.get("showVoteButtons").equals("true");
 
-    nowPlaying = new NowPlaying(args.get("artist"), args.get("title"), duration, seek, isCurrentUser);
+    nowPlaying = new NowPlaying(args.get("artist"), args.get("title"), duration, seek, showVoteButtons);
     nowPlayingNotification.update(nowPlaying);
 
     if (enabled) publishNowPlayingNotification();
@@ -189,14 +189,14 @@ public class NotificationPlugin
     public final String title;
     public int duration;
     public int progress;
-    public boolean isCurrentUser;
+    public boolean showVoteButtons;
 
-    NowPlaying(String artist, String title, int duration, int progress, boolean isCurrentUser) {
+    NowPlaying(String artist, String title, int duration, int progress, boolean showVoteButtons) {
       this.artist = artist;
       this.title = title;
       this.duration = duration;
       this.progress = progress;
-      this.isCurrentUser = isCurrentUser;
+      this.showVoteButtons = showVoteButtons;
     }
 
     public void setProgress(int duration, int progress) {
@@ -276,7 +276,7 @@ public class NotificationPlugin
       view.setTextViewText(R.id.title, nowPlaying.title);
       view.setProgressBar(R.id.progressBar, nowPlaying.duration, nowPlaying.progress, false);
 
-      if (nowPlaying.isCurrentUser) {
+      if (nowPlaying.showVoteButtons) {
         view.setViewVisibility(R.id.upvote, vote == UPVOTE ? View.GONE : View.VISIBLE);
         view.setViewVisibility(R.id.upvoteActive, vote == UPVOTE ? View.VISIBLE : View.GONE);
         view.setViewVisibility(R.id.downvote, vote == DOWNVOTE ? View.GONE : View.VISIBLE);
