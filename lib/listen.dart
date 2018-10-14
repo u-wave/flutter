@@ -90,7 +90,7 @@ class _UwaveListenState extends State<UwaveListen> {
     widget.store.sendChat(message);
   }
 
-  void _onTapDown(BuildContext context, TapDownDetails details) {
+  void _onTap(BuildContext context, TapUpDetails details) {
     final RenderBox playerBox = _playerViewKey.currentContext.findRenderObject();
     final tapPosition = playerBox.globalToLocal(details.globalPosition);
     final shouldShow = playerBox.paintBounds.contains(tapPosition);
@@ -225,7 +225,7 @@ class _UwaveListenState extends State<UwaveListen> {
             ),
       ),
       body: GestureDetector(
-        onTapDown: (details) => _onTapDown(context, details),
+        onTapUp: (details) => _onTap(context, details),
         child: Column(
           children: <Widget>[
             Expanded(
