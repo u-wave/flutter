@@ -298,10 +298,14 @@ class PlaybackAction implements Player.EventListener, VideoListener {
             + readyState);
 
     if (readyState == Player.STATE_READY) {
-      PlaybackSettings playbackSettings =
-          new PlaybackSettings(
-              textureEntry != null ? textureEntry.id() : null,
-              (double) videoWidth / (double) videoHeight);
+      PlaybackSettings playbackSettings;
+      if (entry.playbackType == PlaybackType.BOTH) {
+        playbackSettings = new PlaybackSettings(
+            textureEntry != null ? textureEntry.id() : null,
+            (double) videoWidth / (double) videoHeight);
+      } else {
+        playbackSettings = new PlaybackSettings();
+      }
 
       if (!ended) {
         if (flutterResult != null) {
@@ -403,18 +407,25 @@ class PlaybackAction implements Player.EventListener, VideoListener {
   }
 
   public static class PlaybackSettings {
-    private final long texture;
-    private final double aspectRatio;
+    private final Long texture;
+    private final Double aspectRatio;
 
-    PlaybackSettings(long texture, double aspectRatio) {
+    PlaybackSettings() {
+      texture = null;
+      aspectRatio = null;
+    }
+
+    PlaybackSettings(Long texture, Double aspectRatio) {
       this.texture = texture;
       this.aspectRatio = aspectRatio;
     }
 
     public Map<String, Object> toMap() {
       final Map<String, Object> map = new HashMap<>();
-      map.put("texture", texture);
-      map.put("aspectRatio", aspectRatio);
+      if (texture != null && aspectRatio != null) {
+        map.put("texture", texture.longValue());
+        map.put("aspectRatio", aspectRatio.doubleValue());
+      }
       return map;
     }
   }
