@@ -64,7 +64,7 @@ class _UwaveListenState extends State<UwaveListen> {
     _updateSubscription = null;
   }
 
-  Future<Null> _showSignInPage() async {
+  Future<Null> _navigateToSignInPage() async {
     await Navigator.push(context, MaterialPageRoute(
       maintainState: true,
       builder: (context) => SignInRoute(
@@ -78,12 +78,6 @@ class _UwaveListenState extends State<UwaveListen> {
         },
       ),
     ));
-  }
-
-  void _signIn() {
-    _showSignInPage().then((_) {
-      setState(() { /* rerender based on _client.currentUser */ });
-    });
   }
 
   void _sendChat(String message) {
@@ -210,7 +204,7 @@ class _UwaveListenState extends State<UwaveListen> {
 
     final Widget footer = widget.store.isSignedIn
       ? ChatInput(user: widget.store.currentUser, onSend: _sendChat)
-      : SignInButton(serverName: widget.server.name, onSignIn: _signIn);
+      : SignInButton(serverName: widget.server.name, onSignIn: _navigateToSignInPage);
 
     return Scaffold(
       appBar: AppBar(
