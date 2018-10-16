@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart' show Markdown;
 import './u_wave/announce.dart';
 import './listen_store.dart' show ListenStore;
 
@@ -123,7 +124,7 @@ class ServerCard extends StatelessWidget {
   ServerCard({this.server, this.onJoin});
 
   @override
-  Widget build(_) {
+  Widget build(BuildContext context) {
     final thumbnail = <Widget>[];
     thumbnail.add(
       ServerThumbnail(server: server),
@@ -141,6 +142,19 @@ class ServerCard extends StatelessWidget {
       );
     }
 
+    final onShowServer = () {
+      Navigator.push(context, MaterialPageRoute(
+        builder: (_) {
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(server.name),
+            ),
+            body: Markdown(data: server.description),
+          );
+        },
+      ));
+    };
+
     return Card(
       child: Column(
         mainAxisSize: MainAxisSize.max,
@@ -148,7 +162,10 @@ class ServerCard extends StatelessWidget {
           ListTile(
             title: Text(server.name),
             subtitle: Text(server.subtitle),
-            trailing: const Icon(Icons.more_vert),
+            trailing: IconButton(
+              icon: const Icon(Icons.more_vert),
+              onPressed: onShowServer
+            ),
             onTap: onJoin,
           ),
           thumbnail.length == 1
