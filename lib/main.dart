@@ -20,7 +20,7 @@ void main() async {
 class UwaveApp extends StatelessWidget {
   final ListenStore listenStore;
 
-  UwaveApp({this.listenStore});
+  UwaveApp({this.listenStore}) : assert(listenStore != null);
 
   @override
   Widget build(BuildContext context) {

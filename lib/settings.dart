@@ -12,7 +12,8 @@ class SettingUpdate {
   final String name;
   final dynamic value;
 
-  SettingUpdate(this.name, this.value);
+  SettingUpdate(this.name, this.value)
+      : assert(name != null);
 }
 
 class Settings {

@@ -13,7 +13,10 @@ class UwaveListen extends StatefulWidget {
   final UwaveServer server;
   final ListenStore store;
 
-  UwaveListen({Key key, this.server, this.store}) : super(key: key);
+  UwaveListen({Key key, this.server, this.store})
+      : assert(server != null),
+        assert(store != null),
+        super(key: key);
 
   @override
   _UwaveListenState createState() => _UwaveListenState();
@@ -244,7 +247,11 @@ class PlayerView extends StatelessWidget {
   final ProgressTimer currentProgress;
   final double aspectRatio;
 
-  PlayerView({this.textureId, this.entry, this.currentProgress, this.aspectRatio = 16 / 9});
+  PlayerView({this.textureId, this.entry, this.currentProgress, this.aspectRatio = 16 / 9})
+      : assert(entry != null),
+        assert(currentProgress != null),
+        // Either both must be defined, or both must not be defined.
+        assert(textureId == null && aspectRatio == null || textureId != null && aspectRatio != null);
 
   @override
   Widget build(BuildContext context) {
@@ -277,7 +284,9 @@ class MediaProgressBar extends StatelessWidget {
   final ProgressTimer currentProgress;
   final Duration duration;
 
-  MediaProgressBar({this.currentProgress, this.duration});
+  MediaProgressBar({this.currentProgress, this.duration})
+      : assert(currentProgress != null),
+        assert(duration != null);
 
   @override
   Widget build(_) {
@@ -309,7 +318,9 @@ class SignInButton extends StatelessWidget {
   final String serverName;
   final VoidCallback onSignIn;
 
-  SignInButton({this.serverName, this.onSignIn});
+  SignInButton({this.serverName, this.onSignIn})
+      : assert(serverName != null),
+        assert(onSignIn != null);
 
   @override
   Widget build(BuildContext context) {
@@ -335,7 +346,9 @@ class CurrentMediaTitle extends StatelessWidget {
   final String artist;
   final String title;
 
-  CurrentMediaTitle({ this.artist, this.title });
+  CurrentMediaTitle({ this.artist, this.title })
+      : assert(artist != null),
+        assert(title != null);
 
   @override
   Widget build(BuildContext context) {

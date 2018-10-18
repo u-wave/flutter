@@ -6,11 +6,18 @@ import './listen_store.dart' show ListenStore;
 typedef OnJoinCallback = void Function(BuildContext, UwaveServer);
 
 class UwaveServerList extends StatefulWidget {
+  /// App title.
   final String title;
+  /// Function to call when the user wants to join a server.
   final OnJoinCallback onJoin;
+  /// Listening state manager.
   final ListenStore listenStore;
 
-  UwaveServerList({Key key, this.title, this.onJoin, this.listenStore}) : super(key: key);
+  UwaveServerList({Key key, this.title, this.onJoin, this.listenStore})
+      : assert(title != null),
+        assert(onJoin != null),
+        assert(listenStore != null),
+        super(key: key);
 
   @override
   _UwaveServerListState createState() => _UwaveServerListState();
@@ -18,7 +25,7 @@ class UwaveServerList extends StatefulWidget {
 
 class _UwaveServerListState extends State<UwaveServerList> {
   UwaveAnnounceClient _client;
-  List<UwaveServer> _servers = List();
+  List<UwaveServer> _servers = [];
 
   void _listen(UwaveServer server) {
     widget.onJoin(context, server);
@@ -90,38 +97,44 @@ class _UwaveServerListState extends State<UwaveServerList> {
 }
 
 class CurrentServer extends StatelessWidget {
+  /// The server to show in this tile.
   final UwaveServer server;
+  /// Called when the tile is tapped.
   final VoidCallback onOpen;
+  /// Called when the "Disconnect" button is tapped.
   final VoidCallback onDisconnect;
 
-  CurrentServer({this.server, this.onOpen, this.onDisconnect});
+  CurrentServer({this.server, this.onOpen, this.onDisconnect})
+      : assert(server != null),
+        assert(onOpen != null),
+        assert(onDisconnect != null);
 
   @override
   Widget build(_) {
     return Card(
-      child: Column(
-        children: <Widget>[
-          ListTile(
-            leading: const Icon(Icons.headset),
-            title: Text(server.name),
-            subtitle: const Text('Tap to open'),
-            trailing: RaisedButton(
-              child: const Text('Disconnect'),
-              onPressed: onDisconnect,
-            ),
-            onTap: onOpen,
-          ),
-        ],
+      child: ListTile(
+        leading: const Icon(Icons.headset),
+        title: Text(server.name),
+        subtitle: const Text('Tap to open'),
+        trailing: RaisedButton(
+          child: const Text('Disconnect'),
+          onPressed: onDisconnect,
+        ),
+        onTap: onOpen,
       ),
     );
   }
 }
 
 class ServerCard extends StatelessWidget {
+  /// The server to show in this card.
   final UwaveServer server;
+  /// Called when the server card is tapped, indicating that the user wants to join this server.
   final VoidCallback onJoin;
 
-  ServerCard({this.server, this.onJoin});
+  ServerCard({this.server, this.onJoin})
+      : assert(server != null),
+        assert(onJoin != null);
 
   @override
   Widget build(BuildContext context) {
@@ -145,12 +158,7 @@ class ServerCard extends StatelessWidget {
     final onShowServer = () {
       Navigator.push(context, MaterialPageRoute(
         builder: (_) {
-          return Scaffold(
-            appBar: AppBar(
-              title: Text(server.name),
-            ),
-            body: Markdown(data: server.description),
-          );
+          return DescriptionPage(server: server);
         },
       ));
     };
@@ -178,9 +186,11 @@ class ServerCard extends StatelessWidget {
 }
 
 class ServerThumbnail extends StatelessWidget {
+  /// The server to show.
   final UwaveServer server;
 
-  ServerThumbnail({this.server});
+  ServerThumbnail({this.server})
+      : assert(server != null);
 
   @override
   Widget build(_) {
@@ -197,6 +207,24 @@ class ServerThumbnail extends StatelessWidget {
             : null,
         ),
       ),
+    );
+  }
+}
+
+class DescriptionPage extends StatelessWidget {
+  /// The server to show a description for.
+  final UwaveServer server;
+
+  DescriptionPage({this.server})
+      : assert(server != null);
+
+  @override
+  Widget build(_) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(server.name),
+      ),
+      body: Markdown(data: server.description),
     );
   }
 }

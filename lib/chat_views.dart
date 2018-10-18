@@ -5,7 +5,9 @@ import './u_wave/markup.dart' as markup;
 class ChatMessages extends StatelessWidget {
   final List<dynamic> messages;
 
-  ChatMessages({Key key, this.messages}) : super(key: key);
+  ChatMessages({Key key, this.messages})
+      : assert(messages != null),
+        super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -89,7 +91,7 @@ class _ChatInputState extends State<ChatInput> {
 class UserJoinMessageView extends StatelessWidget {
   final UserJoinMessage message;
 
-  UserJoinMessageView(this.message);
+  UserJoinMessageView(this.message) : assert(message != null);
 
   @override
   Widget build(BuildContext context) {
@@ -115,7 +117,7 @@ class UserJoinMessageView extends StatelessWidget {
 class UserLeaveMessageView extends StatelessWidget {
   final UserLeaveMessage message;
 
-  UserLeaveMessageView(this.message);
+  UserLeaveMessageView(this.message) : assert(message != null);
 
   @override
   Widget build(BuildContext context) {
@@ -143,7 +145,7 @@ class ChatTile extends StatelessWidget {
     this.sender,
     this.leading,
     this.child,
-  });
+  }) : assert(sender != null), assert(leading != null), assert(child != null);
 
   final User sender;
   final Widget leading;
@@ -183,7 +185,7 @@ class ChatTile extends StatelessWidget {
 class ChatMessageView extends StatelessWidget {
   final ChatMessage message;
 
-  ChatMessageView(this.message);
+  ChatMessageView(this.message) : assert(message != null);
 
   @override
   Widget build(_) {
@@ -209,7 +211,7 @@ class ChatMessageView extends StatelessWidget {
 class MarkupSpan extends StatelessWidget {
   final List<markup.MarkupNode> tree;
 
-  MarkupSpan({Key key, this.tree}) : super(key: key);
+  MarkupSpan({Key key, this.tree}) : assert(tree != null), super(key: key);
 
   TextSpan _toTextSpan(markup.MarkupNode node) {
     if (node is markup.BoldNode) {
@@ -269,7 +271,7 @@ class UsernameView extends StatelessWidget {
 
   final User user;
 
-  UsernameView({this.user});
+  UsernameView({this.user}) : assert(user != null);
 
   @override
   Widget build(_) {

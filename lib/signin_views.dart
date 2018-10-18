@@ -8,7 +8,10 @@ class SignInRoute extends StatefulWidget {
   final UwaveClient uwave;
   final SignInCallback onComplete;
 
-  SignInRoute({this.server, this.uwave, this.onComplete});
+  SignInRoute({this.server, this.uwave, this.onComplete})
+      : assert(server != null),
+        assert(uwave != null),
+        assert(onComplete != null);
 
   @override
   _SignInRouteState createState() => _SignInRouteState();
@@ -66,7 +69,7 @@ typedef _SignInFormCallback = void Function(String, String);
 class _SignInForm extends StatefulWidget {
   final _SignInFormCallback onSubmit;
 
-  _SignInForm({this.onSubmit});
+  _SignInForm({this.onSubmit}) : assert(onSubmit != null);
 
   @override
   _SignInFormState createState() => _SignInFormState();
@@ -133,7 +136,7 @@ typedef _RegisterFormCallback = void Function(String, String, String);
 class _RegisterForm extends StatefulWidget {
   final _RegisterFormCallback onSubmit;
 
-  _RegisterForm({this.onSubmit});
+  _RegisterForm({this.onSubmit}) : assert(onSubmit != null);
 
   @override
   _RegisterFormState createState() => _RegisterFormState();
@@ -212,7 +215,7 @@ class _RegisterFormState extends State<_RegisterForm> {
 class StyledField extends StatelessWidget {
   final Widget child;
 
-  StyledField({this.child});
+  StyledField({this.child}) : assert(child != null);
 
   @override
   Widget build(BuildContext context) {

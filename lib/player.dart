@@ -50,7 +50,7 @@ class ProgressTimer {
   Duration get current => DateTime.now().difference(startTime);
 
   DateTime startTime;
-  ProgressTimer({this.startTime}) {
+  ProgressTimer({this.startTime}) : assert(startTime != null) {
     _controller = StreamController.broadcast(
       onListen: _startTimer,
       onCancel: _stopTimer,
@@ -82,6 +82,7 @@ String _getNewPipeSourceName(String sourceType) {
 }
 
 String _getNewPipeSourceURL(Media media) {
+  assert(media != null);
   if (media.sourceType == 'youtube') {
     return 'https://youtube.com/watch?v=${media.sourceID}';
   }

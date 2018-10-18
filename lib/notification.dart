@@ -59,6 +59,7 @@ class NowPlayingNotification {
   }
 
   void setVote(int direction) {
+    assert(direction == -1 || direction == 1);
     _channel.invokeMethod('setVote', direction);
   }
 

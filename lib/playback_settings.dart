@@ -100,7 +100,10 @@ class _PlaybackTypesDialog extends StatelessWidget {
   final Widget title;
   final PlaybackType value;
 
-  _PlaybackTypesDialog({this.onSelect, this.title, this.value});
+  _PlaybackTypesDialog({this.onSelect, this.title, this.value})
+      : assert(onSelect != null),
+        assert(title != null),
+        assert(value != null);
 
   @override
   Widget build(_) {
