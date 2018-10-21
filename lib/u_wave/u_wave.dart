@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:http/http.dart' as http;
-import 'package:web_socket_channel/io.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
-import 'package:web_socket_channel/status.dart' as ws_status;
+import './ws.dart' show WebSocket;
+import './dart_ws.dart' show DartWebSocket;
+import './platform_ws.dart' show PlatformWebSocket;
 import './markup.dart' show MarkupParser, MarkupNode;
 
 /// Keeps track of the difference between the server time and the local time.
@@ -209,8 +209,7 @@ class UwaveClient {
   final String socketUrl;
   final _TimeSynchronizer _serverTime = _TimeSynchronizer();
   final http.Client _client = http.Client();
-  Timer _disconnectTimer;
-  WebSocketChannel _channel;
+  WebSocket _ws;
   final StreamController<ChatMessage> _chatMessagesController =
       StreamController.broadcast();
   final StreamController<HistoryEntry> _advanceController =
@@ -228,34 +227,28 @@ class UwaveClient {
 
   final Map<String, User> _knownUsers = Map();
 
-  UwaveClient({this.apiUrl, socketUrl})
-      : _channel = IOWebSocketChannel.connect(socketUrl),
-        socketUrl = socketUrl;
-
-  void _restartDisconnectTimer() {
-    if (_disconnectTimer != null) _disconnectTimer.cancel();
-    _disconnectTimer = Timer(const Duration(seconds: 30), () {
-      debugPrint('Socket timed out ... reconnecting');
-      reconnect().catchError((err) {
-        debugPrint('Failed to reconnect: $err');
-        // TODO retry
+  UwaveClient({this.apiUrl, this.socketUrl, bool usePlatformSocket = false})
+      : assert(apiUrl != null),
+        assert(socketUrl != null) {
+    if (usePlatformSocket) {
+      _ws = PlatformWebSocket(socketUrl);
+    } else {
+      _ws = DartWebSocket(socketUrl, reconnect: () async {
+        await reconnect();
       });
-    });
+    }
   }
 
   void _initSocket() {
-    _restartDisconnectTimer();
-    _channel.stream.listen((message) {
-      _restartDisconnectTimer();
-      if (message == "-") return;
+    _ws.init();
+    _ws.stream.listen((message) {
       final decoded = json.decode(message);
       this._onMessage(_SocketMessage.fromJson(decoded));
     });
   }
 
   Future<UwaveNowState> reconnect() async {
-    _channel.sink.close(ws_status.goingAway);
-    _channel = IOWebSocketChannel.connect(socketUrl);
+    _ws.reconnect();
     return await init(credentials: _activeCredentials);
   }
 
@@ -304,7 +297,7 @@ class UwaveClient {
   }
 
   void _sendSocketToken(String socketToken) {
-    _channel.sink.add(socketToken);
+    _ws.sink.add(socketToken);
   }
 
   Future<Null> _authenticateSocket() async {
@@ -333,7 +326,7 @@ class UwaveClient {
       command: 'vote',
       data: 1,
     ).toJson());
-    _channel.sink.add(message);
+    _ws.sink.add(message);
   }
 
   void downvote() {
@@ -341,7 +334,7 @@ class UwaveClient {
       command: 'vote',
       data: -1,
     ).toJson());
-    _channel.sink.add(message);
+    _ws.sink.add(message);
   }
 
   void sendChatMessage(String text) {
@@ -349,7 +342,7 @@ class UwaveClient {
       command: 'sendChat',
       data: text,
     ).toJson());
-    _channel.sink.add(message);
+    _ws.sink.add(message);
   }
 
   Future<UwaveCredentials> signIn({String email, String password}) async {
@@ -405,8 +398,8 @@ class UwaveClient {
     _chatMessagesController.close();
     _eventsController.close();
     _client.close();
-    if (_channel != null) {
-      _channel.sink.close(ws_status.goingAway);
+    if (_ws != null) {
+      _ws.sink.close();
     }
   }
 }

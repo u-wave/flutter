@@ -12,5 +12,6 @@ public class MainActivity extends FlutterActivity {
 
     PlayerPlugin.registerWith(registrarFor(PlayerPlugin.class.getName()));
     NotificationPlugin.registerWith(registrarFor(NotificationPlugin.class.getName()));
+    WebSocketPlugin.registerWith(registrarFor(WebSocketPlugin.class.getName()));
   }
 }

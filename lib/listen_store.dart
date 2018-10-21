@@ -104,6 +104,7 @@ class ListenStore {
     _client = UwaveClient(
       apiUrl: _server.apiUrl,
       socketUrl: _server.socketUrl,
+      usePlatformSocket: true,
     );
 
     _connectivity = Connectivity();

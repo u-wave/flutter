@@ -300,9 +300,10 @@ class PlaybackAction implements Player.EventListener, VideoListener {
     if (readyState == Player.STATE_READY) {
       PlaybackSettings playbackSettings;
       if (entry.playbackType == PlaybackType.BOTH) {
-        playbackSettings = new PlaybackSettings(
-            textureEntry != null ? textureEntry.id() : null,
-            (double) videoWidth / (double) videoHeight);
+        playbackSettings =
+            new PlaybackSettings(
+                textureEntry != null ? textureEntry.id() : null,
+                (double) videoWidth / (double) videoHeight);
       } else {
         playbackSettings = new PlaybackSettings();
       }

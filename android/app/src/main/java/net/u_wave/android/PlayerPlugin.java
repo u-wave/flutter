@@ -12,23 +12,22 @@ import java.util.Map;
 import org.schabi.newpipe.extractor.NewPipe;
 
 public class PlayerPlugin implements MethodCallHandler {
-  public static final String NAME = "u-wave.net/player";
+  private static final String CHANNEL_NAME = "u-wave.net/player";
 
   /** Plugin registration. */
   public static void registerWith(Registrar registrar) {
-    final MethodChannel channel = new MethodChannel(registrar.messenger(), NAME);
+    final MethodChannel channel = new MethodChannel(registrar.messenger(), CHANNEL_NAME);
     NewPipe.init(new DartDownloader(channel));
-    channel.setMethodCallHandler(new PlayerPlugin(registrar, channel));
+    final PlayerPlugin plugin = new PlayerPlugin(registrar);
+    channel.setMethodCallHandler(plugin);
   }
 
   private final DefaultHttpDataSourceFactory dataSourceFactory;
   private final Registrar registrar;
   private PlaybackAction currentPlayback;
-  private final MethodChannel channel;
 
-  private PlayerPlugin(Registrar registrar, MethodChannel channel) {
+  private PlayerPlugin(Registrar registrar) {
     this.registrar = registrar;
-    this.channel = channel;
 
     Context context = registrar.context();
     dataSourceFactory =
@@ -66,11 +65,14 @@ public class PlayerPlugin implements MethodCallHandler {
 
     currentPlayback = action;
 
-    new Thread(
-            () -> {
-              action.start();
-            })
-        .start();
+    runInNewThread(
+        () -> {
+          action.start();
+        });
+  }
+
+  private void runInNewThread(Runnable callback) {
+    new Thread(callback).start();
   }
 
   private void onSetPlaybackType(Integer playbackType, Result result) {
