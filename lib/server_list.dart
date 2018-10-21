@@ -86,12 +86,10 @@ class _UwaveServerListState extends State<UwaveServerList> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: Padding(
+      body: ListView(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: cards,
-        ),
-      )
+        children: cards,
+      ),
     );
   }
 }
@@ -177,7 +175,7 @@ class ServerCard extends StatelessWidget {
             onTap: onJoin,
           ),
           thumbnail.length == 1
-            ? thumbnail
+            ? thumbnail.first
             : Stack(alignment: Alignment.bottomLeft, children: thumbnail),
         ],
       ),
