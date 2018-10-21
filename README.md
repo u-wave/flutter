@@ -6,6 +6,29 @@ Note that while it uses Flutter, it's not cross platform. Only Android is suppor
 
 At some point this will be posted to the F-Droid app store. Because we're using NewPipe, the Play Store is not an option :)
 
+## Status
+
+You can:
+
+ - View public servers
+ - Join public servers
+ - Listen while the app is foregrounded
+ - Change playback type (with or without video) and configure a different type for WiFi/data connections
+ - Read chat
+ - Sign in to public servers and send chat
+
+You can't:
+
+ - Listen while the app is backgrounded
+ - Configure video resolution preference and limits
+ - View online users
+ - Moderate chat
+ - Join the waitlist yourself
+ - Playlist management etc
+ - Most other things
+
+The above is also more or less in order of implementation priority, aiming for the top things first and working our way down.
+
 ## Screenshots
 
 [<img src="./assets/screenshots/servers.png" alt="Server List" width=320>](./assets/screenshots/servers.png)
