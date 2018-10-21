@@ -1,10 +1,10 @@
-import 'dart:async' show Stream, EventSink;
+import 'dart:async' show Future, Stream, EventSink;
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/services.dart' show EventChannel, MethodChannel;
 import './ws.dart' show WebSocket;
 
 final _eventChannel = EventChannel('u-wave.net/websocket');
-final _methodChannel = MethodChannel('u-wave.net/websocket');
+// final _methodChannel = MethodChannel('u-wave.net/websocket');
 
 class PlatformWebSocket extends WebSocket {
   final String _socketUrl;
