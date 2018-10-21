@@ -3,6 +3,10 @@ package net.u_wave.android;
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.EventChannel.EventSink;
 import io.flutter.plugin.common.EventChannel.StreamHandler;
+import io.flutter.plugin.common.MethodCall;
+import io.flutter.plugin.common.MethodChannel;
+import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
+import io.flutter.plugin.common.MethodChannel.Result;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -12,7 +16,7 @@ import org.java_websocket.drafts.Draft_6455;
 import org.java_websocket.framing.CloseFrame;
 import org.java_websocket.handshake.ServerHandshake;
 
-public class WebSocketPlugin implements StreamHandler {
+public class WebSocketPlugin implements StreamHandler, MethodCallHandler {
   private static final String CHANNEL_NAME = "u-wave.net/websocket";
 
   private static final String KEEPALIVE = "-";
@@ -21,8 +25,10 @@ public class WebSocketPlugin implements StreamHandler {
 
   /** Plugin registration. */
   public static void registerWith(Registrar registrar) {
+    final MethodChannel methodChannel = new MethodChannel(registrar.messenger(), CHANNEL_NAME);
     final EventChannel eventChannel = new EventChannel(registrar.messenger(), CHANNEL_NAME);
     final WebSocketPlugin plugin = new WebSocketPlugin();
+    methodChannel.setMethodCallHandler(plugin);
     eventChannel.setStreamHandler(plugin);
   }
 
@@ -110,6 +116,36 @@ public class WebSocketPlugin implements StreamHandler {
         };
 
     client.connect();
+  }
+
+  private void onSend(String message) {
+    client.send(message);
+  }
+
+  private void onClose() {
+    client.close();
+  }
+
+  /* MethodCallHandler */
+  @Override
+  @SuppressWarnings("unchecked")
+  public void onMethodCall(MethodCall call, Result result) {
+    switch (call.method) {
+      case "send":
+        if (call.arguments instanceof String) {
+          onSend((String) call.arguments);
+          result.success(null);
+        } else {
+          throw new IllegalArgumentException("Expected a String");
+        }
+        break;
+      case "close":
+        onClose();
+        result.success(null);
+        break;
+      default:
+        result.notImplemented();
+    }
   }
 
   /* StreamHandler */
