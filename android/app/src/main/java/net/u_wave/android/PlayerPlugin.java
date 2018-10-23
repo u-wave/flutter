@@ -34,7 +34,11 @@ public class PlayerPlugin implements MethodCallHandler {
         new DefaultHttpDataSourceFactory(Util.getUserAgent(context, "android.u-wave.net"));
   }
 
-  void onPlay(Map<String, String> data, final Result result) {
+  private void runInNewThread(Runnable callback) {
+    new Thread(callback).start();
+  }
+
+  private void onPlay(Map<String, String> data, final Result result) {
     if (currentPlayback != null) {
       currentPlayback.cancel();
       currentPlayback = null;
@@ -69,10 +73,6 @@ public class PlayerPlugin implements MethodCallHandler {
         () -> {
           action.start();
         });
-  }
-
-  private void runInNewThread(Runnable callback) {
-    new Thread(callback).start();
   }
 
   private void onSetPlaybackType(Integer playbackType, Result result) {
