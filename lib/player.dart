@@ -76,23 +76,6 @@ class ProgressTimer {
   }
 }
 
-String _getNewPipeSourceName(String sourceType) {
-  if (sourceType == 'youtube') return 'YouTube';
-  if (sourceType == 'soundcloud') return 'SoundCloud';
-  return null;
-}
-
-String _getNewPipeSourceURL(Media media) {
-  assert(media != null);
-  if (media.sourceType == 'youtube') {
-    return 'https://youtube.com/watch?v=${media.sourceID}';
-  }
-  if (media.sourceType == 'soundcloud') {
-    return media.sourceData['permalinkUrl'] as String ?? 'https://api.soundcloud.com/tracks/${media.sourceID}';
-  }
-  return null;
-}
-
 class Player {
   Player._();
 
@@ -115,17 +98,14 @@ class Player {
 
     debugPrint('Playing entry ${entry.media.artist} - ${entry.media.title} from $seekInMedia');
 
-    final npType = _getNewPipeSourceName(entry.media.sourceType);
-    final npUrl = _getNewPipeSourceURL(entry.media);
-
     if (playbackType == PlaybackType.both &&
         _isAudioOnlySourceType(entry.media.sourceType)) {
       playbackType = PlaybackType.audioOnly;
     }
 
     final Map<dynamic, dynamic> result = await _channel.invokeMethod('play', <String, String>{
-      'sourceName': npType,
-      'sourceUrl': npUrl,
+      'sourceType': entry.media.sourceType,
+      'sourceID': entry.media.sourceID,
       'seek': '${seekInMedia.isNegative ? 0 : seekInMedia.inMilliseconds}',
       'playbackType': '${playbackType.index}',
     });

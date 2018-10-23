@@ -28,18 +28,24 @@ public class WebSocketPlugin implements StreamHandler, MethodCallHandler {
   private static final String CLOSE_MESSAGE = "+close";
 
   /** Plugin registration. */
-  public static void registerWith(Registrar registrar) {
+  public static WebSocketPlugin registerWith(Registrar registrar) {
     final MethodChannel methodChannel =
         new MethodChannel(registrar.messenger(), METHOD_CHANNEL_NAME);
     final EventChannel eventChannel = new EventChannel(registrar.messenger(), EVENT_CHANNEL_NAME);
     final WebSocketPlugin plugin = new WebSocketPlugin();
     methodChannel.setMethodCallHandler(plugin);
     eventChannel.setStreamHandler(plugin);
+    return plugin;
   }
 
   private WebSocketClient client;
   private EventSink sink;
   private final LinkedList<String> queuedMessages = new LinkedList<>();
+  private MessageListener listener;
+
+  public void setMessageListener(MessageListener listener) {
+    this.listener = listener;
+  }
 
   private void pushMessage(String message) {
     if (sink != null) {
@@ -63,6 +69,10 @@ public class WebSocketPlugin implements StreamHandler, MethodCallHandler {
     Log.d(TAG, String.format("onMessage(%s)", message));
     if (message.equals("-")) {
       return;
+    }
+
+    if (listener != null) {
+      listener.onMessage(message);
     }
 
     pushMessage(message);
@@ -180,5 +190,9 @@ public class WebSocketPlugin implements StreamHandler, MethodCallHandler {
     client = null;
     sink = null;
     queuedMessages.clear();
+  }
+
+  public static interface MessageListener {
+    void onMessage(String message);
   }
 }

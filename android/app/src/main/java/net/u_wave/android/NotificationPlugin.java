@@ -33,9 +33,11 @@ public class NotificationPlugin
   private static final String ACTION_DISCONNECT = "net.u_wave.android.DISCONNECT";
 
   /** Plugin registration. */
-  public static void registerWith(Registrar registrar) {
+  public static NotificationPlugin registerWith(Registrar registrar) {
     final MethodChannel channel = new MethodChannel(registrar.messenger(), NAME);
-    channel.setMethodCallHandler(new NotificationPlugin(registrar, channel));
+    final NotificationPlugin plugin = new NotificationPlugin(registrar, channel);
+    channel.setMethodCallHandler(plugin);
+    return plugin;
   }
 
   private final Registrar registrar;
@@ -45,6 +47,7 @@ public class NotificationPlugin
   private NowPlayingNotification nowPlayingNotification;
   private NowPlaying nowPlaying;
   private boolean enabled = true;
+  private boolean foregrounded = false;
   private int vote = 0;
 
   private NotificationPlugin(Registrar registrar, MethodChannel channel) {
@@ -62,6 +65,22 @@ public class NotificationPlugin
   public void close() {
     cancelNowPlayingNotification();
     preferences.unregisterOnSharedPreferenceChangeListener(this);
+  }
+
+  public void foreground() {
+    foregrounded = true;
+  }
+
+  public void unforeground() {
+    foregrounded = false;
+  }
+
+  public int getForegroundNotificationId() {
+    return NOTIFY_NOW_PLAYING;
+  }
+
+  public Notification getNowPlayingNotification() {
+    return nowPlayingNotification.build();
   }
 
   private NotificationManagerCompat getNotificationManager() {
@@ -124,7 +143,7 @@ public class NotificationPlugin
         new NowPlaying(args.get("artist"), args.get("title"), duration, seek, showVoteButtons);
     nowPlayingNotification.update(nowPlaying);
 
-    if (enabled) publishNowPlayingNotification();
+    if (enabled || foregrounded) publishNowPlayingNotification();
 
     result.success(null);
   }
@@ -134,7 +153,7 @@ public class NotificationPlugin
 
     nowPlayingNotification.update(nowPlaying, vote);
 
-    if (enabled) publishNowPlayingNotification();
+    if (enabled || foregrounded) publishNowPlayingNotification();
     result.success(null);
   }
 
@@ -305,6 +324,11 @@ public class NotificationPlugin
       Log.d(TAG, String.format("Receiving broadcast: %s", intent.getAction()));
       // TODO these should use an EventChannel more likely?
       channel.invokeMethod("intent", intent.getAction());
+
+      if (intent.getAction().equals(ACTION_DISCONNECT)) {
+        final Intent stopIntent = new Intent(context, ListenService.class);
+        context.stopService(stopIntent);
+      }
     }
   }
 }
