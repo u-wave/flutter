@@ -8,6 +8,7 @@ import './signin_views.dart' show SignInRoute;
 import './chat_views.dart' show ChatMessages, ChatInput;
 import './listen_store.dart' show ListenStore;
 import './player.dart' show ProgressTimer;
+import './base_url.dart' show BaseUrl;
 
 class UwaveListen extends StatefulWidget {
   final UwaveServer server;
@@ -209,7 +210,7 @@ class _UwaveListenState extends State<UwaveListen> {
       ? ChatInput(user: widget.store.currentUser, onSend: _sendChat)
       : SignInButton(serverName: widget.server.name, onSignIn: _navigateToSignInPage);
 
-    return Scaffold(
+    final scaffold = Scaffold(
       appBar: AppBar(
         title: widget.store.currentEntry == null
           ? Text(widget.server.name)
@@ -238,6 +239,11 @@ class _UwaveListenState extends State<UwaveListen> {
         ),
       ),
     );
+
+    return BaseUrl(
+      url: Uri.parse(widget.server.url),
+      child: scaffold,
+    );
   }
 }
 
@@ -255,6 +261,12 @@ class PlayerView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final thumbnailUrl = BaseUrl.of(context)
+        .resolve(Uri.parse(entry.media.thumbnailUrl))
+        .toString();
+
+    debugPrint('url: ${BaseUrl.of(context).url}, thumbnailUrl: $thumbnailUrl');
+
     return Container(
       color: Color(0xFF000000),
       child: Column(
@@ -263,7 +275,7 @@ class PlayerView extends StatelessWidget {
             aspectRatio: 16 / 9,
             child: Center(
               child: textureId == null
-                ? Image.network(entry.media.thumbnailUrl)
+                ? Image.network(thumbnailUrl)
                 : AspectRatio(
                     aspectRatio: aspectRatio,
                     child: Texture(textureId: textureId,

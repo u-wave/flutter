@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
 import './u_wave/u_wave.dart' show User, ChatMessage, UserJoinMessage, UserLeaveMessage;
 import './u_wave/markup.dart' as markup;
+import './base_url.dart' show BaseUrl;
+
+String _resolveUrl(BuildContext context, String input) {
+  return BaseUrl.of(context)
+    .resolve(Uri.parse(input))
+    .toString();
+}
 
 class ChatMessages extends StatelessWidget {
   final List<dynamic> messages;
@@ -60,6 +67,8 @@ class _ChatInputState extends State<ChatInput> {
 
   @override
   Widget build(BuildContext context) {
+    final avatarUrl = _resolveUrl(context, widget.user.avatarUrl);
+
     return Container(
       color: Color(0xFF1B1B1B),
       child: Padding(
@@ -69,7 +78,7 @@ class _ChatInputState extends State<ChatInput> {
             Padding(
               padding: const EdgeInsets.only(right: _PADDING),
               child: CircleAvatar(
-                backgroundImage: NetworkImage(widget.user.avatarUrl),
+                backgroundImage: NetworkImage(avatarUrl),
               ),
             ),
             Expanded(
@@ -98,7 +107,7 @@ class UserJoinMessageView extends StatelessWidget {
     final avatar = message.user?.avatarUrl != null
       ? CircleAvatar(
           radius: 12.0,
-          backgroundImage: NetworkImage(message.user.avatarUrl),
+          backgroundImage: NetworkImage(_resolveUrl(context, message.user.avatarUrl)),
         )
       : CircleAvatar(
           radius: 12.0,
@@ -124,7 +133,7 @@ class UserLeaveMessageView extends StatelessWidget {
     final avatar = message.user?.avatarUrl != null
       ? CircleAvatar(
           radius: 12.0,
-          backgroundImage: NetworkImage(message.user.avatarUrl),
+          backgroundImage: NetworkImage(_resolveUrl(context, message.user.avatarUrl)),
         )
       : CircleAvatar(
           radius: 12.0,
@@ -188,11 +197,11 @@ class ChatMessageView extends StatelessWidget {
   ChatMessageView(this.message) : assert(message != null);
 
   @override
-  Widget build(_) {
+  Widget build(BuildContext context) {
     final avatar = message.user?.avatarUrl != null
       ? CircleAvatar(
           radius: 12.0,
-          backgroundImage: NetworkImage(message.user.avatarUrl),
+          backgroundImage: NetworkImage(_resolveUrl(context, message.user.avatarUrl)),
         )
       : CircleAvatar(
           radius: 12.0,
