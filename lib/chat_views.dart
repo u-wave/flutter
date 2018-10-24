@@ -286,7 +286,10 @@ class UsernameView extends StatelessWidget {
 
   @override
   Widget build(_) {
-    final colorRole = user.roles.firstWhere((name) => _roleColors.containsKey(name));
+    final colorRole = user.roles.firstWhere(
+      (name) => _roleColors.containsKey(name),
+      orElse: () => null,
+    );
     final color = colorRole != null ? _roleColors[colorRole] : null;
 
     return Text(user.username,
