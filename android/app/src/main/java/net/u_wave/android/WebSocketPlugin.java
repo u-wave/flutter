@@ -17,7 +17,8 @@ import org.java_websocket.framing.CloseFrame;
 import org.java_websocket.handshake.ServerHandshake;
 
 public class WebSocketPlugin implements StreamHandler, MethodCallHandler {
-  private static final String CHANNEL_NAME = "u-wave.net/websocket";
+  private static final String METHOD_CHANNEL_NAME = "u-wave.net/websocket";
+  private static final String EVENT_CHANNEL_NAME = "u-wave.net/websocket-events";
 
   private static final String KEEPALIVE = "-";
   private static final String OPEN_MESSAGE = "+open";
@@ -25,8 +26,8 @@ public class WebSocketPlugin implements StreamHandler, MethodCallHandler {
 
   /** Plugin registration. */
   public static void registerWith(Registrar registrar) {
-    final MethodChannel methodChannel = new MethodChannel(registrar.messenger(), CHANNEL_NAME);
-    final EventChannel eventChannel = new EventChannel(registrar.messenger(), CHANNEL_NAME);
+    final MethodChannel methodChannel = new MethodChannel(registrar.messenger(), METHOD_CHANNEL_NAME);
+    final EventChannel eventChannel = new EventChannel(registrar.messenger(), EVENT_CHANNEL_NAME);
     final WebSocketPlugin plugin = new WebSocketPlugin();
     methodChannel.setMethodCallHandler(plugin);
     eventChannel.setStreamHandler(plugin);

@@ -265,8 +265,6 @@ class PlayerView extends StatelessWidget {
         .resolve(Uri.parse(entry.media.thumbnailUrl))
         .toString();
 
-    debugPrint('url: ${BaseUrl.of(context).url}, thumbnailUrl: $thumbnailUrl');
-
     return Container(
       color: Color(0xFF000000),
       child: Column(
