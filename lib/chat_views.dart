@@ -84,6 +84,8 @@ class _ChatInputState extends State<ChatInput> {
             Expanded(
               child: TextField(
                 controller: _editController,
+                textInputAction: TextInputAction.send,
+                onEditingComplete: _submit,
               ),
             ),
             IconButton(
