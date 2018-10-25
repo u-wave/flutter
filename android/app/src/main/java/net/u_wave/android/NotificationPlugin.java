@@ -9,6 +9,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
+import android.util.Log;
 import android.view.View;
 import android.widget.RemoteViews;
 import io.flutter.plugin.common.MethodCall;
@@ -22,6 +23,7 @@ import java.util.Map;
 public class NotificationPlugin
     implements MethodCallHandler, SharedPreferences.OnSharedPreferenceChangeListener {
   public static final String NAME = "u-wave.net/notification";
+  private static final String TAG = "NotificationPlugin";
   private static final String PREFERENCE_NAME = "flutter.nowPlayingNotification";
   private static final int NOTIFY_NOW_PLAYING = 0;
 
@@ -112,8 +114,7 @@ public class NotificationPlugin
       return;
     }
 
-    System.out.println(
-        "[NotificationPlugin] nowPlaying: " + args.get("artist") + " - " + args.get("title"));
+    Log.d(TAG, String.format("nowPlaying: %s - %s", args.get("artist"), args.get("title")));
     final int duration = Integer.parseInt(args.get("duration"));
     final int seek = Integer.parseInt(args.get("seek"));
     final boolean showVoteButtons =
@@ -301,7 +302,7 @@ public class NotificationPlugin
 
     @Override
     public void onReceive(Context context, Intent intent) {
-      System.out.println("Receiving broadcast: " + intent.getAction());
+      Log.d(TAG, String.format("Receiving broadcast: %s", intent.getAction()));
       // TODO these should use an EventChannel more likely?
       channel.invokeMethod("intent", intent.getAction());
     }

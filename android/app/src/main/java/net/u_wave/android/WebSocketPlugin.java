@@ -1,5 +1,6 @@
 package net.u_wave.android;
 
+import android.util.Log;
 import io.flutter.plugin.common.EventChannel;
 import io.flutter.plugin.common.EventChannel.EventSink;
 import io.flutter.plugin.common.EventChannel.StreamHandler;
@@ -20,13 +21,16 @@ public class WebSocketPlugin implements StreamHandler, MethodCallHandler {
   private static final String METHOD_CHANNEL_NAME = "u-wave.net/websocket";
   private static final String EVENT_CHANNEL_NAME = "u-wave.net/websocket-events";
 
+  private static final String TAG = "WebSocketPlugin";
+
   private static final String KEEPALIVE = "-";
   private static final String OPEN_MESSAGE = "+open";
   private static final String CLOSE_MESSAGE = "+close";
 
   /** Plugin registration. */
   public static void registerWith(Registrar registrar) {
-    final MethodChannel methodChannel = new MethodChannel(registrar.messenger(), METHOD_CHANNEL_NAME);
+    final MethodChannel methodChannel =
+        new MethodChannel(registrar.messenger(), METHOD_CHANNEL_NAME);
     final EventChannel eventChannel = new EventChannel(registrar.messenger(), EVENT_CHANNEL_NAME);
     final WebSocketPlugin plugin = new WebSocketPlugin();
     methodChannel.setMethodCallHandler(plugin);
@@ -46,7 +50,7 @@ public class WebSocketPlugin implements StreamHandler, MethodCallHandler {
   }
 
   public void onOpen(ServerHandshake handshake) {
-    System.out.println("[WebSocketPlugin] onOpen()");
+    Log.d(TAG, "onOpen()");
     if (sink == null) {
       // Shouldn't happen but don't crash if it does I guess
       return;
@@ -56,7 +60,7 @@ public class WebSocketPlugin implements StreamHandler, MethodCallHandler {
   }
 
   public void onMessage(String message) {
-    System.out.println("[WebSocketPlugin] onMessage(" + message + ")");
+    Log.d(TAG, String.format("onMessage(%s)", message));
     if (message.equals("-")) {
       return;
     }
@@ -65,7 +69,7 @@ public class WebSocketPlugin implements StreamHandler, MethodCallHandler {
   }
 
   public void onClose(int code, String reason, boolean remote) {
-    System.out.println("[WebSocketPlugin] onClose(" + reason + ")");
+    Log.d(TAG, String.format("onClose(%d, %s, %b)", code, reason, remote));
     if (sink == null) {
       // Closed by the Dart code calling onCancel(), nothing to do here
       return;
@@ -79,7 +83,7 @@ public class WebSocketPlugin implements StreamHandler, MethodCallHandler {
   }
 
   public void onError(Exception err) {
-    System.out.println("[WebSocketPlugin] onError(" + err.getMessage() + ")");
+    Log.d(TAG, String.format("onError(%s)", err.getMessage()));
     sink.error(err.getClass().getName(), err.getMessage(), null);
   }
 
@@ -153,7 +157,7 @@ public class WebSocketPlugin implements StreamHandler, MethodCallHandler {
   @Override
   @SuppressWarnings("unchecked")
   public void onListen(Object arguments, EventSink events) {
-    System.out.println("[WebSocketPlugin] onConnect(" + arguments + ")");
+    Log.d(TAG, String.format("onConnect(%s)", arguments));
     if (arguments instanceof String) {
       sink = events;
 

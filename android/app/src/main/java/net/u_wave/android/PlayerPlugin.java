@@ -1,6 +1,7 @@
 package net.u_wave.android;
 
 import android.content.Context;
+import android.util.Log;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 import io.flutter.plugin.common.MethodCall;
@@ -86,11 +87,9 @@ public class PlayerPlugin implements MethodCallHandler {
     if (currentPlayback != null) {
       currentPlayback.getEntry().setPlaybackType(playbackTypeId);
       currentPlayback.start();
-      System.out.println(
-          "PlaybackAction["
-              + currentPlayback.getEntry().sourceUrl
-              + "] getCurrentSeek(): "
-              + currentPlayback.getCurrentSeek());
+      Log.d(
+          String.format("PlaybackAction[%s]", currentPlayback.getEntry().sourceUrl),
+          String.format("getCurrentSeek(): %d", currentPlayback.getCurrentSeek()));
       result.success(null);
     } else {
       result.error("NoPlayback", "Can't change playback type because nothing is playing.", null);

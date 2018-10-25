@@ -1,5 +1,6 @@
 package net.u_wave.android;
 
+import android.util.Log;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.Result;
 import java.util.HashMap;
@@ -12,6 +13,7 @@ import org.schabi.newpipe.extractor.Downloader;
  * <p>This way I don't have to pick one in Java!
  */
 class DartDownloader implements Downloader {
+  private static final String TAG = "DartDownloader";
   private MethodChannel channel;
 
   DartDownloader(MethodChannel methodChannel) {
@@ -34,6 +36,7 @@ class DartDownloader implements Downloader {
 
   @Override
   public String download(String siteUrl, Map<String, String> headers) {
+    Log.d(TAG, String.format("Downloading %s", siteUrl));
     Object lock = new Object();
     DownloadResult result = new DownloadResult(lock);
     if (headers == null) {

@@ -2,6 +2,7 @@ package net.u_wave.android;
 
 import android.net.Uri;
 import android.os.Handler;
+import android.util.Log;
 import android.view.Surface;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlaybackException;
@@ -47,6 +48,7 @@ class PlaybackAction implements Player.EventListener, VideoListener {
   private int videoWidth;
   private int videoHeight;
   private final String id;
+  private final String logTag;
   private final Date startTime = new Date();
   private final Handler mainThread;
 
@@ -61,6 +63,7 @@ class PlaybackAction implements Player.EventListener, VideoListener {
     this.dataSourceFactory = dataSourceFactory;
     this.entry = entry;
     id = entry.sourceUrl;
+    logTag = String.format("PlaybackAction[%s]", id);
 
     mainThread = new Handler(registrar.context().getMainLooper());
 
@@ -93,7 +96,7 @@ class PlaybackAction implements Player.EventListener, VideoListener {
   }
 
   public void cancel() {
-    System.out.println("PlaybackAction[" + id + "] cancel()");
+    Log.d(logTag, "cancel()");
     if (streamInfo == null) {
       fail("Cancel", "Playback was cancelled", null);
     }
@@ -101,7 +104,7 @@ class PlaybackAction implements Player.EventListener, VideoListener {
   }
 
   public void end() {
-    System.out.println("PlaybackAction[" + id + "] end()");
+    Log.d(logTag, "end()");
     ended = true;
     if (entry.shouldPlayVideo()) {
       if (textureEntry != null) {
@@ -128,7 +131,7 @@ class PlaybackAction implements Player.EventListener, VideoListener {
   private void fail(String name, String message, Object err) {
     if (ended) return;
     if (flutterResult != null) {
-      System.out.println("PlaybackAction[" + id + "] fail(" + name + ", " + message + ")");
+      Log.d(logTag, String.format("fail(%s, %s)", name, message));
       flutterResult.error(name, message, err);
       flutterResult = null;
     } else {
@@ -141,7 +144,7 @@ class PlaybackAction implements Player.EventListener, VideoListener {
   }
 
   private StreamInfo getStreamInfo() {
-    System.out.println("PlaybackAction[" + id + "] getStreamInfo()");
+    Log.d(logTag, "getStreamInfo()");
     try {
       return StreamInfo.getInfo(NewPipe.getService(entry.sourceName), entry.sourceUrl);
     } catch (IOException err) {
@@ -175,14 +178,13 @@ class PlaybackAction implements Player.EventListener, VideoListener {
   private AudioStream getPreferredAudioStream(StreamInfo info) {
     AudioStream bestStream = null;
     for (AudioStream stream : info.getAudioStreams()) {
-      System.out.println(
-          "  audio: "
-              + stream.getFormat().getName()
-              + " "
-              + stream.getFormat().getMimeType()
-              + " - "
-              + stream.getAverageBitrate()
-              + "bps");
+      Log.d(
+          logTag,
+          String.format(
+              "  audio: %s %s - %d",
+              stream.getFormat().getName(),
+              stream.getFormat().getMimeType(),
+              stream.getAverageBitrate()));
 
       if (bestStream == null) {
         bestStream = stream;
@@ -192,10 +194,11 @@ class PlaybackAction implements Player.EventListener, VideoListener {
     }
 
     if (bestStream != null) {
-      System.out.println(
-          "best: " + bestStream.getFormat().getName() + " at " + bestStream.getUrl());
+      Log.d(
+          logTag,
+          String.format("best: %s at %s", bestStream.getFormat().getName(), bestStream.getUrl()));
     } else {
-      System.out.println("!! no audio streams");
+      Log.d(logTag, "!! no audio streams");
     }
 
     return bestStream;
@@ -204,13 +207,13 @@ class PlaybackAction implements Player.EventListener, VideoListener {
   private VideoStream getPreferredVideoStream(StreamInfo info) {
     VideoStream bestStream = null;
     for (VideoStream stream : info.getVideoStreams()) {
-      System.out.println(
-          "  video: "
-              + stream.getFormat().getName()
-              + " "
-              + stream.getFormat().getMimeType()
-              + " - "
-              + stream.getResolution());
+      Log.d(
+          logTag,
+          String.format(
+              "  video: %s %s - %s",
+              stream.getFormat().getName(),
+              stream.getFormat().getMimeType(),
+              stream.getResolution()));
 
       if (bestStream == null) {
         bestStream = stream;
@@ -221,10 +224,11 @@ class PlaybackAction implements Player.EventListener, VideoListener {
     }
 
     if (bestStream != null) {
-      System.out.println(
-          "best: " + bestStream.getFormat().getName() + " at " + bestStream.getUrl());
+      Log.d(
+          logTag,
+          String.format("best: %s at %s", bestStream.getFormat().getName(), bestStream.getUrl()));
     } else {
-      System.out.println("!! no video streams");
+      Log.d(logTag, "!! no video streams");
     }
 
     return bestStream;
@@ -281,21 +285,18 @@ class PlaybackAction implements Player.EventListener, VideoListener {
   @Override
   public void onLoadingChanged(boolean isLoading) {
     if (isLoading) {
-      System.out.println("PlaybackAction[" + id + "] onLoadingChanged: loading");
+      Log.d(logTag, "onLoadingChanged: loading");
     } else {
-      System.out.println("PlaybackAction[" + id + "] onLoadingChanged: not loading");
+      Log.d(logTag, "onLoadingChanged: not loading");
     }
   }
 
   @Override
   public void onPlayerStateChanged(boolean playWhenReady, int readyState) {
-    System.out.println(
-        "PlaybackAction["
-            + id
-            + "] onPlayerStateChanged playWhenReady="
-            + (playWhenReady ? "true" : "false")
-            + " readyState="
-            + readyState);
+    Log.d(
+        logTag,
+        String.format(
+            "onPlayerStateChanged playWhenReady=%b readyState=%d", playWhenReady, readyState));
 
     if (readyState == Player.STATE_READY) {
       PlaybackSettings playbackSettings;
@@ -310,7 +311,7 @@ class PlaybackAction implements Player.EventListener, VideoListener {
 
       if (!ended) {
         if (flutterResult != null) {
-          System.out.println("PlaybackAction[" + id + "] success()");
+          Log.d(logTag, "success()");
           flutterResult.success(playbackSettings.toMap());
           flutterResult = null;
         } else {
@@ -327,17 +328,17 @@ class PlaybackAction implements Player.EventListener, VideoListener {
 
   @Override
   public void onPositionDiscontinuity(int reason) {
-    System.out.println("PlaybackAction[" + id + "] onPositionDiscontinuity reason=" + reason);
+    Log.d(logTag, String.format("onPositionDiscontinuity reason=%d", reason));
   }
 
   @Override
   public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
-    System.out.println("PlaybackAction[" + id + "] onPlaybackParametersChanged");
+    Log.d(logTag, "onPlaybackParametersChanged");
   }
 
   @Override
   public void onTimelineChanged(Timeline timeline, Object manifest, int reason) {
-    System.out.println("PlaybackAction[" + id + "] onTimelineChanged reason=" + reason);
+    Log.d(logTag, String.format("onTimelineChanged reason=%d", reason));
   }
 
   @Override
@@ -351,21 +352,17 @@ class PlaybackAction implements Player.EventListener, VideoListener {
 
   @Override
   public void onSeekProcessed() {
-    System.out.println("PlaybackAction[" + id + "] onSeekProcessed");
+    Log.d(logTag, "onSeekProcessed");
   }
 
   @Override
   public void onRepeatModeChanged(int mode) {
-    System.out.println("PlaybackAction[" + id + "] onRepeatModeChanged enabled=" + mode);
+    Log.d(logTag, String.format("onRepeatModeChanged enabled=%d", mode));
   }
 
   @Override
   public void onShuffleModeEnabledChanged(boolean enabled) {
-    System.out.println(
-        "PlaybackAction["
-            + id
-            + "] onShuffleModeEnabledChanged enabled="
-            + (enabled ? "true" : "false"));
+    Log.d(logTag, String.format("onShuffleModeEnabledChanged enabled=%b", enabled));
   }
 
   /* VideoListener */
