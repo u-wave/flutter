@@ -82,6 +82,8 @@ class ListenStore {
   User get currentUser => _client.currentUser;
   UwaveServer get server => _server;
   UwaveClient get uwaveClient => _client;
+  bool get shouldShowVoteButtons => isPlaying && isSignedIn &&
+      _playing.user != null && _playing.user.id != currentUser.id;
 
   ListenStore({Settings settings}) : assert(settings != null) {
     _settings = settings;
@@ -254,8 +256,7 @@ class ListenStore {
       title: entry.title,
       duration: entry.end - entry.start,
       progress: playbackSettings.onProgress,
-      showVoteButtons: entry.user != null && _client.currentUser != null &&
-        entry.user.id != _client.currentUser.id,
+      showVoteButtons: shouldShowVoteButtons,
     );
   }
 

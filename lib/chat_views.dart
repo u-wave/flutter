@@ -272,7 +272,9 @@ class MarkupSpan extends StatelessWidget {
   }
 }
 
+/// Render a user's name with appropriate role colours.
 class UsernameView extends StatelessWidget {
+  // TODO These should be moved to a server-specific theme on the context
   static Map<String, Color> _roleColors = {
     'admin': Color(0xFFFF3B74),
     'manager': Color(0xFF05DAA5),
@@ -281,9 +283,11 @@ class UsernameView extends StatelessWidget {
     'user': Color(0xFF9ba0a0),
   };
 
+  /// The user whose name to render.
   final User user;
 
-  UsernameView({this.user}) : assert(user != null);
+  UsernameView({this.user})
+      : assert(user != null);
 
   @override
   Widget build(_) {
