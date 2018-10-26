@@ -278,6 +278,7 @@ class UsernameView extends StatelessWidget {
     'manager': Color(0xFF05DAA5),
     'moderator': Color(0xFF00B3DC),
     'special': Color(0xFFFC911D),
+    'user': Color(0xFF9ba0a0),
   };
 
   final User user;
@@ -288,9 +289,9 @@ class UsernameView extends StatelessWidget {
   Widget build(_) {
     final colorRole = user.roles.firstWhere(
       (name) => _roleColors.containsKey(name),
-      orElse: () => null,
+      orElse: () => 'user',
     );
-    final color = colorRole != null ? _roleColors[colorRole] : null;
+    final color = _roleColors[colorRole];
 
     return Text(user.username,
       style: color != null ? TextStyle(color: color) : null,
