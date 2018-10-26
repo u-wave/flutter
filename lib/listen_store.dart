@@ -255,7 +255,7 @@ class ListenStore {
       duration: entry.end - entry.start,
       progress: playbackSettings.onProgress,
       showVoteButtons: entry.user != null && _client.currentUser != null &&
-        entry.user.id == _client.currentUser.id,
+        entry.user.id != _client.currentUser.id,
     );
   }
 
