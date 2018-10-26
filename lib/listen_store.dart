@@ -7,6 +7,7 @@ import './u_wave/u_wave.dart';
 import './settings.dart' show Settings, SettingUpdate, PlaybackType;
 import './notification.dart' show NowPlayingNotification;
 import './player.dart' show Player, PlaybackSettings;
+import './listen_service.dart' show ListenService;
 
 bool _isChatVisibleEvent(dynamic message) {
   return message is UserJoinMessage ||
@@ -102,6 +103,8 @@ class ListenStore {
 
     disconnect();
 
+    ListenService.getInstance()
+        ..foreground();
     _server = server;
     _client = UwaveClient(
       apiUrl: _server.apiUrl,
@@ -216,6 +219,9 @@ class ListenStore {
   void close() {
     disconnect();
     _update.close();
+
+    ListenService.getInstance()
+        ..background();
   }
 
   void _onUpdatePlaybackType() {

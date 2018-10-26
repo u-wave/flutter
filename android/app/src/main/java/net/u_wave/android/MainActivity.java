@@ -19,7 +19,9 @@ public class MainActivity extends FlutterActivity {
     notifications = NotificationPlugin.registerWith(registrarFor(NotificationPlugin.class.getName()));
     webSocket = WebSocketPlugin.registerWith(registrarFor(WebSocketPlugin.class.getName()));
 
-    ListenService.registerWith(registrarFor(ListenService.class.getName()));
+    final ListenController controller = new ListenController(this);
+
+    controller.registerWith(registrarFor(ListenService.class.getName()));
   }
 
   public static PlayerPlugin getPlayer() {

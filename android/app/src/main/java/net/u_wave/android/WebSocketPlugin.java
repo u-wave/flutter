@@ -11,7 +11,9 @@ import io.flutter.plugin.common.MethodChannel.Result;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
 import java.util.LinkedList;
+import java.util.ArrayList;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft_6455;
 import org.java_websocket.framing.CloseFrame;
@@ -41,10 +43,14 @@ public class WebSocketPlugin implements StreamHandler, MethodCallHandler {
   private WebSocketClient client;
   private EventSink sink;
   private final LinkedList<String> queuedMessages = new LinkedList<>();
-  private MessageListener listener;
+  private List<MessageListener> messageListeners = new ArrayList<>();
 
-  public void setMessageListener(MessageListener listener) {
-    this.listener = listener;
+  public void addMessageListener(MessageListener listener) {
+    messageListeners.add(listener);
+  }
+
+  public void removeMessageListener(MessageListener listener) {
+    messageListeners.remove(listener);
   }
 
   private void pushMessage(String message) {
@@ -67,11 +73,14 @@ public class WebSocketPlugin implements StreamHandler, MethodCallHandler {
 
   public void onMessage(String message) {
     Log.d(TAG, String.format("onMessage(%s)", message));
+
+    // disconnectTimer.restart();
+
     if (message.equals("-")) {
       return;
     }
 
-    if (listener != null) {
+    for (MessageListener listener : messageListeners) {
       listener.onMessage(message);
     }
 

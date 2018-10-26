@@ -6,36 +6,14 @@ import android.os.Binder;
 import android.content.Context;
 import android.content.Intent;
 import android.app.Service;
-import io.flutter.plugin.common.MethodCall;
-import io.flutter.plugin.common.MethodChannel;
-import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
-import io.flutter.plugin.common.PluginRegistry.Registrar;
 
-class ListenService extends Service {
-  public static final String NAME = "u-wave.net/background";
+public class ListenService extends Service implements WebSocketPlugin.MessageListener {
   private PlayerPlugin player;
   private NotificationPlugin notifications;
   private WebSocketPlugin webSocket;
 
-  public static void registerWith(Registrar registrar) {
-    final Context context = registrar.activity();
-    final Intent intent = new Intent(context, ListenService.class);
-    final MethodChannel channel = new MethodChannel(registrar.messenger(), NAME);
-
-    channel.setMethodCallHandler((call, result) -> {
-      if (call.method.equals("start")) {
-        context.startService(intent);
-        result.success(null);
-      } else if (call.method.equals("stop")) {
-        context.stopService(intent);
-        result.success(null);
-      } else {
-        result.notImplemented();
-      }
-    });
-  }
-
+  /* Service */
   @Override
   public void onCreate() {
     player = MainActivity.getPlayer();
@@ -46,7 +24,44 @@ class ListenService extends Service {
       throw new RuntimeException("Tried to create service but the necessary background components are not initialized.");
     }
 
-    webSocket.setMessageListener(this::onWebSocketMessage);
+    webSocket.addMessageListener(this);
+  }
+
+  @Override
+  public int onStartCommand(Intent intent, int flags, int startId) {
+    return START_NOT_STICKY;
+  }
+
+  @Override
+  public ListenBinder onBind(Intent intent) {
+    return new ListenBinder(this);
+  }
+
+  @Override
+  public void onDestroy() {
+    notifications.unforeground();
+    webSocket.removeMessageListener(this);
+    player = null;
+    notifications = null;
+    webSocket = null;
+  }
+
+  /* WebSocketPlugin.Listener */
+  @Override
+  public void onMessage(String message) {
+    try {
+      final JSONObject object = new JSONObject(message);
+      switch (object.getString("command")) {
+        case "advance":
+          onAdvance(object.getJSONObject("data"));
+          break;
+        case "chatMessage":
+          // TODO check for notification
+          break;
+      }
+    } catch (JSONException err) {
+      // Ignore
+    }
   }
 
   private void onAdvance(final JSONObject object) throws JSONException {
@@ -73,44 +88,32 @@ class ListenService extends Service {
     });
   }
 
-  private void onWebSocketMessage(String message) {
-    try {
-      final JSONObject object = new JSONObject(message);
-      switch (object.getString("command")) {
-        case "advance":
-          onAdvance(object.getJSONObject("data"));
-          break;
-      }
-    } catch (JSONException err) {
-      // Ignore
-    }
-  }
-
-  @Override
-  public int onStartCommand(Intent intent, int flags, int startId) {
+  public void foreground() {
     notifications.foreground();
     startForeground(notifications.getForegroundNotificationId(), notifications.getNowPlayingNotification());
-    return START_NOT_STICKY;
   }
 
-  @Override
-  public ListenBinder onBind(Intent intent) {
-    return new ListenBinder(this);
-  }
-
-  @Override
-  public void onDestroy() {
+  public void background() {
     notifications.unforeground();
+    stopForeground(STOP_FOREGROUND_DETACH);
   }
 
   public static class ListenBinder extends Binder {
-    final ListenService service;
+    private final ListenService service;
 
     ListenBinder(final ListenService service) {
       this.service = service;
     }
 
-    ListenService getService() {
+    public void foreground() {
+      service.foreground();
+    }
+
+    public void background() {
+      service.background();
+    }
+
+    public ListenService getService() {
       return service;
     }
   }

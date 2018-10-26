@@ -16,6 +16,8 @@ import org.schabi.newpipe.extractor.utils.Localization;
 
 public class PlayerPlugin implements MethodCallHandler, SharedPreferences.OnSharedPreferenceChangeListener {
   private static final String CHANNEL_NAME = "u-wave.net/player";
+  private static final String PREFERENCE_PLAYBACK_TYPE = "flutter.playbackType";
+  private static final String PREFERENCE_PLAYBACK_TYPE_DATA = "flutter.playbackTypeData";
 
   /** Plugin registration. */
   public static PlayerPlugin registerWith(Registrar registrar) {
@@ -82,8 +84,14 @@ public class PlayerPlugin implements MethodCallHandler, SharedPreferences.OnShar
       currentPlayback.start();
       Log.d(
           String.format("PlaybackAction[%s]", currentPlayback.getEntry().sourceUrl),
-          String.format("getCurrentSeek(): %d", currentPlayback.getCurrentSeek()));
-      result.success(null);
+          String.format("Switched playback type at %d ms", currentPlayback.getCurrentSeek()));
+    }
+  }
+
+  /* OnSharedPreferenceChangeListener */
+  public void onSharedPreferenceChanged(SharedPreferences self, String key) {
+    if (!key.equals(PREFERENCE_PLAYBACK_TYPE) && !key.equals(PREFERENCE_PLAYBACK_TYPE_DATA)) {
+      return;
     }
   }
 
