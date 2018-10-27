@@ -276,7 +276,6 @@ class MarkupSpan extends StatelessWidget {
 class UsernameView extends StatelessWidget {
   // TODO These should be moved to a server-specific theme on the context
   static const Map<String, Color> _roleColors = {
-  static Map<String, Color> _roleColors = {
     'admin': Color(0xFFFF3B74),
     'manager': Color(0xFF05DAA5),
     'moderator': Color(0xFF00B3DC),
