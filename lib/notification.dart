@@ -23,9 +23,7 @@ class NowPlayingNotification {
 
   static NowPlayingNotification _instance;
   static NowPlayingNotification getInstance() {
-    if (_instance == null) {
-      _instance = NowPlayingNotification._();
-    }
+    _instance ??= NowPlayingNotification._();
     return _instance;
   }
 

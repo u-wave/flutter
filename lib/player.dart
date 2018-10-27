@@ -97,9 +97,7 @@ class Player {
 
   static Player _instance;
   static Player getInstance() {
-    if (_instance == null) {
-      _instance = Player._();
-    }
+    _instance ??= Player._();
     return _instance;
   }
 

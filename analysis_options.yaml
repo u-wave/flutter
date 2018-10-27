@@ -43,3 +43,4 @@ linter:
     - unnecessary_parenthesis
     - unnecessary_statements
     - unnecessary_this
+    - prefer_conditional_assignment

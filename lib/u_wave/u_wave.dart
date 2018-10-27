@@ -73,9 +73,7 @@ class ChatMessage {
   ChatMessage({this.id, this.user, this.message, this.timestamp});
 
   List<MarkupNode> _getParsed() {
-    if (_parsed == null) {
-      _parsed = MarkupParser(source: message).parse();
-    }
+    _parsed ??= MarkupParser(source: message).parse();
     return _parsed;
   }
 
@@ -253,7 +251,7 @@ class UwaveClient {
   }
 
   Future<UwaveNowState> init({UwaveCredentials credentials}) async {
-    if (credentials == null) credentials = _activeCredentials;
+    credentials ??= _activeCredentials;
 
     _initSocket();
 
