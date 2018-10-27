@@ -243,7 +243,7 @@ class UwaveClient {
     _ws.init();
     _ws.stream.listen((message) {
       final decoded = json.decode(message);
-      this._onMessage(_SocketMessage.fromJson(decoded));
+      _onMessage(_SocketMessage.fromJson(decoded));
     });
   }
 
@@ -372,24 +372,24 @@ class UwaveClient {
   void _onMessage(message) {
     if (message.command == 'chatMessage') {
       final chat = ChatMessage.fromJson(message.data, users: _knownUsers, serverTime: _serverTime);
-      this._chatMessagesController.add(chat);
+      _chatMessagesController.add(chat);
     } else if (message.command == 'advance') {
       final advance = AdvanceMessage.fromJson(message.data, users: _knownUsers, serverTime: _serverTime);
-      this._advanceController.add(advance.entry);
+      _advanceController.add(advance.entry);
     } else if (message.command == 'join') {
       final join = UserJoinMessage.fromJson(message.data);
-      this._knownUsers[join.user.id] = join.user;
-      this._eventsController.add(join);
+      _knownUsers[join.user.id] = join.user;
+      _eventsController.add(join);
     } else if (message.command == 'leave') {
       final leave = UserLeaveMessage.fromJson(message.data, users: _knownUsers);
-      // this._knownUsers.remove(leave.id);
-      this._eventsController.add(leave);
+      // _knownUsers.remove(leave.id);
+      _eventsController.add(leave);
     } else if (message.command == 'vote') {
       final vote = VoteMessage.fromJson(message.data, users: _knownUsers);
-      this._eventsController.add(vote);
+      _eventsController.add(vote);
     } else if (message.command == 'favorite') {
       final vote = FavoriteMessage.fromJson(message.data, users: _knownUsers);
-      this._eventsController.add(vote);
+      _eventsController.add(vote);
     }
   }
 
