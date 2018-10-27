@@ -1,4 +1,6 @@
 analyzer:
+  strong-mode:
+    implicit-casts: false
   errors:
     # treat missing required parameters as a warning (not a hint)
     missing_required_param: warning
@@ -18,6 +20,7 @@ linter:
     - avoid_void_async
     - await_only_futures
     - cancel_subscriptions
+    - close_sinks
     - prefer_asserts_in_initializer_lists
     - prefer_collection_literals
     - prefer_const_constructors

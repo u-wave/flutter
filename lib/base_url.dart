@@ -6,7 +6,7 @@ class BaseUrl extends InheritedWidget {
   const BaseUrl({Key key, this.url, Widget child}) : super(key: key, child: child);
 
   static BaseUrl of(BuildContext context) {
-    return context.inheritFromWidgetOfExactType(BaseUrl);
+    return context.inheritFromWidgetOfExactType(BaseUrl) as BaseUrl;
   }
 
   @override

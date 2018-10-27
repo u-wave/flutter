@@ -26,7 +26,7 @@ class _SignInRouteState extends State<SignInRoute> {
       widget.onComplete(creds);
     }).catchError((err) {
       // TODO render this
-      debugPrint(err);
+      debugPrint(err.toString());
     });
   }
 

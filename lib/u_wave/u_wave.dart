@@ -50,7 +50,7 @@ class _SocketMessage {
 
   factory _SocketMessage.fromJson(Map<String, dynamic> json) {
     return _SocketMessage(
-      command: json['command'],
+      command: json['command'] as String,
       data: json['data'],
     );
   }
@@ -79,11 +79,11 @@ class ChatMessage {
 
   factory ChatMessage.fromJson(Map<String, dynamic> json, {Map<String, User> users, _TimeSynchronizer serverTime}) {
     return ChatMessage(
-      id: json['id'],
-      user: users != null ? users[json['userID']] : null,
-      message: json['message'],
+      id: json['id'] as String,
+      user: users != null ? users[json['userID'] as String] : null,
+      message: json['message'] as String,
       timestamp: serverTime.toLocal(
-          DateTime.fromMillisecondsSinceEpoch(json['timestamp'])),
+          DateTime.fromMillisecondsSinceEpoch(json['timestamp'] as int)),
     );
   }
 }
@@ -101,16 +101,16 @@ class AdvanceMessage {
     }
 
     final entry = HistoryEntry(
-      id: json['historyID'],
-      userID: json['userID'],
-      user: users != null ? users[json['userID']] : null,
-      media: Media.fromJson(json['media']['media']),
-      artist: json['media']['artist'],
-      title: json['media']['title'],
-      start: json['media']['start'],
-      end: json['media']['end'],
+      id: json['historyID'] as String,
+      userID: json['userID'] as String,
+      user: users != null ? users[json['userID'] as String] : null,
+      media: Media.fromJson(json['media']['media'] as Map<String, dynamic>),
+      artist: json['media']['artist'] as String,
+      title: json['media']['title'] as String,
+      start: json['media']['start'] as int,
+      end: json['media']['end'] as int,
       timestamp: serverTime.toLocal(
-          DateTime.fromMillisecondsSinceEpoch(json['playedAt'])),
+          DateTime.fromMillisecondsSinceEpoch(json['playedAt'] as int)),
     );
     return AdvanceMessage(entry: entry);
   }
@@ -151,8 +151,8 @@ class VoteMessage {
 
   factory VoteMessage.fromJson(Map<String, dynamic> json, {Map<String, User> users}) {
     return VoteMessage(
-      direction: json['value'],
-      user: users != null ? users[json['_id']] : null,
+      direction: json['value'] as int,
+      user: users != null ? users[json['_id'] as String] : null,
     );
   }
 }
@@ -164,7 +164,7 @@ class FavoriteMessage {
 
   factory FavoriteMessage.fromJson(Map<String, dynamic> json, {Map<String, User> users}) {
     return FavoriteMessage(
-      user: users != null ? users[json['userID']] : null,
+      user: users != null ? users[json['userID'] as String] : null,
     );
   }
 }
@@ -193,7 +193,7 @@ class UwaveCredentials {
   }
 
   factory UwaveCredentials.deserialize(String serialized) {
-    final creds = Map<String, String>.from(json.decode(serialized));
+    final creds = Map<String, String>.from(json.decode(serialized) as Map<String, dynamic>);
     return UwaveCredentials(
       email: creds['email'],
       password: creds['password'],
@@ -240,7 +240,7 @@ class UwaveClient {
   void _initSocket() {
     _ws.init();
     _ws.stream.listen((message) {
-      final decoded = json.decode(message);
+      final Map<String, dynamic> decoded = json.decode(message);
       _onMessage(_SocketMessage.fromJson(decoded));
     });
   }
@@ -264,7 +264,7 @@ class UwaveClient {
     }
 
     final response = await _client.get('$apiUrl/now', headers: headers);
-    final nowJson = json.decode(response.body);
+    final Map<String, dynamic> nowJson = json.decode(response.body);
     final state = UwaveNowState.fromJson(nowJson);
 
     _serverTime.serverTime = state.serverTime;
@@ -281,7 +281,7 @@ class UwaveClient {
       _loggedInUser = state.currentUser;
     }
     if (nowJson['socketToken'] is String) {
-      _sendSocketToken(nowJson['socketToken']);
+      _sendSocketToken(nowJson['socketToken'] as String);
     }
 
     if (credentials != null && !credentials.hasToken) {
@@ -358,9 +358,9 @@ class UwaveClient {
 
     final authJson = json.decode(response.body);
     _activeCredentials = UwaveCredentials(
-      token: authJson['meta']['jwt'],
+      token: authJson['meta']['jwt'] as String,
     );
-    _loggedInUser = User.fromJson(authJson['data']);
+    _loggedInUser = User.fromJson(authJson['data'] as Map<String, dynamic>);
 
     _authenticateSocket();
 
@@ -369,24 +369,24 @@ class UwaveClient {
 
   void _onMessage(message) {
     if (message.command == 'chatMessage') {
-      final chat = ChatMessage.fromJson(message.data, users: _knownUsers, serverTime: _serverTime);
+      final chat = ChatMessage.fromJson(message.data as Map<String, dynamic>, users: _knownUsers, serverTime: _serverTime);
       _chatMessagesController.add(chat);
     } else if (message.command == 'advance') {
-      final advance = AdvanceMessage.fromJson(message.data, users: _knownUsers, serverTime: _serverTime);
+      final advance = AdvanceMessage.fromJson(message.data as Map<String, dynamic>, users: _knownUsers, serverTime: _serverTime);
       _advanceController.add(advance.entry);
     } else if (message.command == 'join') {
-      final join = UserJoinMessage.fromJson(message.data);
+      final join = UserJoinMessage.fromJson(message.data as Map<String, dynamic>);
       _knownUsers[join.user.id] = join.user;
       _eventsController.add(join);
     } else if (message.command == 'leave') {
-      final leave = UserLeaveMessage.fromJson(message.data, users: _knownUsers);
+      final leave = UserLeaveMessage.fromJson(message.data as Map<String, dynamic>, users: _knownUsers);
       // _knownUsers.remove(leave.id);
       _eventsController.add(leave);
     } else if (message.command == 'vote') {
-      final vote = VoteMessage.fromJson(message.data, users: _knownUsers);
+      final vote = VoteMessage.fromJson(message.data as Map<String, dynamic>, users: _knownUsers);
       _eventsController.add(vote);
     } else if (message.command == 'favorite') {
-      final vote = FavoriteMessage.fromJson(message.data, users: _knownUsers);
+      final vote = FavoriteMessage.fromJson(message.data as Map<String, dynamic>, users: _knownUsers);
       _eventsController.add(vote);
     }
   }
@@ -423,25 +423,25 @@ class UwaveNowState {
     final Map<String, User> users = {};
 
     json['users']
-      .map<User>((u) => User.fromJson(u))
-      .forEach((user) {
+      .map<User>((Map<String, dynamic> u) => User.fromJson(u))
+      .forEach((User user) {
         users[user.id] = user;
       });
 
-    final serverTime = DateTime.fromMillisecondsSinceEpoch(json['time']);
+    final serverTime = DateTime.fromMillisecondsSinceEpoch(json['time'] as int);
     final tempSyncher = _TimeSynchronizer();
     tempSyncher.serverTime = serverTime;
 
     return UwaveNowState(
-      motd: json['motd'],
+      motd: json['motd'] as String,
       users: users,
       currentUser: json['user'] != null
-        ? User.fromJson(json['user'])
+        ? User.fromJson(json['user'] as Map<String, dynamic>)
         : null,
       currentEntry: json['booth'] != null
-        ? HistoryEntry.fromJson(json['booth'], users: users, serverTime: tempSyncher)
+        ? HistoryEntry.fromJson(json['booth'] as Map<String, dynamic>, users: users, serverTime: tempSyncher)
         : null,
-      waitlist: json['waitlist'].cast<String>().toList(),
+      waitlist: json['waitlist'].cast<String>().toList() as List<String>,
       serverTime: serverTime,
     );
   }
@@ -457,10 +457,10 @@ class User {
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['_id'],
-      username: json['username'],
-      avatarUrl: json['avatar'],
-      roles: json['roles'].cast<String>(),
+      id: json['_id'] as String,
+      username: json['username'] as String,
+      avatarUrl: json['avatar'] as String,
+      roles: json['roles'].cast<String>().toList() as List<String>,
     );
   }
 }
@@ -487,14 +487,14 @@ class Media {
 
   factory Media.fromJson(Map<String, dynamic> json) {
     return Media(
-      id: json['_id'],
-      sourceType: json['sourceType'],
-      sourceID: json['sourceID'],
-      artist: json['artist'],
-      title: json['title'],
-      thumbnailUrl: json['thumbnail'],
-      duration: json['duration'],
-      sourceData: json['sourceData'],
+      id: json['_id'] as String,
+      sourceType: json['sourceType'] as String,
+      sourceID: json['sourceID'] as String,
+      artist: json['artist'] as String,
+      title: json['title'] as String,
+      thumbnailUrl: json['thumbnail'] as String,
+      duration: json['duration'] as int,
+      sourceData: json['sourceData'] as Map<String, dynamic>,
     );
   }
 }
@@ -512,14 +512,14 @@ class PlaylistItem {
 
   factory PlaylistItem.fromJson(Map<String, dynamic> json, {Map<String, Media> medias}) {
     return PlaylistItem(
-      id: json['_id'],
+      id: json['_id'] as String,
       media: json['media'] is String
-        ? (medias != null ? medias[json['media']] : null)
-        : Media.fromJson(json['media']),
-      artist: json['artist'],
-      title: json['title'],
-      start: json['start'],
-      end: json['end'],
+        ? (medias != null ? medias[json['media'] as String] : null)
+        : Media.fromJson(json['media'] as Map<String, dynamic>),
+      artist: json['artist'] as String,
+      title: json['title'] as String,
+      start: json['start'] as int,
+      end: json['end'] as int,
     );
   }
 }
@@ -533,9 +533,9 @@ class Playlist {
 
   factory Playlist.fromJson(Map<String, dynamic> json) {
     return Playlist(
-      id: json['_id'],
-      name: json['name'],
-      size: json['size'],
+      id: json['_id'] as String,
+      name: json['name'] as String,
+      size: json['size'] as int,
     );
   }
 }
@@ -556,19 +556,19 @@ class HistoryEntry {
 
   factory HistoryEntry.fromJson(Map<String, dynamic> json, {Map<String, Media> medias, Map<String, User> users, _TimeSynchronizer serverTime}) {
     return HistoryEntry(
-      id: json['_id'],
-      userID: json['user'],
+      id: json['_id'] as String,
+      userID: json['user'] as String,
       user: users != null ? users[json['user']] : null,
       media: json['media']['media'] is String
-        ? (medias != null ? medias[json['media']['media']] : null)
-        : Media.fromJson(json['media']['media']),
-      artist: json['media']['artist'],
-      title: json['media']['title'],
-      start: json['media']['start'],
-      end: json['media']['end'],
+        ? (medias != null ? medias[json['media']['media'] as String] : null)
+        : Media.fromJson(json['media']['media'] as Map<String, dynamic>),
+      artist: json['media']['artist'] as String,
+      title: json['media']['title'] as String,
+      start: json['media']['start'] as int,
+      end: json['media']['end'] as int,
       timestamp: serverTime.toLocal(json['playedAt'] is int
-          ? DateTime.fromMillisecondsSinceEpoch(json['playedAt'])
-          : DateTime.parse(json['playedAt'])),
+          ? DateTime.fromMillisecondsSinceEpoch(json['playedAt'] as int)
+          : DateTime.parse(json['playedAt'] as String)),
     );
   }
 }

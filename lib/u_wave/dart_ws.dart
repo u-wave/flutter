@@ -17,7 +17,7 @@ class DartWebSocket extends WebSocket {
       _channel.stream.expand((message) {
         _restartDisconnectTimer();
         if (message == '-') return <String>[];
-        return [message];
+        return [message as String];
       });
   @override
   EventSink get sink => _channel.sink;

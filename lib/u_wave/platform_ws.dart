@@ -16,7 +16,7 @@ class PlatformWebSocket extends WebSocket {
         debugPrint('[PlatformWebSocket] $message');
         if (message == '+open') return <String>[];
         if (message == '+close') return <String>[];
-        return [message];
+        return [message as String];
       });
   @override
   EventSink get sink => _PlatformWebSocketSink();
