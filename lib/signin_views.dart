@@ -8,7 +8,7 @@ class SignInRoute extends StatefulWidget {
   final UwaveClient uwave;
   final SignInCallback onComplete;
 
-  SignInRoute({this.server, this.uwave, this.onComplete})
+  const SignInRoute({this.server, this.uwave, this.onComplete})
       : assert(server != null),
         assert(uwave != null),
         assert(onComplete != null);
@@ -24,9 +24,9 @@ class _SignInRouteState extends State<SignInRoute> {
       password: password,
     ).then((creds) {
       widget.onComplete(creds);
-    }).catchError((err) {
+    }).catchError((dynamic err) {
       // TODO render this
-      debugPrint(err);
+      debugPrint(err.toString());
     });
   }
 
@@ -55,7 +55,7 @@ class _SignInRouteState extends State<SignInRoute> {
               ),
 
               _SignInForm(onSubmit: _signIn),
-              Divider(),
+              const Divider(),
               _RegisterForm(onSubmit: _register),
             ],
           ),
@@ -69,7 +69,7 @@ typedef _SignInFormCallback = void Function(String, String);
 class _SignInForm extends StatefulWidget {
   final _SignInFormCallback onSubmit;
 
-  _SignInForm({this.onSubmit}) : assert(onSubmit != null);
+  const _SignInForm({this.onSubmit}) : assert(onSubmit != null);
 
   @override
   _SignInFormState createState() => _SignInFormState();
@@ -93,7 +93,7 @@ class _SignInFormState extends State<_SignInForm> {
         controller: _emailController,
         decoration: const InputDecoration(
           labelText: 'Email',
-          suffixIcon: const Icon(Icons.email),
+          suffixIcon: Icon(Icons.email),
         ),
         keyboardType: TextInputType.emailAddress,
       ),
@@ -104,7 +104,7 @@ class _SignInFormState extends State<_SignInForm> {
         controller: _passwordController,
         decoration: const InputDecoration(
           labelText: 'Password',
-          suffixIcon: const Icon(Icons.lock),
+          suffixIcon: Icon(Icons.lock),
         ),
         obscureText: true,
       ),
@@ -115,7 +115,7 @@ class _SignInFormState extends State<_SignInForm> {
         Expanded(
           child: RaisedButton(
             color: Theme.of(context).primaryColor,
-            child: Text('Sign In'),
+            child: const Text('Sign In'),
             onPressed: _submit,
           ),
         ),
@@ -136,7 +136,7 @@ typedef _RegisterFormCallback = void Function(String, String, String);
 class _RegisterForm extends StatefulWidget {
   final _RegisterFormCallback onSubmit;
 
-  _RegisterForm({this.onSubmit}) : assert(onSubmit != null);
+  const _RegisterForm({this.onSubmit}) : assert(onSubmit != null);
 
   @override
   _RegisterFormState createState() => _RegisterFormState();
@@ -162,7 +162,7 @@ class _RegisterFormState extends State<_RegisterForm> {
         controller: _usernameController,
         decoration: const InputDecoration(
           labelText: 'Username',
-          suffixIcon: const Icon(Icons.person),
+          suffixIcon: Icon(Icons.person),
         ),
       ),
     );
@@ -172,7 +172,7 @@ class _RegisterFormState extends State<_RegisterForm> {
         controller: _emailController,
         decoration: const InputDecoration(
           labelText: 'Email',
-          suffixIcon: const Icon(Icons.email),
+          suffixIcon: Icon(Icons.email),
         ),
         keyboardType: TextInputType.emailAddress,
       ),
@@ -183,7 +183,7 @@ class _RegisterFormState extends State<_RegisterForm> {
         controller: _passwordController,
         decoration: const InputDecoration(
           labelText: 'Password',
-          suffixIcon: const Icon(Icons.lock),
+          suffixIcon: Icon(Icons.lock),
         ),
         obscureText: true,
       ),
@@ -194,7 +194,7 @@ class _RegisterFormState extends State<_RegisterForm> {
         Expanded(
           child: RaisedButton(
             color: Theme.of(context).primaryColor,
-            child: Text('Register'),
+            child: const Text('Register'),
             onPressed: _submit,
           ),
         ),
@@ -215,7 +215,7 @@ class _RegisterFormState extends State<_RegisterForm> {
 class StyledField extends StatelessWidget {
   final Widget child;
 
-  StyledField({this.child}) : assert(child != null);
+  const StyledField({this.child}) : assert(child != null);
 
   @override
   Widget build(BuildContext context) {
@@ -230,15 +230,15 @@ class StyledField extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16.0),
-      decoration: BoxDecoration(
-        color: const Color(0xFF383838),
+      decoration: const BoxDecoration(
+        color: Color(0xFF383838),
         border: border,
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Theme(
           data: Theme.of(context).copyWith(
-            inputDecorationTheme: InputDecorationTheme(
+            inputDecorationTheme: const InputDecorationTheme(
               border: InputBorder.none,
             ),
           ),

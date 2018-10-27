@@ -12,7 +12,7 @@ Text _getPlaybackValue(PlaybackType type) {
 }
 
 class PlaybackSettingsRoute extends StatefulWidget {
-  PlaybackSettingsRoute();
+  const PlaybackSettingsRoute();
 
   @override
   _PlaybackSettingsRouteState createState() => _PlaybackSettingsRouteState();
@@ -100,10 +100,11 @@ class _PlaybackTypesDialog extends StatelessWidget {
   final Widget title;
   final PlaybackType value;
 
-  _PlaybackTypesDialog({this.onSelect, this.title, this.value})
+  const _PlaybackTypesDialog({Key key, this.onSelect, this.title, this.value})
       : assert(onSelect != null),
         assert(title != null),
-        assert(value != null);
+        assert(value != null),
+        super(key: key);
 
   @override
   Widget build(_) {

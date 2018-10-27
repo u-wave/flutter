@@ -18,14 +18,12 @@ class NowPlayingNotification {
   }
 
   StreamSubscription<Duration> _progressSubscription;
-  StreamController<String> _intents = StreamController.broadcast();
+  final StreamController<String> _intents = StreamController.broadcast();
   Stream<String> get onIntent => _intents.stream;
 
   static NowPlayingNotification _instance;
   static NowPlayingNotification getInstance() {
-    if (_instance == null) {
-      _instance = NowPlayingNotification._();
-    }
+    _instance ??= NowPlayingNotification._();
     return _instance;
   }
 

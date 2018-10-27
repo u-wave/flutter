@@ -3,20 +3,27 @@ import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/services.dart' show EventChannel, MethodChannel;
 import './ws.dart' show WebSocket;
 
-final _eventChannel = EventChannel('u-wave.net/websocket-events');
-final _methodChannel = MethodChannel('u-wave.net/websocket');
+const _eventChannel = EventChannel('u-wave.net/websocket-events');
+const _methodChannel = MethodChannel('u-wave.net/websocket');
+
+const _NO_MESSAGE = <String>[];
 
 class PlatformWebSocket extends WebSocket {
   final String _socketUrl;
   Stream<dynamic> _stream;
 
+  @override
   Stream<String> get stream =>
-      _stream.expand((message) {
-        debugPrint('[PlatformWebSocket] $message');
-        if (message == '+open') return <String>[];
-        if (message == '+close') return <String>[];
-        return [message];
+      _stream.expand((dynamic message) {
+        if (message is String) {
+          debugPrint('[PlatformWebSocket] $message');
+          if (message == '+open') return _NO_MESSAGE;
+          if (message == '+close') return _NO_MESSAGE;
+          return [message];
+        }
+        return _NO_MESSAGE;
       });
+  @override
   EventSink get sink => _PlatformWebSocketSink();
 
   PlatformWebSocket(String socketUrl)
@@ -25,18 +32,23 @@ class PlatformWebSocket extends WebSocket {
     _stream = _eventChannel.receiveBroadcastStream(_socketUrl);
   }
 
+  @override
   void init() {}
 
-  Future<Null> reconnect() async {}
+  @override
+  Future<void> reconnect() async {}
 }
 
 class _PlatformWebSocketSink extends EventSink<String> {
+  @override
   void add(String event) {
     _methodChannel.invokeMethod('send', event);
   }
+  @override
   void close() {
     _methodChannel.invokeMethod('close', null);
   }
+  @override
   void addError(Object error, [StackTrace stackTrace]) {
     throw '_PlatformWebSocketSink#addError is not implemented';
   }

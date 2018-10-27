@@ -13,7 +13,7 @@ class UwaveServerList extends StatefulWidget {
   /// Listening state manager.
   final ListenStore listenStore;
 
-  UwaveServerList({Key key, this.title, this.onJoin, this.listenStore})
+  const UwaveServerList({Key key, this.title, this.onJoin, this.listenStore})
       : assert(title != null),
         assert(onJoin != null),
         assert(listenStore != null),
@@ -49,6 +49,7 @@ class _UwaveServerListState extends State<UwaveServerList> {
     });
   }
 
+  @override
   void reassemble() {
     super.reassemble();
     _client.fetchServers();
@@ -102,7 +103,7 @@ class CurrentServer extends StatelessWidget {
   /// Called when the "Disconnect" button is tapped.
   final VoidCallback onDisconnect;
 
-  CurrentServer({this.server, this.onOpen, this.onDisconnect})
+  const CurrentServer({this.server, this.onOpen, this.onDisconnect})
       : assert(server != null),
         assert(onOpen != null),
         assert(onDisconnect != null);
@@ -130,7 +131,7 @@ class ServerCard extends StatelessWidget {
   /// Called when the server card is tapped, indicating that the user wants to join this server.
   final VoidCallback onJoin;
 
-  ServerCard({this.server, this.onJoin})
+  const ServerCard({this.server, this.onJoin})
       : assert(server != null),
         assert(onJoin != null);
 
@@ -144,7 +145,7 @@ class ServerCard extends StatelessWidget {
     if (server.currentMedia != null) {
       thumbnail.add(
         Container(
-          color: Color(0x77000000),
+          color: const Color(0x77000000),
           child: ListTile(
             title: Text(server.currentMedia.title),
             subtitle: Text(server.currentMedia.artist),
@@ -154,7 +155,7 @@ class ServerCard extends StatelessWidget {
     }
 
     final onShowServer = () {
-      Navigator.push(context, MaterialPageRoute(
+      Navigator.push<DescriptionPage>(context, MaterialPageRoute<DescriptionPage>(
         builder: (_) {
           return DescriptionPage(server: server);
         },
@@ -187,7 +188,7 @@ class ServerThumbnail extends StatelessWidget {
   /// The server to show.
   final UwaveServer server;
 
-  ServerThumbnail({this.server})
+  const ServerThumbnail({this.server})
       : assert(server != null);
 
   @override
@@ -197,7 +198,7 @@ class ServerThumbnail extends StatelessWidget {
       child: AspectRatio(
         aspectRatio: 16 / 9,
         child: Container(
-          color: Color(0xFF000000),
+          color: const Color(0xFF000000),
           child: server.currentMedia != null
             ? Center(
                 child: Image.network(server.currentMedia.thumbnailUrl),
@@ -213,7 +214,7 @@ class DescriptionPage extends StatelessWidget {
   /// The server to show a description for.
   final UwaveServer server;
 
-  DescriptionPage({this.server})
+  const DescriptionPage({this.server})
       : assert(server != null);
 
   @override

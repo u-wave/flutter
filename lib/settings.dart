@@ -8,11 +8,12 @@ enum PlaybackType {
   both,
 }
 
+@immutable
 class SettingUpdate {
   final String name;
   final dynamic value;
 
-  SettingUpdate(this.name, this.value)
+  const SettingUpdate(this.name, this.value)
       : assert(name != null);
 }
 
@@ -57,7 +58,7 @@ class Settings {
   String get maxAudioBitrateData => _prefs.getString('audioBitrateData') ?? _DEFAULT_MAX_AUDIO_DATA;
 
   PlaybackType get playbackType {
-    int index = _prefs.getInt('playbackType');
+    final index = _prefs.getInt('playbackType');
     if (index == null) return _DEFAULT_PLAYBACK_TYPE;
     return PlaybackType.values[index];
   }
@@ -73,7 +74,7 @@ class Settings {
   }
 
   PlaybackType get playbackTypeData {
-    int index = _prefs.getInt('playbackTypeData');
+    final index = _prefs.getInt('playbackTypeData');
     if (index == null) return _DEFAULT_PLAYBACK_TYPE_DATA;
     return PlaybackType.values[index];
   }
@@ -88,7 +89,7 @@ class UwaveSettings extends StatefulWidget {
   final Settings settings;
   final Widget child;
 
-  UwaveSettings({this.settings, this.child});
+  const UwaveSettings({this.settings, this.child});
 
   @override
   _UwaveSettingsState createState() => _UwaveSettingsState();
@@ -133,10 +134,12 @@ class _UwaveSettingsProvider extends InheritedWidget {
   final Settings settings;
   final int id;
 
-  _UwaveSettingsProvider({Key key, Widget child, this.id, this.settings}) : super(key: key, child: child);
+  const _UwaveSettingsProvider({Key key, Widget child, this.id, this.settings})
+      : assert(settings != null),
+        super(key: key, child: child);
 
   static _UwaveSettingsProvider of(BuildContext context) {
-    return context.inheritFromWidgetOfExactType(_UwaveSettingsProvider);
+    return context.inheritFromWidgetOfExactType(_UwaveSettingsProvider) as _UwaveSettingsProvider;
   }
 
   @override

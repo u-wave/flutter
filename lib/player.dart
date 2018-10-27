@@ -19,11 +19,11 @@ Future<String> _download(Map<String, String> headers) async {
   return response.body;
 }
 
-final _channel = MethodChannel('u-wave.net/player')
+final _channel = const MethodChannel('u-wave.net/player')
   ..setMethodCallHandler((methodCall) async {
     switch (methodCall.method) {
       case 'download':
-        return await _download(Map<String, String>.from(methodCall.arguments));
+        return await _download(methodCall.arguments as Map<String, String>);
       default:
         throw MissingPluginException('Unknown method ${methodCall.method}');
     }
@@ -87,7 +87,7 @@ String _getNewPipeSourceURL(Media media) {
     return 'https://youtube.com/watch?v=${media.sourceID}';
   }
   if (media.sourceType == 'soundcloud') {
-    return media.sourceData['permalinkUrl'] ?? 'https://api.soundcloud.com/tracks/${media.sourceID}';
+    return media.sourceData['permalinkUrl'] as String ?? 'https://api.soundcloud.com/tracks/${media.sourceID}';
   }
   return null;
 }
@@ -97,9 +97,7 @@ class Player {
 
   static Player _instance;
   static Player getInstance() {
-    if (_instance == null) {
-      _instance = Player._();
-    }
+    _instance ??= Player._();
     return _instance;
   }
 
@@ -142,7 +140,7 @@ class Player {
     );
   }
 
-  Future<Null> setPlaybackType(PlaybackType playbackType) async {
+  Future<void> setPlaybackType(PlaybackType playbackType) async {
     await _channel.invokeMethod('setPlaybackType', playbackType.index);
   }
 

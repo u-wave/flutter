@@ -5,7 +5,7 @@ import './listen.dart' show UwaveListen;
 import './settings.dart' show Settings, UwaveSettings;
 import './listen_store.dart' show ListenStore;
 
-void main() async {
+Future<void> main() async {
   final settings = await Settings.load();
   final listenStore = ListenStore(settings: settings);
 
@@ -20,7 +20,9 @@ void main() async {
 class UwaveApp extends StatelessWidget {
   final ListenStore listenStore;
 
-  UwaveApp({this.listenStore}) : assert(listenStore != null);
+  const UwaveApp({Key key, this.listenStore})
+      : assert(listenStore != null),
+        super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -28,8 +30,8 @@ class UwaveApp extends StatelessWidget {
       title: 'üWave',
       theme: ThemeData(
         brightness: Brightness.dark,
-        primaryColor: Color(0xFF9D2053),
-        accentColor: Color(0xFFB20062),
+        primaryColor: const Color(0xFF9D2053),
+        accentColor: const Color(0xFFB20062),
       ),
       home: UwaveServerList(
         title: 'Public üWave Servers',
@@ -40,7 +42,7 @@ class UwaveApp extends StatelessWidget {
   }
 
   void _listen(BuildContext context, UwaveServer server) {
-    Navigator.push(context, MaterialPageRoute(
+    Navigator.push<UwaveListen>(context, MaterialPageRoute<UwaveListen>(
       maintainState: false,
       builder: (context) => UwaveListen(
         server: server,

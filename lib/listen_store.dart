@@ -8,7 +8,7 @@ import './settings.dart' show Settings, SettingUpdate, PlaybackType;
 import './notification.dart' show NowPlayingNotification;
 import './player.dart' show Player, PlaybackSettings;
 
-bool _isChatVisibleEvent(message) {
+bool _isChatVisibleEvent(dynamic message) {
   return message is UserJoinMessage ||
       message is UserLeaveMessage;
 }
@@ -69,10 +69,10 @@ class ListenStore {
   StreamSubscription<SettingUpdate> _settingsSubscription;
   StreamSubscription<String> _notificationSubscription;
 
-  StreamController<Null> _update = StreamController.broadcast();
-  Stream<Null> get onUpdate => _update.stream;
+  final StreamController<void> _update = StreamController.broadcast();
+  Stream<void> get onUpdate => _update.stream;
 
-  List<dynamic> chatHistory = [];
+  final chatHistory = <dynamic>[];
 
   bool get isPlaying => _playing != null;
   HistoryEntry get currentEntry => _playing;
@@ -82,6 +82,8 @@ class ListenStore {
   User get currentUser => _client.currentUser;
   UwaveServer get server => _server;
   UwaveClient get uwaveClient => _client;
+  bool get shouldShowVoteButtons => isPlaying && isSignedIn &&
+      _playing.user != null && _playing.user.id != currentUser.id;
 
   ListenStore({Settings settings}) : assert(settings != null) {
     _settings = settings;
@@ -92,7 +94,7 @@ class ListenStore {
   /// Connect to a server.
   ///
   /// This tries to authenticate with saved credentials, and starts playback.
-  Future<Null> connect(UwaveServer server) async {
+  Future<void> connect(UwaveServer server) async {
     if (_server == server) {
       // Connecting to the current server doesn't do anything.
       return;
@@ -154,7 +156,7 @@ class ListenStore {
       _emitUpdate();
     });
 
-    _eventsSubscription = _client.events.listen((message) {
+    _eventsSubscription = _client.events.listen((dynamic message) {
       if (_isChatVisibleEvent(message)) {
         chatHistory.add(message);
         _emitUpdate();
@@ -233,7 +235,7 @@ class ListenStore {
   }
 
   /// Start playing a history entry.
-  Future<Null> play(HistoryEntry entry) async {
+  Future<void> play(HistoryEntry entry) async {
     final player = Player.getInstance();
     final notification = NowPlayingNotification.getInstance();
     final playbackSettings = await player.play(entry, _playbackType);
@@ -254,13 +256,12 @@ class ListenStore {
       title: entry.title,
       duration: entry.end - entry.start,
       progress: playbackSettings.onProgress,
-      showVoteButtons: entry.user != null && _client.currentUser != null &&
-        entry.user.id != _client.currentUser.id,
+      showVoteButtons: shouldShowVoteButtons,
     );
   }
 
   /// Stop playing.
-  stop() {
+  void stop() {
     _log('Stopping playback');
     Player.getInstance()
       ..stop();
@@ -270,7 +271,7 @@ class ListenStore {
     _emitUpdate();
   }
 
-  void saveCredentials(UwaveCredentials creds) async {
+  Future<void> saveCredentials(UwaveCredentials creds) async {
     assert(creds != null);
     final key = _server.publicKey;
     await _storage.write(

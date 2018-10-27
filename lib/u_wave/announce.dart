@@ -10,7 +10,7 @@ class UwaveAnnounceClient {
   final Map<String, UwaveServer> _servers = {};
   StreamSubscription<MessageEvent> _events;
 
-  StreamController<Map<String, UwaveServer>> _onUpdate = StreamController.broadcast();
+  final StreamController<Map<String, UwaveServer>> _onUpdate = StreamController.broadcast();
   Stream<Map<String, UwaveServer>> get onUpdate => _onUpdate.stream;
   Iterable<UwaveServer> get servers => _servers.values;
 
@@ -33,22 +33,22 @@ class UwaveAnnounceClient {
   }
 
   void _onEvent(String data) {
-    final server = UwaveServer.fromJson(json.decode(data));
+    final server = UwaveServer.fromJson(json.decode(data) as Map<String, dynamic>);
     _servers[server.publicKey] = server;
     _updated();
   }
 
   Future<List<UwaveServer>> fetchServers() async {
     final response = await http.get(_url);
-    final parsed = json.decode(response.body);
-    final list = parsed['servers']
-        .cast<Map<String, Object>>()
-        .map<UwaveServer>((json) => UwaveServer.fromJson(json))
+    final Map<String, dynamic> parsed = json.decode(response.body);
+    final List<UwaveServer> list = parsed['servers']
+        .cast<Map<String, dynamic>>()
+        .map<UwaveServer>((Map<String, dynamic> json) => UwaveServer.fromJson(json))
         .toList();
 
-    list.forEach((server) {
+    for (final server in list) {
       _servers[server.publicKey] = server;
-    });
+    }
 
     _updated();
 
@@ -84,14 +84,16 @@ class UwaveServer {
 
   factory UwaveServer.fromJson(Map<String, dynamic> json) {
     return UwaveServer(
-      publicKey: json['publicKey'],
-      name: json['name'],
-      subtitle: json['subtitle'],
-      description: json['description'],
-      url: json['url'],
-      apiUrl: json['apiUrl'],
-      socketUrl: json['socketUrl'],
-      currentMedia: json['booth'] != null ? CurrentMedia.fromJson(json['booth']) : null,
+      publicKey: json['publicKey'] as String,
+      name: json['name'] as String,
+      subtitle: json['subtitle'] as String,
+      description: json['description'] as String,
+      url: json['url'] as String,
+      apiUrl: json['apiUrl'] as String,
+      socketUrl: json['socketUrl'] as String,
+      currentMedia: json['booth'] != null
+        ? CurrentMedia.fromJson(json['booth'] as Map<String, dynamic>)
+        : null,
     );
   }
 }
@@ -109,9 +111,9 @@ class CurrentMedia {
 
   factory CurrentMedia.fromJson(Map<String, dynamic> json) {
     return CurrentMedia(
-      artist: json['media']['artist'],
-      title: json['media']['title'],
-      thumbnailUrl: json['media']['thumbnail'],
+      artist: json['media']['artist'] as String,
+      title: json['media']['title'] as String,
+      thumbnailUrl: json['media']['thumbnail'] as String,
     );
   }
 }
