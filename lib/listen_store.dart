@@ -261,7 +261,7 @@ class ListenStore {
   }
 
   /// Stop playing.
-  stop() {
+  void stop() {
     _log('Stopping playback');
     Player.getInstance()
       ..stop();
