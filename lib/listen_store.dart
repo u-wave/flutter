@@ -69,7 +69,7 @@ class ListenStore {
   StreamSubscription<SettingUpdate> _settingsSubscription;
   StreamSubscription<String> _notificationSubscription;
 
-  StreamController<Null> _update = StreamController.broadcast();
+  final StreamController<Null> _update = StreamController.broadcast();
   Stream<Null> get onUpdate => _update.stream;
 
   List<dynamic> chatHistory = [];

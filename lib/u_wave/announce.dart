@@ -10,7 +10,7 @@ class UwaveAnnounceClient {
   final Map<String, UwaveServer> _servers = {};
   StreamSubscription<MessageEvent> _events;
 
-  StreamController<Map<String, UwaveServer>> _onUpdate = StreamController.broadcast();
+  final StreamController<Map<String, UwaveServer>> _onUpdate = StreamController.broadcast();
   Stream<Map<String, UwaveServer>> get onUpdate => _onUpdate.stream;
   Iterable<UwaveServer> get servers => _servers.values;
 

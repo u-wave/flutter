@@ -58,7 +58,7 @@ class Settings {
   String get maxAudioBitrateData => _prefs.getString('audioBitrateData') ?? _DEFAULT_MAX_AUDIO_DATA;
 
   PlaybackType get playbackType {
-    int index = _prefs.getInt('playbackType');
+    final index = _prefs.getInt('playbackType');
     if (index == null) return _DEFAULT_PLAYBACK_TYPE;
     return PlaybackType.values[index];
   }
@@ -74,7 +74,7 @@ class Settings {
   }
 
   PlaybackType get playbackTypeData {
-    int index = _prefs.getInt('playbackTypeData');
+    final index = _prefs.getInt('playbackTypeData');
     if (index == null) return _DEFAULT_PLAYBACK_TYPE_DATA;
     return PlaybackType.values[index];
   }
