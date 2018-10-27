@@ -8,7 +8,7 @@ import './settings.dart' show Settings, SettingUpdate, PlaybackType;
 import './notification.dart' show NowPlayingNotification;
 import './player.dart' show Player, PlaybackSettings;
 
-bool _isChatVisibleEvent(message) {
+bool _isChatVisibleEvent(dynamic message) {
   return message is UserJoinMessage ||
       message is UserLeaveMessage;
 }
@@ -72,7 +72,7 @@ class ListenStore {
   final StreamController<void> _update = StreamController.broadcast();
   Stream<void> get onUpdate => _update.stream;
 
-  List<dynamic> chatHistory = [];
+  final chatHistory = <dynamic>[];
 
   bool get isPlaying => _playing != null;
   HistoryEntry get currentEntry => _playing;
@@ -156,7 +156,7 @@ class ListenStore {
       _emitUpdate();
     });
 
-    _eventsSubscription = _client.events.listen((message) {
+    _eventsSubscription = _client.events.listen((dynamic message) {
       if (_isChatVisibleEvent(message)) {
         chatHistory.add(message);
         _emitUpdate();

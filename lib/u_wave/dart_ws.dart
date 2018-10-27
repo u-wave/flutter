@@ -5,6 +5,8 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/status.dart' as ws_status;
 import './ws.dart' show WebSocket;
 
+const _NO_MESSAGE = <String>[];
+
 typedef ReconnectCallback = Future<void> Function();
 class DartWebSocket extends WebSocket {
   final String _socketUrl;
@@ -14,10 +16,13 @@ class DartWebSocket extends WebSocket {
 
   @override
   Stream<String> get stream =>
-      _channel.stream.expand((message) {
+      _channel.stream.expand((dynamic message) {
         _restartDisconnectTimer();
-        if (message == '-') return <String>[];
-        return [message as String];
+        if (message is String) {
+          if (message == '-') return _NO_MESSAGE;
+          return [message];
+        }
+        return _NO_MESSAGE;
       });
   @override
   EventSink get sink => _channel.sink;
@@ -32,7 +37,7 @@ class DartWebSocket extends WebSocket {
     if (_disconnectTimer != null) _disconnectTimer.cancel();
     _disconnectTimer = Timer(const Duration(seconds: 30), () {
       debugPrint('Socket timed out ... reconnecting');
-      _doReconnect().catchError((err) {
+      _doReconnect().catchError((dynamic err) {
         debugPrint('Failed to reconnect: $err');
         // TODO retry
       });

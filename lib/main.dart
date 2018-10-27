@@ -42,7 +42,7 @@ class UwaveApp extends StatelessWidget {
   }
 
   void _listen(BuildContext context, UwaveServer server) {
-    Navigator.push(context, MaterialPageRoute(
+    Navigator.push<UwaveListen>(context, MaterialPageRoute<UwaveListen>(
       maintainState: false,
       builder: (context) => UwaveListen(
         server: server,

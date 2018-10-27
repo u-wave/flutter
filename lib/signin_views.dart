@@ -24,7 +24,7 @@ class _SignInRouteState extends State<SignInRoute> {
       password: password,
     ).then((creds) {
       widget.onComplete(creds);
-    }).catchError((err) {
+    }).catchError((dynamic err) {
       // TODO render this
       debugPrint(err.toString());
     });

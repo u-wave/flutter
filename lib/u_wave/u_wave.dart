@@ -42,7 +42,7 @@ class _SocketMessage {
   _SocketMessage({this.command, this.data});
 
   Map<String, dynamic> toJson() {
-    return {
+    return <String, dynamic>{
       'command': command,
       'data': data,
     };
@@ -213,7 +213,7 @@ class UwaveClient {
   final StreamController<HistoryEntry> _advanceController =
       StreamController.broadcast();
   final StreamController<dynamic> _eventsController =
-      StreamController.broadcast();
+      StreamController<dynamic>.broadcast();
 
   UwaveCredentials _activeCredentials;
   User _loggedInUser;
@@ -309,8 +309,8 @@ class UwaveClient {
         'authorization': 'JWT ${_activeCredentials.token}',
       },
     );
-    final socketJson = json.decode(response.body);
-    final socketToken = socketJson['data']['socketToken'];
+    final Map<String, dynamic> socketJson = json.decode(response.body);
+    final dynamic socketToken = socketJson['data']['socketToken'];
 
     if (socketToken is String) {
       _sendSocketToken(socketToken);
@@ -356,7 +356,7 @@ class UwaveClient {
       throw 'Sign in failed';
     }
 
-    final authJson = json.decode(response.body);
+    final Map<String, dynamic> authJson = json.decode(response.body);
     _activeCredentials = UwaveCredentials(
       token: authJson['meta']['jwt'] as String,
     );
@@ -367,7 +367,7 @@ class UwaveClient {
     return _activeCredentials;
   }
 
-  void _onMessage(message) {
+  void _onMessage(_SocketMessage message) {
     if (message.command == 'chatMessage') {
       final chat = ChatMessage.fromJson(message.data as Map<String, dynamic>, users: _knownUsers, serverTime: _serverTime);
       _chatMessagesController.add(chat);

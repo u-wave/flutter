@@ -24,7 +24,7 @@ class ChatMessages extends StatelessWidget {
         shrinkWrap: true,
         itemCount: messages.length,
         itemBuilder: (context, index) {
-          final message = messages[index];
+          final dynamic message = messages[index];
           if (message is ChatMessage) {
             return ChatMessageView(message);
           }

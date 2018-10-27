@@ -6,17 +6,22 @@ import './ws.dart' show WebSocket;
 const _eventChannel = EventChannel('u-wave.net/websocket-events');
 const _methodChannel = MethodChannel('u-wave.net/websocket');
 
+const _NO_MESSAGE = <String>[];
+
 class PlatformWebSocket extends WebSocket {
   final String _socketUrl;
   Stream<dynamic> _stream;
 
   @override
   Stream<String> get stream =>
-      _stream.expand((message) {
-        debugPrint('[PlatformWebSocket] $message');
-        if (message == '+open') return <String>[];
-        if (message == '+close') return <String>[];
-        return [message as String];
+      _stream.expand((dynamic message) {
+        if (message is String) {
+          debugPrint('[PlatformWebSocket] $message');
+          if (message == '+open') return _NO_MESSAGE;
+          if (message == '+close') return _NO_MESSAGE;
+          return [message];
+        }
+        return _NO_MESSAGE;
       });
   @override
   EventSink get sink => _PlatformWebSocketSink();

@@ -69,7 +69,7 @@ class _UwaveListenState extends State<UwaveListen> {
   }
 
   Future<void> _navigateToSignInPage() async {
-    await Navigator.push(context, MaterialPageRoute(
+    await Navigator.push<SignInRoute>(context, MaterialPageRoute<SignInRoute>(
       maintainState: true,
       builder: (context) => SignInRoute(
         server: widget.server,
@@ -101,7 +101,7 @@ class _UwaveListenState extends State<UwaveListen> {
   }
 
   void _onOpenPlaybackSettings() {
-    Navigator.push(context, MaterialPageRoute(
+    Navigator.push<PlaybackSettingsRoute>(context, MaterialPageRoute<PlaybackSettingsRoute>(
       maintainState: true,
       builder: (_) => const PlaybackSettingsRoute(),
     ));
@@ -393,7 +393,7 @@ class FavoriteButton extends StatelessWidget {
         color: const Color(0xFF9D2053),
       ),
       onPressed: () {
-        showModalBottomSheet(
+        showModalBottomSheet<BottomSheet>(
           context: context,
           builder: (_) => BottomSheet(
             onClosing: () {},

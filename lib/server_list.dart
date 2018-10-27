@@ -155,7 +155,7 @@ class ServerCard extends StatelessWidget {
     }
 
     final onShowServer = () {
-      Navigator.push(context, MaterialPageRoute(
+      Navigator.push<DescriptionPage>(context, MaterialPageRoute<DescriptionPage>(
         builder: (_) {
           return DescriptionPage(server: server);
         },
