@@ -69,8 +69,8 @@ class ListenStore {
   StreamSubscription<SettingUpdate> _settingsSubscription;
   StreamSubscription<String> _notificationSubscription;
 
-  final StreamController<Null> _update = StreamController.broadcast();
-  Stream<Null> get onUpdate => _update.stream;
+  final StreamController<void> _update = StreamController.broadcast();
+  Stream<void> get onUpdate => _update.stream;
 
   List<dynamic> chatHistory = [];
 
@@ -94,7 +94,7 @@ class ListenStore {
   /// Connect to a server.
   ///
   /// This tries to authenticate with saved credentials, and starts playback.
-  Future<Null> connect(UwaveServer server) async {
+  Future<void> connect(UwaveServer server) async {
     if (_server == server) {
       // Connecting to the current server doesn't do anything.
       return;
@@ -235,7 +235,7 @@ class ListenStore {
   }
 
   /// Start playing a history entry.
-  Future<Null> play(HistoryEntry entry) async {
+  Future<void> play(HistoryEntry entry) async {
     final player = Player.getInstance();
     final notification = NowPlayingNotification.getInstance();
     final playbackSettings = await player.play(entry, _playbackType);

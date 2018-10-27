@@ -25,7 +25,7 @@ class UwaveListen extends StatefulWidget {
 
 class _UwaveListenState extends State<UwaveListen> {
   final _playerViewKey = GlobalKey<_UwaveListenState>();
-  StreamSubscription<Null> _updateSubscription;
+  StreamSubscription<void> _updateSubscription;
   bool _clientConnected = false;
   bool _showOverlay = false;
 
@@ -68,7 +68,7 @@ class _UwaveListenState extends State<UwaveListen> {
     _updateSubscription = null;
   }
 
-  Future<Null> _navigateToSignInPage() async {
+  Future<void> _navigateToSignInPage() async {
     await Navigator.push(context, MaterialPageRoute(
       maintainState: true,
       builder: (context) => SignInRoute(

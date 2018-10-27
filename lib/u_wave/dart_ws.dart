@@ -5,7 +5,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/status.dart' as ws_status;
 import './ws.dart' show WebSocket;
 
-typedef ReconnectCallback = Future<Null> Function();
+typedef ReconnectCallback = Future<void> Function();
 class DartWebSocket extends WebSocket {
   final String _socketUrl;
   WebSocketChannel _channel;
@@ -41,12 +41,12 @@ class DartWebSocket extends WebSocket {
     _restartDisconnectTimer();
   }
 
-  Future<Null> _doReconnect() {
+  Future<void> _doReconnect() {
     if (_customReconnect != null) return _customReconnect();
     return reconnect();
   }
 
-  Future<Null> reconnect() async {
+  Future<void> reconnect() async {
     _channel.sink.close(ws_status.goingAway);
     _channel = IOWebSocketChannel.connect(_socketUrl);
   }

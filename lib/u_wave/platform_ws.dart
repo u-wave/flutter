@@ -27,7 +27,7 @@ class PlatformWebSocket extends WebSocket {
 
   void init() {}
 
-  Future<Null> reconnect() async {}
+  Future<void> reconnect() async {}
 }
 
 class _PlatformWebSocketSink extends EventSink<String> {

@@ -162,7 +162,7 @@ class MarkupParser {
   }
 
   void _addText(List<Token> tokens, String text) {
-    if (tokens.length > 0 && tokens.last.type == 'text') {
+    if (tokens.isNotEmpty && tokens.last.type == 'text') {
       final concat = '${tokens.last.text}$text';
       tokens.last = Token(type: 'text', text: concat, raw: concat);
     } else {

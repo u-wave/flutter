@@ -300,7 +300,7 @@ class UwaveClient {
     _ws.sink.add(socketToken);
   }
 
-  Future<Null> _authenticateSocket() async {
+  Future<void> _authenticateSocket() async {
     if (_activeCredentials == null || !_activeCredentials.hasToken) {
       throw 'Cannot authenticate to socket: no active session';
     }

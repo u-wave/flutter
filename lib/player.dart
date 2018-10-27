@@ -142,7 +142,7 @@ class Player {
     );
   }
 
-  Future<Null> setPlaybackType(PlaybackType playbackType) async {
+  Future<void> setPlaybackType(PlaybackType playbackType) async {
     await _channel.invokeMethod('setPlaybackType', playbackType.index);
   }
 
