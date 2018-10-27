@@ -225,7 +225,7 @@ class UwaveClient {
   Stream<dynamic> get events => _eventsController.stream;
   User get currentUser => _loggedInUser;
 
-  final Map<String, User> _knownUsers = Map();
+  final Map<String, User> _knownUsers = {};
 
   UwaveClient({this.apiUrl, this.socketUrl, bool usePlatformSocket = false})
       : assert(apiUrl != null),
