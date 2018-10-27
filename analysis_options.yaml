@@ -9,26 +9,30 @@ analyzer:
 
 linter:
   rules:
+    - annotate_overrides
     - always_declare_return_types
+    - avoid_field_initializers_in_const_classes
+    - avoid_function_literals_in_foreach_calls
+    - avoid_init_to_null
     - avoid_return_types_on_setters
     - avoid_void_async
     - await_only_futures
     - cancel_subscriptions
+    - prefer_asserts_in_initializer_lists
+    - prefer_collection_literals
     - prefer_const_constructors
     - prefer_const_constructors_in_immutables
     - prefer_const_declarations
     - prefer_const_literals_to_create_immutables
-    - prefer_collection_literals
     - prefer_final_fields
     - prefer_final_locals
-    - prefer_asserts_in_initializer_lists
-    - super_goes_last
     - prefer_is_empty
     - prefer_is_not_empty
     - prefer_iterable_whereType
     - prefer_single_quotes
     - prefer_typing_uninitialized_variables
     - prefer_void_to_null
+    - super_goes_last
     - unnecessary_brace_in_string_interps
     - unnecessary_const
     - unnecessary_getters_setters

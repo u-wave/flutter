@@ -9,7 +9,7 @@ abstract class WebSocket {
 }
 
 class _NullStreamSink extends EventSink<String> {
-  void add(String event) {}
-  void addError(Object error, [StackTrace stackTrace]) {}
-  void close() {}
+  @override void add(String event) {}
+  @override void addError(Object error, [StackTrace stackTrace]) {}
+  @override void close() {}
 }

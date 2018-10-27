@@ -10,6 +10,7 @@ class PlatformWebSocket extends WebSocket {
   final String _socketUrl;
   Stream<dynamic> _stream;
 
+  @override
   Stream<String> get stream =>
       _stream.expand((message) {
         debugPrint('[PlatformWebSocket] $message');
@@ -17,6 +18,7 @@ class PlatformWebSocket extends WebSocket {
         if (message == '+close') return <String>[];
         return [message];
       });
+  @override
   EventSink get sink => _PlatformWebSocketSink();
 
   PlatformWebSocket(String socketUrl)
@@ -25,18 +27,23 @@ class PlatformWebSocket extends WebSocket {
     _stream = _eventChannel.receiveBroadcastStream(_socketUrl);
   }
 
+  @override
   void init() {}
 
+  @override
   Future<void> reconnect() async {}
 }
 
 class _PlatformWebSocketSink extends EventSink<String> {
+  @override
   void add(String event) {
     _methodChannel.invokeMethod('send', event);
   }
+  @override
   void close() {
     _methodChannel.invokeMethod('close', null);
   }
+  @override
   void addError(Object error, [StackTrace stackTrace]) {
     throw '_PlatformWebSocketSink#addError is not implemented';
   }

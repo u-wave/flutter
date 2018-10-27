@@ -49,6 +49,7 @@ class _UwaveServerListState extends State<UwaveServerList> {
     });
   }
 
+  @override
   void reassemble() {
     super.reassemble();
     _client.fetchServers();

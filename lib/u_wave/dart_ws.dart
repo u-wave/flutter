@@ -12,12 +12,14 @@ class DartWebSocket extends WebSocket {
   Timer _disconnectTimer;
   ReconnectCallback _customReconnect;
 
+  @override
   Stream<String> get stream =>
       _channel.stream.expand((message) {
         _restartDisconnectTimer();
         if (message == '-') return <String>[];
         return [message];
       });
+  @override
   EventSink get sink => _channel.sink;
 
   DartWebSocket(String socketUrl, {ReconnectCallback reconnect})
@@ -37,6 +39,7 @@ class DartWebSocket extends WebSocket {
     });
   }
 
+  @override
   void init() {
     _restartDisconnectTimer();
   }
@@ -46,6 +49,7 @@ class DartWebSocket extends WebSocket {
     return reconnect();
   }
 
+  @override
   Future<void> reconnect() async {
     _channel.sink.close(ws_status.goingAway);
     _channel = IOWebSocketChannel.connect(_socketUrl);

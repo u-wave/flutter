@@ -2,9 +2,8 @@ import 'package:flutter/widgets.dart';
 
 class BaseUrl extends InheritedWidget {
   final Uri url;
-  final Widget child;
 
-  const BaseUrl({Key key, this.url, this.child}) : assert(child != null), super(key: key);
+  const BaseUrl({Key key, this.url, Widget child}) : super(key: key, child: child);
 
   static BaseUrl of(BuildContext context) {
     return context.inheritFromWidgetOfExactType(BaseUrl);
