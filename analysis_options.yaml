@@ -11,3 +11,5 @@ linter:
   rules:
     - always_declare_return_types
     - avoid_return_types_on_setters
+    - avoid_void_async
+    - await_only_futures

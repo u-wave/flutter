@@ -5,7 +5,7 @@ import './listen.dart' show UwaveListen;
 import './settings.dart' show Settings, UwaveSettings;
 import './listen_store.dart' show ListenStore;
 
-void main() async {
+Future<void> main() async {
   final settings = await Settings.load();
   final listenStore = ListenStore(settings: settings);
 

@@ -271,7 +271,7 @@ class ListenStore {
     _emitUpdate();
   }
 
-  void saveCredentials(UwaveCredentials creds) async {
+  Future<void> saveCredentials(UwaveCredentials creds) async {
     assert(creds != null);
     final key = _server.publicKey;
     await _storage.write(
