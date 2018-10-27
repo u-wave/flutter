@@ -12,14 +12,14 @@ String _resolveUrl(BuildContext context, String input) {
 class ChatMessages extends StatelessWidget {
   final List<dynamic> messages;
 
-  ChatMessages({Key key, this.messages})
+  const ChatMessages({Key key, this.messages})
       : assert(messages != null),
         super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Color(0xFF151515),
+      color: const Color(0xFF151515),
       child: ListView.builder(
         shrinkWrap: true,
         itemCount: messages.length,
@@ -34,7 +34,7 @@ class ChatMessages extends StatelessWidget {
           if (message is UserLeaveMessage) {
             return UserLeaveMessageView(message);
           }
-          return Text(
+          return const Text(
             'Unexpected message type!',
             style: TextStyle(color: Color(0xFFFF0000)),
           );
@@ -49,7 +49,7 @@ class ChatInput extends StatefulWidget {
   final User user;
   final OnSendCallback onSend;
 
-  ChatInput({this.user, this.onSend}) : assert(user != null), assert(onSend != null);
+  const ChatInput({this.user, this.onSend}) : assert(user != null), assert(onSend != null);
 
   @override
   _ChatInputState createState() => _ChatInputState();
@@ -70,7 +70,7 @@ class _ChatInputState extends State<ChatInput> {
     final avatarUrl = _resolveUrl(context, widget.user.avatarUrl);
 
     return Container(
-      color: Color(0xFF1B1B1B),
+      color: const Color(0xFF1B1B1B),
       child: Padding(
         padding: const EdgeInsets.all(_PADDING),
         child: Row(
@@ -102,7 +102,7 @@ class _ChatInputState extends State<ChatInput> {
 class UserJoinMessageView extends StatelessWidget {
   final UserJoinMessage message;
 
-  UserJoinMessageView(this.message) : assert(message != null);
+  const UserJoinMessageView(this.message) : assert(message != null);
 
   @override
   Widget build(BuildContext context) {
@@ -114,13 +114,13 @@ class UserJoinMessageView extends StatelessWidget {
       : CircleAvatar(
           radius: 12.0,
           backgroundColor: Colors.pink.shade800,
-          child: Text('UK'),
+          child: const Text('UK'),
         );
 
     return ChatTile(
       sender: message.user,
       leading: avatar,
-      child: Text('joined the room', style: TextStyle(color: Color(0xFFAAAAAA))),
+      child: const Text('joined the room', style: TextStyle(color: Color(0xFFAAAAAA))),
     );
   }
 }
@@ -128,7 +128,7 @@ class UserJoinMessageView extends StatelessWidget {
 class UserLeaveMessageView extends StatelessWidget {
   final UserLeaveMessage message;
 
-  UserLeaveMessageView(this.message) : assert(message != null);
+  const UserLeaveMessageView(this.message) : assert(message != null);
 
   @override
   Widget build(BuildContext context) {
@@ -140,19 +140,19 @@ class UserLeaveMessageView extends StatelessWidget {
       : CircleAvatar(
           radius: 12.0,
           backgroundColor: Colors.pink.shade800,
-          child: Text('UK'),
+          child: const Text('UK'),
         );
 
     return ChatTile(
       sender: message.user,
       leading: avatar,
-      child: Text('left the room', style: TextStyle(color: Color(0xFFAAAAAA))),
+      child: const Text('left the room', style: TextStyle(color: Color(0xFFAAAAAA))),
     );
   }
 }
 
 class ChatTile extends StatelessWidget {
-  ChatTile({
+  const ChatTile({
     this.sender,
     this.leading,
     this.child,
@@ -181,7 +181,7 @@ class ChatTile extends StatelessWidget {
               children: <Widget>[
                 DefaultTextStyle(
                   child: UsernameView(user: sender),
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 Container(child: child),
               ],
@@ -196,7 +196,7 @@ class ChatTile extends StatelessWidget {
 class ChatMessageView extends StatelessWidget {
   final ChatMessage message;
 
-  ChatMessageView(this.message) : assert(message != null);
+  const ChatMessageView(this.message) : assert(message != null);
 
   @override
   Widget build(BuildContext context) {
@@ -208,7 +208,7 @@ class ChatMessageView extends StatelessWidget {
       : CircleAvatar(
           radius: 12.0,
           backgroundColor: Colors.pink.shade800,
-          child: Text('UK'),
+          child: const Text('UK'),
         );
 
     return ChatTile(
@@ -222,7 +222,7 @@ class ChatMessageView extends StatelessWidget {
 class MarkupSpan extends StatelessWidget {
   final List<markup.MarkupNode> tree;
 
-  MarkupSpan({Key key, this.tree}) : assert(tree != null), super(key: key);
+  const MarkupSpan({Key key, this.tree}) : assert(tree != null), super(key: key);
 
   TextSpan _toTextSpan(markup.MarkupNode node) {
     if (node is markup.BoldNode) {
@@ -275,7 +275,7 @@ class MarkupSpan extends StatelessWidget {
 /// Render a user's name with appropriate role colours.
 class UsernameView extends StatelessWidget {
   // TODO These should be moved to a server-specific theme on the context
-  static Map<String, Color> _roleColors = {
+  static Map<String, Color> _roleColors = const {
     'admin': Color(0xFFFF3B74),
     'manager': Color(0xFF05DAA5),
     'moderator': Color(0xFF00B3DC),
@@ -286,7 +286,7 @@ class UsernameView extends StatelessWidget {
   /// The user whose name to render.
   final User user;
 
-  UsernameView({this.user})
+  const UsernameView({this.user})
       : assert(user != null);
 
   @override

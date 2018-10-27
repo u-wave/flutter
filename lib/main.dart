@@ -20,7 +20,9 @@ Future<void> main() async {
 class UwaveApp extends StatelessWidget {
   final ListenStore listenStore;
 
-  UwaveApp({this.listenStore}) : assert(listenStore != null);
+  const UwaveApp({Key key, this.listenStore})
+      : assert(listenStore != null),
+        super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -28,8 +30,8 @@ class UwaveApp extends StatelessWidget {
       title: 'üWave',
       theme: ThemeData(
         brightness: Brightness.dark,
-        primaryColor: Color(0xFF9D2053),
-        accentColor: Color(0xFFB20062),
+        primaryColor: const Color(0xFF9D2053),
+        accentColor: const Color(0xFFB20062),
       ),
       home: UwaveServerList(
         title: 'Public üWave Servers',

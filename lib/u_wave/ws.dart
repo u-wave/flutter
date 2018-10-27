@@ -1,7 +1,7 @@
 import 'dart:async' show Stream, EventSink;
 
 abstract class WebSocket {
-  Stream<String> get stream => Stream.empty();
+  Stream<String> get stream => const Stream.empty();
   EventSink get sink => _NullStreamSink();
 
   void init();

@@ -3,8 +3,8 @@ import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/services.dart' show EventChannel, MethodChannel;
 import './ws.dart' show WebSocket;
 
-final _eventChannel = EventChannel('u-wave.net/websocket-events');
-final _methodChannel = MethodChannel('u-wave.net/websocket');
+const _eventChannel = EventChannel('u-wave.net/websocket-events');
+const _methodChannel = MethodChannel('u-wave.net/websocket');
 
 class PlatformWebSocket extends WebSocket {
   final String _socketUrl;

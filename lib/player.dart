@@ -19,7 +19,7 @@ Future<String> _download(Map<String, String> headers) async {
   return response.body;
 }
 
-final _channel = MethodChannel('u-wave.net/player')
+final _channel = const MethodChannel('u-wave.net/player')
   ..setMethodCallHandler((methodCall) async {
     switch (methodCall.method) {
       case 'download':

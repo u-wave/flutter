@@ -14,7 +14,7 @@ class UwaveListen extends StatefulWidget {
   final UwaveServer server;
   final ListenStore store;
 
-  UwaveListen({Key key, this.server, this.store})
+  const UwaveListen({Key key, this.server, this.store})
       : assert(server != null),
         assert(store != null),
         super(key: key);
@@ -103,7 +103,7 @@ class _UwaveListenState extends State<UwaveListen> {
   void _onOpenPlaybackSettings() {
     Navigator.push(context, MaterialPageRoute(
       maintainState: true,
-      builder: (_) => PlaybackSettingsRoute(),
+      builder: (_) => const PlaybackSettingsRoute(),
     ));
   }
 
@@ -165,7 +165,7 @@ class _UwaveListenState extends State<UwaveListen> {
     return AspectRatio(
       aspectRatio: 16 / 9,
       child: Container(
-        color: Color(0x77000000),
+        color: const Color(0x77000000),
         child: Stack(children: children),
       ),
     );
@@ -253,7 +253,7 @@ class PlayerView extends StatelessWidget {
   final ProgressTimer currentProgress;
   final double aspectRatio;
 
-  PlayerView({this.textureId, this.entry, this.currentProgress, this.aspectRatio = 16 / 9})
+  const PlayerView({this.textureId, this.entry, this.currentProgress, this.aspectRatio = 16 / 9})
       : assert(entry != null),
         assert(currentProgress != null),
         // Either both must be defined, or both must not be defined.
@@ -266,7 +266,7 @@ class PlayerView extends StatelessWidget {
         .toString();
 
     return Container(
-      color: Color(0xFF000000),
+      color: const Color(0xFF000000),
       child: Column(
         children: <Widget>[
           AspectRatio(
@@ -294,7 +294,7 @@ class MediaProgressBar extends StatelessWidget {
   final ProgressTimer currentProgress;
   final Duration duration;
 
-  MediaProgressBar({this.currentProgress, this.duration})
+  const MediaProgressBar({this.currentProgress, this.duration})
       : assert(currentProgress != null),
         assert(duration != null);
 
@@ -328,7 +328,7 @@ class SignInButton extends StatelessWidget {
   final String serverName;
   final VoidCallback onSignIn;
 
-  SignInButton({this.serverName, this.onSignIn})
+  const SignInButton({this.serverName, this.onSignIn})
       : assert(serverName != null),
         assert(onSignIn != null);
 
@@ -356,7 +356,7 @@ class CurrentMediaTitle extends StatelessWidget {
   final String artist;
   final String title;
 
-  CurrentMediaTitle({ this.artist, this.title })
+  const CurrentMediaTitle({ this.artist, this.title })
       : assert(artist != null),
         assert(title != null);
 
@@ -383,7 +383,7 @@ class CurrentMediaTitle extends StatelessWidget {
 class FavoriteButton extends StatelessWidget {
   final bool active;
 
-  FavoriteButton({this.active});
+  const FavoriteButton({this.active});
 
   @override
   Widget build(BuildContext context) {
@@ -398,7 +398,7 @@ class FavoriteButton extends StatelessWidget {
           builder: (_) => BottomSheet(
             onClosing: () {},
             builder: (_) => ListView(
-              children: <Widget>[
+              children: const <Widget>[
                 ListTile(title: Text('Free-For-All Fridays')),
                 ListTile(title: Text('K-Indie')),
                 ListTile(title: Text('K-Pop')),
