@@ -9,6 +9,10 @@ import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
@@ -41,6 +45,8 @@ public class WebSocketPlugin implements StreamHandler, MethodCallHandler {
   }
 
   private WebSocketClient client;
+  private ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+  private ScheduledFuture scheduledReconnect;
   private EventSink sink;
   private final LinkedList<String> queuedMessages = new LinkedList<>();
   private List<MessageListener> messageListeners = new ArrayList<>();
@@ -61,8 +67,8 @@ public class WebSocketPlugin implements StreamHandler, MethodCallHandler {
     }
   }
 
-  public void onOpen(ServerHandshake handshake) {
-    Log.d(TAG, "onOpen()");
+  public void onSocketOpen(ServerHandshake handshake) {
+    Log.d(TAG, "onSocketOpen()");
     if (sink == null) {
       // Shouldn't happen but don't crash if it does I guess
       return;
@@ -71,8 +77,8 @@ public class WebSocketPlugin implements StreamHandler, MethodCallHandler {
     sink.success(OPEN_MESSAGE);
   }
 
-  public void onMessage(String message) {
-    Log.d(TAG, String.format("onMessage(%s)", message));
+  public void onSocketMessage(String message) {
+    Log.d(TAG, String.format("onSocketMessage(%s)", message));
 
     // disconnectTimer.restart();
 
@@ -81,14 +87,14 @@ public class WebSocketPlugin implements StreamHandler, MethodCallHandler {
     }
 
     for (MessageListener listener : messageListeners) {
-      listener.onMessage(message);
+      listener.onSocketMessage(message);
     }
 
     pushMessage(message);
   }
 
-  public void onClose(int code, String reason, boolean remote) {
-    Log.d(TAG, String.format("onClose(%d, %s, %b)", code, reason, remote));
+  public void onSocketClose(int code, String reason, boolean remote) {
+    Log.d(TAG, String.format("onSocketClose(%d, %s, %b)", code, reason, remote));
     if (sink == null) {
       // Closed by the Dart code calling onCancel(), nothing to do here
       return;
@@ -96,13 +102,20 @@ public class WebSocketPlugin implements StreamHandler, MethodCallHandler {
 
     sink.success(CLOSE_MESSAGE);
 
-    // TODO auto reconnect if necessary
-    sink.endOfStream();
-    sink = null;
+    Log.d(TAG, "Scheduling reconnect");
+    scheduledReconnect = executor.schedule(() -> {
+      scheduledReconnect = null;
+      Log.d(TAG, "Attempting reconnect...");
+      client.connectBlocking();
+    }, 2, SECONDS);
+
+    // TODO end stream if this fails for a long time(?)
+    // sink.endOfStream();
+    // sink = null;
   }
 
-  public void onError(Exception err) {
-    Log.d(TAG, String.format("onError(%s)", err.getMessage()));
+  public void onSocketError(Exception err) {
+    Log.d(TAG, String.format("onSocketError(%s)", err.getMessage()));
     sink.error(err.getClass().getName(), err.getMessage(), null);
   }
 
@@ -120,25 +133,26 @@ public class WebSocketPlugin implements StreamHandler, MethodCallHandler {
         new WebSocketClient(url, new Draft_6455()) {
           @Override
           public void onOpen(ServerHandshake handshake) {
-            WebSocketPlugin.this.onOpen(handshake);
+            WebSocketPlugin.this.onSocketOpen(handshake);
           }
 
           @Override
           public void onMessage(String message) {
-            WebSocketPlugin.this.onMessage(message);
+            WebSocketPlugin.this.onSocketMessage(message);
           }
 
           @Override
           public void onClose(int code, String reason, boolean remote) {
-            WebSocketPlugin.this.onClose(code, reason, remote);
+            WebSocketPlugin.this.onSocketClose(code, reason, remote);
           }
 
           @Override
           public void onError(Exception err) {
-            WebSocketPlugin.this.onError(err);
+            WebSocketPlugin.this.onSocketError(err);
           }
         };
 
+    client.setConnectionLostTimeout(30);
     client.connect();
   }
 
@@ -195,6 +209,10 @@ public class WebSocketPlugin implements StreamHandler, MethodCallHandler {
 
   @Override
   public void onCancel(Object arguments) {
+    if (scheduledReconnect != null) {
+      scheduledReconnect.cancel(true);
+      scheduledReconnect = null;
+    }
     client.close();
     client = null;
     sink = null;
@@ -202,6 +220,6 @@ public class WebSocketPlugin implements StreamHandler, MethodCallHandler {
   }
 
   public static interface MessageListener {
-    void onMessage(String message);
+    void onSocketMessage(String message);
   }
 }
