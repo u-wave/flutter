@@ -49,6 +49,11 @@ public class ListenService extends Service implements WebSocketPlugin.MessageLis
   /* WebSocketPlugin.Listener */
   @Override
   public void onMessage(String message) {
+    if (!message.contains("advance") && !message.contains("chatMessage")) {
+      // Avoid parsing JSON if it's not an advance or mention message anyway
+      return;
+    }
+
     try {
       final JSONObject object = new JSONObject(message);
       switch (object.getString("command")) {
