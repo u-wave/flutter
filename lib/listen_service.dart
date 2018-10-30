@@ -2,6 +2,12 @@ import 'package:flutter/services.dart' show MethodChannel;
 
 const _channel = MethodChannel('u-wave.net/background');
 
+// ListenService.start({socketUrl, apiUrl, name}) → bindService()
+// ListenService.stop() → unbindService()
+// ListenService.connect() → emits missed messages
+// ListenService.disconnect() → begins queueing messages
+// ListenService.onSocketMessage.listen((string) {})
+
 class ListenService {
   const ListenService._();
 
