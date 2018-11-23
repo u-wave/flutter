@@ -6,6 +6,7 @@ import io.flutter.plugin.common.MethodChannel.Result;
 import java.util.HashMap;
 import java.util.Map;
 import org.schabi.newpipe.extractor.Downloader;
+import org.schabi.newpipe.extractor.utils.Localization;
 
 /**
  * Call into Dart to do the download, because it already has an HTTP library.
@@ -22,14 +23,14 @@ class DartDownloader implements Downloader {
 
   @Override
   public String download(String siteUrl) {
-    return download(siteUrl, "en");
+    return download(siteUrl, new Localization("en", "GB"));
   }
 
   @Override
-  public String download(String siteUrl, String language) {
+  public String download(String siteUrl, Localization locale) {
     Map<String, String> headers = new HashMap<>();
-    if (language != null) {
-      headers.put("Accept-Language", language);
+    if (locale != null) {
+      headers.put("Accept-Language", locale.getLanguage());
     }
     return download(siteUrl, headers);
   }

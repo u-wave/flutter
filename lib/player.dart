@@ -23,7 +23,8 @@ final _channel = const MethodChannel('u-wave.net/player')
   ..setMethodCallHandler((methodCall) async {
     switch (methodCall.method) {
       case 'download':
-        return await _download(methodCall.arguments as Map<String, String>);
+        final Map<dynamic, dynamic> arg = methodCall.arguments;
+        return await _download(arg.cast<String, String>());
       default:
         throw MissingPluginException('Unknown method ${methodCall.method}');
     }

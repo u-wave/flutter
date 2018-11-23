@@ -70,7 +70,7 @@ dependencies {
     implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'com.android.support:support-v4:27.1.1'
 
-    implementation 'com.github.TeamNewPipe:NewPipeExtractor:217d13b1028'
+    implementation 'com.github.TeamNewPipe:NewPipeExtractor:32d316330c26'
     implementation "com.google.android.exoplayer:exoplayer:$exoPlayerLibVersion"
     implementation "com.google.android.exoplayer:extension-mediasession:$exoPlayerLibVersion"
 
