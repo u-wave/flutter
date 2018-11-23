@@ -57,12 +57,12 @@ public class PlayerPlugin implements MethodCallHandler, SharedPreferences.OnShar
     }
 
     final String sourceType = data.get("sourceType");
-    final String sourceData = data.get("sourceData");
+    final String sourceID = data.get("sourceID");
     final int seek = Integer.parseInt(data.get("seek"));
     final byte playbackType = Integer.decode(data.get("playbackType")).byteValue();
 
     try {
-      play(sourceType, sourceData, seek, playbackType, result);
+      play(sourceType, sourceID, seek, playbackType, result);
     } catch (RuntimeException err) {
       result.error(err.getClass().getName(), err.getMessage(), null);
     }

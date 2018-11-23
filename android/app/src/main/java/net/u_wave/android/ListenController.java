@@ -68,6 +68,7 @@ class ListenController implements ServiceConnection {
   /* ServiceConnection */
   @Override
   public void onServiceConnected(ComponentName component, IBinder binder) {
+    Log.d(TAG, "Connected to service");
     if (binder instanceof ListenService.ListenBinder) {
       serviceBinder = (ListenService.ListenBinder) binder;
     } else {
@@ -77,6 +78,7 @@ class ListenController implements ServiceConnection {
 
   @Override
   public void onServiceDisconnected(ComponentName component) {
+    Log.d(TAG, "Disconnected from service");
     serviceBinder = null;
   }
 }

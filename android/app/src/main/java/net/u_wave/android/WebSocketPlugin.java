@@ -93,6 +93,18 @@ public class WebSocketPlugin implements StreamHandler, MethodCallHandler {
     pushMessage(message);
   }
 
+  public void attemptReconnect() {
+    scheduledReconnect = executor.schedule(() -> {
+      scheduledReconnect = null;
+      Log.d(TAG, "Attempting reconnect...");
+      try {
+        client.connectBlocking();
+      } catch (InterruptedException e) {
+        attemptReconnect();
+      }
+    }, 2, SECONDS);
+  }
+
   public void onSocketClose(int code, String reason, boolean remote) {
     Log.d(TAG, String.format("onSocketClose(%d, %s, %b)", code, reason, remote));
     if (sink == null) {
@@ -103,11 +115,6 @@ public class WebSocketPlugin implements StreamHandler, MethodCallHandler {
     sink.success(CLOSE_MESSAGE);
 
     Log.d(TAG, "Scheduling reconnect");
-    scheduledReconnect = executor.schedule(() -> {
-      scheduledReconnect = null;
-      Log.d(TAG, "Attempting reconnect...");
-      client.connectBlocking();
-    }, 2, SECONDS);
 
     // TODO end stream if this fails for a long time(?)
     // sink.endOfStream();

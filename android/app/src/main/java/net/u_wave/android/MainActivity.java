@@ -1,11 +1,13 @@
 package net.u_wave.android;
 
-import android.os.Bundle;
 import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
 import io.flutter.app.FlutterActivity;
 import io.flutter.plugins.GeneratedPluginRegistrant;
 
 public class MainActivity extends FlutterActivity {
+  private static final String TAG = "MainActivity";
   private static PlayerPlugin player;
   private static NotificationPlugin notifications;
   private static WebSocketPlugin webSocket;
@@ -22,6 +24,15 @@ public class MainActivity extends FlutterActivity {
     final ListenController controller = new ListenController(this);
 
     controller.registerWith(registrarFor(ListenService.class.getName()));
+
+    Log.d(TAG, "Created");
+  }
+
+  @Override
+  protected void onDestroy() {
+    super.onDestroy();
+
+    Log.d(TAG, "Destroyed");
   }
 
   public static PlayerPlugin getPlayer() {

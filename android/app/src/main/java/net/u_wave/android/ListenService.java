@@ -6,9 +6,11 @@ import android.os.Binder;
 import android.content.Context;
 import android.content.Intent;
 import android.app.Service;
+import android.util.Log;
 import io.flutter.plugin.common.MethodChannel.Result;
 
 public class ListenService extends Service implements WebSocketPlugin.MessageListener {
+  private static final String TAG = "ListenService";
   private PlayerPlugin player;
   private NotificationPlugin notifications;
   private WebSocketPlugin webSocket;
@@ -16,6 +18,7 @@ public class ListenService extends Service implements WebSocketPlugin.MessageLis
   /* Service */
   @Override
   public void onCreate() {
+    Log.d(TAG, "onCreate()");
     player = MainActivity.getPlayer();
     notifications = MainActivity.getNotifications();
     webSocket = MainActivity.getWebSocket();
@@ -29,16 +32,19 @@ public class ListenService extends Service implements WebSocketPlugin.MessageLis
 
   @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
+    Log.d(TAG, "onStartCommand()");
     return START_NOT_STICKY;
   }
 
   @Override
   public ListenBinder onBind(Intent intent) {
+    Log.d(TAG, "onBind()");
     return new ListenBinder(this);
   }
 
   @Override
   public void onDestroy() {
+    Log.d(TAG, "onDestroy()");
     notifications.unforeground();
     webSocket.removeMessageListener(this);
     player = null;
