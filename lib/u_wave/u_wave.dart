@@ -423,7 +423,7 @@ class UwaveNowState {
     final Map<String, User> users = {};
 
     json['users']
-      .map<User>((Map<String, dynamic> u) => User.fromJson(u))
+      .map<User>((dynamic u) => User.fromJson(u as Map<String, dynamic>))
       .forEach((User user) {
         users[user.id] = user;
       });

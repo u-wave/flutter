@@ -17,7 +17,7 @@ dependencies:
     sdk: flutter
 
   flutter_markdown: ^0.2.0
-  http: ^0.11.0
+  http: ^0.12.0
   w3c_event_source: ^1.0.0
   web_socket_channel: ^1.0.0
   shared_preferences: ^0.4.3
