@@ -35,5 +35,12 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <service
+          android:enabled="true"
+          android:name="net.u_wave.android.ListenService">
+            <intent-filter>
+                <action android:name="net.u_wave.android.ListenService" />
+            </intent-filter>
+        </service>
     </application>
 </manifest>

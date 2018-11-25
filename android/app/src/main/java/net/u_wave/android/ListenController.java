@@ -27,6 +27,7 @@ class ListenController implements ServiceConnection {
     final Intent intent = new Intent(context, ListenService.class);
     final MethodChannel channel = new MethodChannel(registrar.messenger(), NAME);
 
+    Log.d(TAG, String.format("Binding service: %s", intent.getComponent().getClassName()));
     context.bindService(intent, this, Context.BIND_AUTO_CREATE);
 
     channel.setMethodCallHandler((call, result) -> {
@@ -34,15 +35,15 @@ class ListenController implements ServiceConnection {
         case "foreground":
           foreground();
           result.success(null);
-          return;
+          break;
         case "background":
           background();
           result.success(null);
-          return;
+          break;
         case "exit":
           context.unbindService(this);
           result.success(null);
-          return;
+          break;
         default:
           result.notImplemented();
       }
