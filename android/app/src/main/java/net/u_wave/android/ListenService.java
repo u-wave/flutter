@@ -91,6 +91,7 @@ public class ListenService extends Service implements WebSocketPlugin.MessageLis
     // TODO use sharedpreferences
     final byte playbackType = PlaybackAction.PlaybackType.AUDIO_ONLY;
 
+    Log.d(TAG, String.format("Starting playback [%s:%s]", sourceType, sourceID));
     player.stop();
     player.play(sourceType, sourceID, seek, playbackType, new Result() {
       public void success(Object value) {}

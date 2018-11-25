@@ -1,5 +1,6 @@
 package net.u_wave.android;
 
+import android.content.Context;
 import android.net.Uri;
 import android.os.Handler;
 import android.util.Log;
@@ -44,7 +45,8 @@ class PlaybackAction implements Player.EventListener, VideoListener {
   private final Surface surface;
   private final SurfaceTextureEntry textureEntry;
   private final DataSource.Factory dataSourceFactory;
-  private final SimpleExoPlayer player;
+  private final Context context;
+  private SimpleExoPlayer player;
   private int videoWidth;
   private int videoHeight;
   private final String id;
@@ -62,14 +64,11 @@ class PlaybackAction implements Player.EventListener, VideoListener {
     flutterResult = result;
     this.dataSourceFactory = dataSourceFactory;
     this.entry = entry;
+    context = registrar.context();
     id = entry.sourceUrl;
     logTag = String.format("PlaybackAction[%s]", id);
 
-    mainThread = new Handler(registrar.context().getMainLooper());
-
-    player = ExoPlayerFactory.newSimpleInstance(registrar.context());
-    player.addVideoListener(this);
-    player.addListener(this);
+    mainThread = new Handler(context.getMainLooper());
 
     if (entry.shouldPlayVideo()) {
       textureEntry = registrar.textures().createSurfaceTexture();
@@ -84,10 +83,18 @@ class PlaybackAction implements Player.EventListener, VideoListener {
     return entry;
   }
 
+  private void create() {
+    player = ExoPlayerFactory.newSimpleInstance(context);
+    player.addVideoListener(this);
+    player.addListener(this);
+  }
+
   public void start() {
     final MediaSource mediaSource = getMediaSource();
     mainThread.post(
         () -> {
+          create();
+
           player.prepare(mediaSource);
           player.seekTo(getCurrentSeek());
           player.setPlayWhenReady(true);
@@ -116,6 +123,10 @@ class PlaybackAction implements Player.EventListener, VideoListener {
           e.printStackTrace();
         }
       }
+    }
+
+    if (player == null) {
+      return;
     }
 
     mainThread.post(
