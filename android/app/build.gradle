@@ -59,7 +59,7 @@ flutter {
 }
 
 ext {
-    exoPlayerLibVersion = '2.9.0'
+    exoPlayerLibVersion = '2.9.1'
 }
 
 dependencies {
