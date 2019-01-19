@@ -60,6 +60,7 @@ flutter {
 
 ext {
     exoPlayerLibVersion = '2.9.1'
+    newpipeExtractVersion = '99915e4527c0'
 }
 
 dependencies {
@@ -70,7 +71,7 @@ dependencies {
     implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'com.android.support:support-v4:27.1.1'
 
-    implementation 'com.github.TeamNewPipe:NewPipeExtractor:32d316330c26'
+    implementation "com.github.TeamNewPipe:NewPipeExtractor:$newpipeExtractVersion"
     implementation "com.google.android.exoplayer:exoplayer:$exoPlayerLibVersion"
     implementation "com.google.android.exoplayer:extension-mediasession:$exoPlayerLibVersion"
 

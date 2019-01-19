@@ -49,7 +49,7 @@ packages:
       name: convert
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.2"
+    version: "2.1.1"
   crypto:
     dependency: transitive
     description:
@@ -87,7 +87,7 @@ packages:
       name: http
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.12.0"
+    version: "0.12.0+1"
   http_parser:
     dependency: transitive
     description:
@@ -204,7 +204,7 @@ packages:
       name: w3c_event_source
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.1.0"
+    version: "1.2.2"
   web_socket_channel:
     dependency: "direct main"
     description:
