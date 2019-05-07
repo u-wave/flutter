@@ -42,11 +42,11 @@ class PlatformWebSocket extends WebSocket {
 class _PlatformWebSocketSink extends EventSink<String> {
   @override
   void add(String event) {
-    _methodChannel.invokeMethod('send', event);
+    _methodChannel.invokeMethod<void>('send', event);
   }
   @override
   void close() {
-    _methodChannel.invokeMethod('close', null);
+    _methodChannel.invokeMethod<void>('close', null);
   }
   @override
   void addError(Object error, [StackTrace stackTrace]) {

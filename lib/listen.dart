@@ -89,7 +89,7 @@ class _UwaveListenState extends State<UwaveListen> {
   }
 
   void _onTap(BuildContext context, TapUpDetails details) {
-    final RenderBox playerBox = _playerViewKey.currentContext.findRenderObject();
+    final RenderBox playerBox = _playerViewKey.currentContext.findRenderObject() as RenderBox;
     final tapPosition = playerBox.globalToLocal(details.globalPosition);
     final shouldShow = playerBox.paintBounds.contains(tapPosition);
 

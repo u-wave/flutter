@@ -23,7 +23,7 @@ final _channel = const MethodChannel('u-wave.net/player')
   ..setMethodCallHandler((methodCall) async {
     switch (methodCall.method) {
       case 'download':
-        final Map<dynamic, dynamic> arg = methodCall.arguments;
+        final arg = methodCall.arguments as Map<dynamic, dynamic>;
         return await _download(arg.cast<String, String>());
       default:
         throw MissingPluginException('Unknown method ${methodCall.method}');
@@ -130,8 +130,8 @@ class Player {
       'playbackType': '${playbackType.index}',
     });
 
-    final int texture = result['texture'];
-    final double aspectRatio = result['aspectRatio'];
+    final texture = result['texture'] as int;
+    final aspectRatio = result['aspectRatio'] as double;
 
     _progressTimer = ProgressTimer(startTime: entry.timestamp);
     return PlaybackSettings(
@@ -142,7 +142,7 @@ class Player {
   }
 
   Future<void> setPlaybackType(PlaybackType playbackType) async {
-    await _channel.invokeMethod('setPlaybackType', playbackType.index);
+    await _channel.invokeMethod<void>('setPlaybackType', playbackType.index);
   }
 
   void stop() {
@@ -150,6 +150,6 @@ class Player {
       _progressTimer.cancel();
       _progressTimer = null;
     }
-    _channel.invokeMethod('play', null);
+    _channel.invokeMethod<void>('play', null);
   }
 }

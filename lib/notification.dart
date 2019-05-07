@@ -28,7 +28,7 @@ class NowPlayingNotification {
   }
 
   void _setProgress(int progress, int duration) {
-    _channel.invokeMethod('setProgress', [progress, duration]);
+    _channel.invokeMethod<void>('setProgress', [progress, duration]);
   }
 
   void show({
@@ -43,7 +43,7 @@ class NowPlayingNotification {
       _progressSubscription = null;
     }
 
-    _channel.invokeMethod('nowPlaying', <String, String>{
+    _channel.invokeMethod<void>('nowPlaying', <String, String>{
       'artist': artist,
       'title': title,
       'duration': '$duration',
@@ -58,10 +58,10 @@ class NowPlayingNotification {
 
   void setVote(int direction) {
     assert(direction == -1 || direction == 1);
-    _channel.invokeMethod('setVote', direction);
+    _channel.invokeMethod<void>('setVote', direction);
   }
 
   void close() {
-    _channel.invokeMethod('nowPlaying', null);
+    _channel.invokeMethod<void>('nowPlaying', null);
   }
 }

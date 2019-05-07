@@ -134,7 +134,7 @@ class UserLeaveMessage {
   UserLeaveMessage({this.id, this.user});
 
   factory UserLeaveMessage.fromJson(dynamic json, {Map<String, User> users}) {
-    final String id = json;
+    final id = json as String;
     final user = users != null ? users[id] : null;
     return UserLeaveMessage(id: id, user: user);
   }
@@ -240,7 +240,7 @@ class UwaveClient {
   void _initSocket() {
     _ws.init();
     _ws.stream.listen((message) {
-      final Map<String, dynamic> decoded = json.decode(message);
+      final decoded = json.decode(message) as Map<String, dynamic>;
       _onMessage(_SocketMessage.fromJson(decoded));
     });
   }
@@ -264,7 +264,7 @@ class UwaveClient {
     }
 
     final response = await _client.get('$apiUrl/now', headers: headers);
-    final Map<String, dynamic> nowJson = json.decode(response.body);
+    final nowJson = json.decode(response.body) as Map<String, dynamic>;
     final state = UwaveNowState.fromJson(nowJson);
 
     _serverTime.serverTime = state.serverTime;
@@ -309,7 +309,7 @@ class UwaveClient {
         'authorization': 'JWT ${_activeCredentials.token}',
       },
     );
-    final Map<String, dynamic> socketJson = json.decode(response.body);
+    final socketJson = json.decode(response.body) as Map<String, dynamic>;
     final dynamic socketToken = socketJson['data']['socketToken'];
 
     if (socketToken is String) {
@@ -356,7 +356,7 @@ class UwaveClient {
       throw 'Sign in failed';
     }
 
-    final Map<String, dynamic> authJson = json.decode(response.body);
+    final authJson = json.decode(response.body) as Map<String, dynamic>;
     _activeCredentials = UwaveCredentials(
       token: authJson['meta']['jwt'] as String,
     );
