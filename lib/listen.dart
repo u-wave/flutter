@@ -171,7 +171,33 @@ class _UwaveListenState extends State<UwaveListen> {
     );
   }
 
-  Widget _buildPlayer() {
+  Widget _buildPlayer(BuildContext context) {
+    if (widget.store.playbackErrorMessage != null) {
+      return Container(
+        color: Colors.black,
+        padding: const EdgeInsets.all(6.0),
+        child: Column(
+          children: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Icon(Icons.warning, color: const Color(0xFFB64B4B)),
+                Text('Could not play this track'),
+              ],
+            ),
+            Text(widget.store.playbackErrorMessage, textAlign: TextAlign.center),
+            FlatButton(
+              color: Theme.of(context).primaryColor,
+              textTheme: ButtonTextTheme.primary,
+              child: Text('Retry'),
+              onPressed: () {
+                widget.store.retryPlay();
+              },
+            ),
+          ],
+        ),
+      );
+    }
     if (widget.store.isPlaying) {
       return Stack(
         key: _playerViewKey,
@@ -225,7 +251,7 @@ class _UwaveListenState extends State<UwaveListen> {
             Expanded(
               child: Column(
                 children: <Widget>[
-                  Flexible(flex: 0, child: _buildPlayer()),
+                  Flexible(flex: 0, child: _buildPlayer(context)),
                   Expanded(flex: 1, child: chatMessages),
                 ],
               )

@@ -56,6 +56,7 @@ class ListenStore {
   Settings _settings;
   UwaveServer _server;
   UwaveClient _client;
+  HistoryEntry _tryingToPlay;
   HistoryEntry _playing;
   PlaybackType _playbackType = PlaybackType.disabled;
   PlaybackSettings _playbackSettings;
@@ -76,6 +77,7 @@ class ListenStore {
   final chatHistory = <dynamic>[];
 
   bool get isPlaying => _playing != null;
+  bool get canRetry => _tryingToPlay != null;
   HistoryEntry get currentEntry => _playing;
   PlaybackSettings get playbackSettings => _playbackSettings;
   String get playbackErrorMessage => _playbackErrorMessage;
@@ -147,12 +149,8 @@ class ListenStore {
 
     _advanceSubscription = _client.advanceMessages.listen((entry) {
       if (entry != null) {
-        play(entry).catchError((Exception error) {
-          // TODO bubble this to the UI
-          debugPrint('play error: ${error.toString()}');
-          _playbackErrorMessage = error.toString();
-          _emitUpdate();
-        });
+        _tryingToPlay = entry;
+        play(entry);
       } else {
         stop();
       }
@@ -243,28 +241,44 @@ class ListenStore {
 
   /// Start playing a history entry.
   Future<void> play(HistoryEntry entry) async {
-    final player = Player.getInstance();
-    final notification = NowPlayingNotification.getInstance();
-    final playbackSettings = await player.play(entry, _playbackType);
+    _playbackErrorMessage = null;
+    _tryingToPlay = entry;
+    try {
+      final player = Player.getInstance();
+      final notification = NowPlayingNotification.getInstance();
+      final playbackSettings = await player.play(entry, _playbackType);
 
-    if (playbackSettings.hasTexture) {
-      _log('Using player texture #${playbackSettings.texture}');
-    } else {
-      _log('Audio-only: no player texture');
+      if (playbackSettings.hasTexture) {
+        _log('Using player texture #${playbackSettings.texture}');
+      } else {
+        _log('Audio-only: no player texture');
+      }
+
+      _voteStats = VoteStats();
+      _playing = entry;
+      _playbackSettings = playbackSettings;
+      _emitUpdate();
+
+      notification.show(
+        artist: entry.artist,
+        title: entry.title,
+        duration: entry.end - entry.start,
+        progress: playbackSettings.onProgress,
+        showVoteButtons: shouldShowVoteButtons,
+      );
+    } catch (error) {
+      debugPrint('play error: ${error.toString()}');
+      _playbackErrorMessage = error.toString();
+      _emitUpdate();
     }
+  }
 
-    _voteStats = VoteStats();
-    _playing = entry;
-    _playbackSettings = playbackSettings;
-    _emitUpdate();
-
-    notification.show(
-      artist: entry.artist,
-      title: entry.title,
-      duration: entry.end - entry.start,
-      progress: playbackSettings.onProgress,
-      showVoteButtons: shouldShowVoteButtons,
-    );
+  Future<void> retryPlay() async {
+    if (canRetry) {
+      await play(_tryingToPlay);
+    } else {
+      throw Exception('cannot retry when nothing is queued');
+    }
   }
 
   /// Stop playing.
@@ -274,6 +288,7 @@ class ListenStore {
       ..stop();
     NowPlayingNotification.getInstance()
       ..close();
+    _tryingToPlay = null;
     _playing = null;
     _emitUpdate();
   }
