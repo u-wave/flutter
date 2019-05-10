@@ -156,39 +156,35 @@ class _UwaveListenState extends State<UwaveListen> {
   }
 
   Widget _buildPlayerOverlay() {
-    final List<Widget> children = [];
-    if (widget.store.isSignedIn) {
-      children.add(_buildVoteButtons());
-    }
-    children.add(_buildSettingsIcon());
-
     return AspectRatio(
       aspectRatio: 16 / 9,
       child: Container(
         color: const Color(0x77000000),
-        child: Stack(children: children),
+        child: Stack(
+          children: <Widget>[
+            if (widget.store.isSignedIn)
+              _buildVoteButtons(),
+            _buildSettingsIcon(),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildPlayer() {
     if (widget.store.isPlaying) {
-      final children = <Widget>[
-        PlayerView(
-          textureId: widget.store.playbackSettings.texture,
-          aspectRatio: widget.store.playbackSettings.aspectRatio,
-          entry: widget.store.currentEntry,
-          currentProgress: widget.store.playbackSettings.onProgress,
-        ),
-      ];
-
-      if (_showOverlay) {
-        children.add(_buildPlayerOverlay());
-      }
-
       return Stack(
         key: _playerViewKey,
-        children: children,
+        children: <Widget>[
+          PlayerView(
+            textureId: widget.store.playbackSettings.texture,
+            aspectRatio: widget.store.playbackSettings.aspectRatio,
+            entry: widget.store.currentEntry,
+            currentProgress: widget.store.playbackSettings.onProgress,
+          ),
+          if (_showOverlay)
+            _buildPlayerOverlay(),
+        ],
       );
     }
     if (_clientConnected) {
