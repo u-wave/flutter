@@ -59,6 +59,7 @@ class ListenStore {
   HistoryEntry _playing;
   PlaybackType _playbackType = PlaybackType.disabled;
   PlaybackSettings _playbackSettings;
+  String _playbackErrorMessage;
   VoteStats _voteStats;
   Connectivity _connectivity;
   ConnectivityResult _connectivityStatus = ConnectivityResult.none;
@@ -77,6 +78,7 @@ class ListenStore {
   bool get isPlaying => _playing != null;
   HistoryEntry get currentEntry => _playing;
   PlaybackSettings get playbackSettings => _playbackSettings;
+  String get playbackErrorMessage => _playbackErrorMessage;
   VoteStats get voteStats => _voteStats;
   bool get isSignedIn => _client.currentUser != null;
   User get currentUser => _client.currentUser;
@@ -145,7 +147,14 @@ class ListenStore {
 
     _advanceSubscription = _client.advanceMessages.listen((entry) {
       if (entry != null) {
-        play(entry);
+        play(entry).catchError((error) {
+          // TODO bubble this to the UI
+          debugPrint('play error: ${error.toString()}');
+          if (error is Exception) {
+            _playbackErrorMessage = (error as Exception).toString();
+          }
+          _emitUpdate();
+        });
       } else {
         stop();
       }
