@@ -147,12 +147,10 @@ class ListenStore {
 
     _advanceSubscription = _client.advanceMessages.listen((entry) {
       if (entry != null) {
-        play(entry).catchError((error) {
+        play(entry).catchError((Exception error) {
           // TODO bubble this to the UI
           debugPrint('play error: ${error.toString()}');
-          if (error is Exception) {
-            _playbackErrorMessage = (error as Exception).toString();
-          }
+          _playbackErrorMessage = error.toString();
           _emitUpdate();
         });
       } else {
