@@ -40,8 +40,8 @@ class UwaveAnnounceClient {
 
   Future<List<UwaveServer>> fetchServers() async {
     final response = await http.get(_url);
-    final Map<String, dynamic> parsed = json.decode(response.body);
-    final List<UwaveServer> list = parsed['servers']
+    final parsed = json.decode(response.body) as Map<String, dynamic>;
+    final List<UwaveServer> list = (parsed['servers'] as List<dynamic>)
         .cast<Map<String, dynamic>>()
         .map<UwaveServer>((Map<String, dynamic> json) => UwaveServer.fromJson(json))
         .toList();

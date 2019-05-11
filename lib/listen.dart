@@ -180,8 +180,8 @@ class _UwaveListenState extends State<UwaveListen> {
           children: <Widget>[
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Icon(Icons.warning, color: const Color(0xFFB64B4B)),
+              children: const <Widget>[
+                Icon(Icons.warning, color: Color(0xFFB64B4B)),
                 Text('Could not play this track'),
               ],
             ),
@@ -189,7 +189,7 @@ class _UwaveListenState extends State<UwaveListen> {
             FlatButton(
               color: Theme.of(context).primaryColor,
               textTheme: ButtonTextTheme.primary,
-              child: Text('Retry'),
+              child: const Text('Retry'),
               onPressed: () {
                 widget.store.retryPlay();
               },
