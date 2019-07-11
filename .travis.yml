@@ -25,7 +25,7 @@ before_install:
   - yes | sdkmanager "platforms;android-27"
   - mkdir -p ~/.sdk && pushd ~/.sdk
   - curl -O https://storage.googleapis.com/flutter_infra/releases/stable/linux/flutter_linux_v1.5.4-hotfix.2-stable.tar.xz
-  - tar xf flutter_linux_v1.5.4-hotfix.2-stable.tar.xz
+  - tar xf flutter_linux_v1.7.8-hotfix.3-stable.tar.xz
   - export PATH="$(pwd)/flutter/bin:$PATH"
   - popd
   - flutter config --no-analytics
