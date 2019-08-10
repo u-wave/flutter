@@ -8,9 +8,11 @@ const _methodChannel = MethodChannel('u-wave.net/websocket');
 
 const _NO_MESSAGE = <String>[];
 
+typedef ReconnectCallback = Future<void> Function();
 class PlatformWebSocket extends WebSocket {
   final String _socketUrl;
   Stream<dynamic> _stream;
+  ReconnectCallback _customReconnect;
 
   @override
   Stream<String> get stream =>
@@ -26,17 +28,22 @@ class PlatformWebSocket extends WebSocket {
   @override
   EventSink get sink => _PlatformWebSocketSink();
 
-  PlatformWebSocket(String socketUrl)
+  PlatformWebSocket(String socketUrl, {ReconnectCallback reconnect})
       : assert(socketUrl != null),
-        _socketUrl = socketUrl {
+        _socketUrl = socketUrl,
+        _customReconnect = reconnect {
     _stream = _eventChannel.receiveBroadcastStream(_socketUrl);
   }
 
   @override
-  void init() {}
+  void init() {
+    debugPrint('STUB: PlatformWebSocket#init');
+  }
 
   @override
-  Future<void> reconnect() async {}
+  Future<void> reconnect() async {
+    debugPrint('UNIMPLEMENTED: PlatformWebSocket#reconnect');
+  }
 }
 
 class _PlatformWebSocketSink extends EventSink<String> {

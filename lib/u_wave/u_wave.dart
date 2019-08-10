@@ -228,12 +228,13 @@ class UwaveClient {
   UwaveClient({this.apiUrl, this.socketUrl, bool usePlatformSocket = false})
       : assert(apiUrl != null),
         assert(socketUrl != null) {
+    final reconnectHook = () async {
+      await reconnect();
+    };
     if (usePlatformSocket) {
-      _ws = PlatformWebSocket(socketUrl);
+      _ws = PlatformWebSocket(socketUrl, reconnect: reconnectHook);
     } else {
-      _ws = DartWebSocket(socketUrl, reconnect: () async {
-        await reconnect();
-      });
+      _ws = DartWebSocket(socketUrl, reconnect: reconnectHook);
     }
   }
 
