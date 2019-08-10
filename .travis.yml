@@ -9,6 +9,9 @@ android:
     # The SDK version used to compile üWave Flutter
     - android-27
 
+env:
+  - FLUTTER_VERSION=v1.7.8+hotfix.4
+
 addons:
   apt:
     # Flutter depends on /usr/lib/x86_64-linux-gnu/libstdc++.so.6 version GLIBCXX_3.4.18
@@ -24,8 +27,8 @@ licenses:
 before_install:
   - yes | sdkmanager "platforms;android-27"
   - mkdir -p ~/.sdk && pushd ~/.sdk
-  - curl -O https://storage.googleapis.com/flutter_infra/releases/stable/linux/flutter_linux_v1.7.8-hotfix.4-stable.tar.xz
-  - tar xf flutter_linux_v1.7.8-hotfix.4-stable.tar.xz
+  - curl -O https://storage.googleapis.com/flutter_infra/releases/stable/linux/flutter_linux_$FLUTTER_VERSION-stable.tar.xz
+  - tar xf flutter_linux_$FLUTTER_VERSION-stable.tar.xz
   - export PATH="$(pwd)/flutter/bin:$PATH"
   - popd
   - flutter config --no-analytics
