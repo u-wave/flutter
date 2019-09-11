@@ -12,7 +12,8 @@ typedef ReconnectCallback = Future<void> Function();
 class PlatformWebSocket extends WebSocket {
   final String _socketUrl;
   Stream<dynamic> _stream;
-  ReconnectCallback _customReconnect;
+  // ignore: unused_field
+  final ReconnectCallback _customReconnect;
 
   @override
   Stream<String> get stream =>

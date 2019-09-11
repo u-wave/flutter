@@ -12,7 +12,7 @@ class DartWebSocket extends WebSocket {
   final String _socketUrl;
   WebSocketChannel _channel;
   Timer _disconnectTimer;
-  ReconnectCallback _customReconnect;
+  final ReconnectCallback _customReconnect;
 
   @override
   Stream<String> get stream =>
