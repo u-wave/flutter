@@ -6,9 +6,9 @@ import io.flutter.plugin.common.MethodChannel.Result;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import org.schabi.newpipe.extractor.Downloader;
 import org.schabi.newpipe.extractor.DownloadRequest;
 import org.schabi.newpipe.extractor.DownloadResponse;
+import org.schabi.newpipe.extractor.Downloader;
 import org.schabi.newpipe.extractor.utils.Localization;
 
 /**
