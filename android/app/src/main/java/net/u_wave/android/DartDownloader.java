@@ -64,6 +64,11 @@ class DartDownloader implements Downloader {
   }
 
   @Override
+  public DownloadResponse head(String url) throws IOException {
+    throw new IOException("unimplemented");
+  }
+
+  @Override
   public DownloadResponse get(String url, DownloadRequest r) throws IOException {
     throw new IOException("unimplemented");
   }
