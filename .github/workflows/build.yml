@@ -3,6 +3,7 @@ name: Build
 on: [push, pull_request]
 
 jobs:
+
   apk:
     runs-on: ubuntu-latest
     steps:
@@ -10,6 +11,22 @@ jobs:
       - uses: subosito/flutter-action@v1
         with:
           flutter-version: '1.9.1+hotfix.2'
-      - run: flutter pub get
-      - run: flutter test
       - run: flutter build apk
+
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: subosito/flutter-action@v1
+        with:
+          flutter-version: '1.9.1+hotfix.2'
+      - run: flutter analyze lib
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: subosito/flutter-action@v1
+        with:
+          flutter-version: '1.9.1+hotfix.2'
+      - run: flutter test
