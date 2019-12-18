@@ -73,9 +73,10 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation "androidx.legacy:legacy-support-v4:${androidxLibVersion}"
 
+    implementation 'com.squareup.okhttp3:okhttp:3.12.6'
+    implementation 'org.java-websocket:Java-WebSocket:1.4.0'
+
     implementation "com.github.teamnewpipe:NewPipeExtractor:$newpipeExtractVersion"
     implementation "com.google.android.exoplayer:exoplayer:$exoPlayerLibVersion"
     implementation "com.google.android.exoplayer:extension-mediasession:$exoPlayerLibVersion"
-
-    implementation 'org.java-websocket:Java-WebSocket:1.4.0'
 }
