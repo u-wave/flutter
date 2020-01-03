@@ -11,9 +11,9 @@ import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.Timeline;
-import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.MergingMediaSource;
+import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.source.dash.DashMediaSource;
 import com.google.android.exoplayer2.source.dash.DefaultDashChunkSource;
@@ -276,7 +276,7 @@ class PlaybackAction implements Player.EventListener, VideoListener {
       case C.TYPE_HLS:
         return new HlsMediaSource.Factory(dataSourceFactory).createMediaSource(uri);
       case C.TYPE_OTHER:
-        return new ExtractorMediaSource.Factory(dataSourceFactory).createMediaSource(uri);
+        return new ProgressiveMediaSource.Factory(dataSourceFactory).createMediaSource(uri);
     }
     return null;
   }
