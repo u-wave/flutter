@@ -61,7 +61,7 @@ flutter {
 ext {
     androidxLibVersion = '1.0.0'
     exoPlayerLibVersion = '2.10.8'
-    newpipeExtractVersion = 'v0.17.4'
+    newpipeExtractVersion = 'v0.18.0'
 }
 
 dependencies {
