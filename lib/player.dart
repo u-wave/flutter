@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
 import './u_wave/u_wave.dart' show HistoryEntry, Media;
 import './settings.dart' show PlaybackType;
 

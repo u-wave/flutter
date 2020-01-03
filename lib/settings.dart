@@ -139,7 +139,7 @@ class _UwaveSettingsProvider extends InheritedWidget {
         super(key: key, child: child);
 
   static _UwaveSettingsProvider of(BuildContext context) {
-    return context.inheritFromWidgetOfExactType(_UwaveSettingsProvider) as _UwaveSettingsProvider;
+    return context.dependOnInheritedWidgetOfExactType<_UwaveSettingsProvider>();
   }
 
   @override
