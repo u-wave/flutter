@@ -11,7 +11,7 @@ import io.flutter.plugin.common.MethodChannel.Result;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 import java.util.Map;
 import org.schabi.newpipe.extractor.NewPipe;
-import org.schabi.newpipe.extractor.utils.Localization;
+import org.schabi.newpipe.extractor.localization.Localization;
 
 public class PlayerPlugin implements MethodCallHandler {
   private static final String CHANNEL_NAME = "u-wave.net/player";
@@ -20,7 +20,7 @@ public class PlayerPlugin implements MethodCallHandler {
   public static void registerWith(Registrar registrar) {
     final MethodChannel channel = new MethodChannel(registrar.messenger(), CHANNEL_NAME);
     // Currently the app only supports English
-    NewPipe.init(new DartDownloader(channel), new Localization("en", "GB"));
+    NewPipe.init(new OkHttpDownloader(new okhttp3.OkHttpClient.Builder().build()), new Localization("en", "GB"));
     final PlayerPlugin plugin = new PlayerPlugin(registrar);
     channel.setMethodCallHandler(plugin);
   }

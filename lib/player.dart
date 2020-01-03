@@ -5,26 +5,9 @@ import 'package:http/http.dart' as http;
 import './u_wave/u_wave.dart' show HistoryEntry, Media;
 import './settings.dart' show PlaybackType;
 
-/// Download a URL's contents to a string.
-///
-/// This is called by the NewPipe extractor, so I don't have to learn and
-/// ship a Java HTTP client but can instead use the Dart one :P
-Future<String> _download(Map<String, String> headers) async {
-  final url = headers.remove('_url');
-  final response = await http.get(url, headers: headers);
-  if (response.statusCode != 200) {
-    throw 'Unexpected response ${response.statusCode} from $url';
-  }
-  headers['_url'] = url; // restore
-  return response.body;
-}
-
 final _channel = const MethodChannel('u-wave.net/player')
   ..setMethodCallHandler((methodCall) async {
     switch (methodCall.method) {
-      case 'download':
-        final arg = methodCall.arguments as Map<dynamic, dynamic>;
-        return await _download(arg.cast<String, String>());
       default:
         throw MissingPluginException('Unknown method ${methodCall.method}');
     }
