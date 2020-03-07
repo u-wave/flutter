@@ -54,6 +54,10 @@ android {
             signingConfig signingConfigs.debug
         }
     }
+
+    packagingOptions {
+        exclude 'META-INF/proguard/coroutines.pro'
+    }
 }
 
 flutter {
