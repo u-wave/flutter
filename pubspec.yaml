@@ -16,13 +16,13 @@ dependencies:
   flutter:
     sdk: flutter
 
-  flutter_markdown: ^0.2.0
+  flutter_markdown: ^0.3.0
   http: ^0.12.0
   w3c_event_source: ^1.0.0
   web_socket_channel: ^1.0.0
-  shared_preferences: 0.4.3
-  flutter_secure_storage: 3.1.2
-  connectivity: 0.3.2
+  shared_preferences: ^0.5.0
+  flutter_secure_storage: ^3.3.0
+  connectivity: ^0.4.0
 
 dev_dependencies:
   flutter_test:
